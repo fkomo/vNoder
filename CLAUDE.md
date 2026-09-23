@@ -122,8 +122,8 @@ Conventions that go with it:
   is where sizes come from. A vertical scrollbar when the value is taller than the node (nothing horizontal), anchored top-left,
   clipped to the node, with an inline Wrap
   toggle. It also passes its input straight through an `any`
-  output, so a display can sit mid-chain rather than only at the end. `Resizable = true` (as are the
-  file nodes): enlarging is how you read a long value.
+  output, so a display can sit mid-chain rather than only at the end. `Resizable = true`: enlarging is how
+  you read a long value.
 - `LengthNode` is the same kind of terminal display but reports a size, and also exposes the count as
   a number so it can feed arithmetic.
 - **"Any" (`object`) is permissive in both directions.** An `any` input accepts every output, and an
@@ -174,9 +174,19 @@ Conventions that go with it:
   order (`RefreshSearchResults`), and pre-selects it, so drag-drop-Enter shows a value.
 - `QrCodeNode` keeps its last PNG in a computed `Png` property (non-public setter, so not persisted)
   for the inline preview, shown through `BytesToImageConverter` with nearest-neighbour scaling.
-- `FileDeleteNode` is destructive and unconditional — in a continuous run it fires every tick. Its
-  `Deleted` output reports whether *this* pass removed something, since `File.Delete` is silent about
-  a file that was not there and "nothing to do" should not read as success.
+- `PathDeleteNode` (formerly `FileDeleteNode`, "IO/File Delete") is destructive and unconditional — in
+  a continuous run it fires every tick. Its `Deleted` output reports whether *this* pass removed
+  something, since `File.Delete` is silent about a file that was not there and "nothing to do" should
+  not read as success. A non-empty directory needs `Recursive`; a drive root is always refused.
+- **Path Delete walks the tree itself** rather than calling `Directory.Delete(path, true)`. Neither
+  follows a junction into its target, but .NET's recursive delete fails with "access denied" on
+  reaching one and leaves the tree half-deleted; `Directory.Delete(link, false)` removes a junction
+  cleanly. So links inside the tree are unlinked, never entered, and a path that is itself a link has
+  just the link removed, without needing `Recursive`. Test link handling with a real junction
+  (`mklink /J`, no admin needed) and a sentinel file in its target.
+- File Write and Image Save create missing parent folders (`FilePaths.EnsureDirectory`).
+- Path fields are **single-line** `NodeFieldTextBox`es, as in Image Load; a path does not need a
+  multi-line, wrapping, resizable box.
 - Text nodes **clamp rather than throw** on out-of-range arguments (`SubstringNode`) and treat a
   degenerate argument as a no-op (`ReplaceAllNode` with an empty Find, `SplitNode` with an empty
   separator). A graph running continuously would otherwise sit in an error state for as long as a
@@ -219,8 +229,10 @@ Save plus the built-in `Ctrl+N` / `Ctrl+O` / `Ctrl+S` gestures and `Ctrl+Shift+S
 shows the file name and a `*` when dirty.
 
 - **Nodes are keyed by definition path** (`"type": "Math/Add"`), not CLR type name, so a file stays
-  readable and survives class renames. Renaming a node's `NodeDefinition` path breaks existing files;
-  renaming a *port* drops just that link, with a warning.
+  readable and survives class renames. To rename a node's `NodeDefinition` path, list the old one in
+  `FormerPaths = ["Old/Path"]`: saved files still load and are written back under the new path, and
+  the old path never appears in the catalogue. Without it, every saved instance becomes an unknown node
+  type. Renaming a *port* drops just that link, with a warning.
 - **Inline state is captured by reflection** (`NodeStateProperties`): the public read/write
   properties a node declares itself, of a JSON-friendly type. This is deliberate — it is what keeps
   adding a node to one class, with no serializer to touch. Do not replace it with per-node
@@ -299,6 +311,9 @@ Do not replace it with per-operation commands.
   bindings; a moved wire re-renders only itself, and wires outside the viewport (by the Bezier's
   control-point hull, `LinkViewModel.Bounds`) render nothing. The layer is not hit-testable, so a
   click on a wire falls through to the canvas.
+- A port row with a port on one side only draws nothing on the other: the `PortSlot` style collapses
+  a port `ContentControl` whose content is null. Without it the port template is still instantiated
+  for the null port and paints an unbound dark dot on the node's edge.
 - Wire endpoints come from `NodeMetrics` plus the node's own width, not from measuring the visual
   tree, so an anchor is exact the instant a node moves or is resized. **The header height and port
   row height in `NodeMetrics` and in the node template in `MainWindow.xaml` must be changed
@@ -368,8 +383,11 @@ otherwise an **output**, since outputs are where a wire starts.
   accumulating, which is what makes repeated application safe.
 - `Ctrl+C` / `Ctrl+V` copy and paste the selection; pasted nodes land offset and become the selection.
 - **Resizing is opt-in**, declared on the node's own attribute: `[NodeDefinition("...",
-  Resizable = true)]` — today `Output`, `Static Text` and the three file nodes. Most nodes are a fixed
-  list of ports and gain nothing from a grip; turn it on for nodes with a body worth enlarging. A
+  Resizable = true)]` — today `Output`, `Static Text`, `Image`, `QR Code` and `HTTP Request`. Most
+  nodes are a fixed list of ports and gain nothing from a grip; turn it on for nodes with a body worth
+  enlarging. A node that is **not** resizable drops any saved size when its view-model is created
+  (`NodeViewModel` resets `Model.Size`), so a file saved while a type was still resizable — the file
+  nodes were — does not pin its editor to a stale height with no grip to fix it. A
   resizable node starts at `NodeMetrics.DefaultContentHeight` rather than Auto, deliberately: a
   display node must not resize itself when a large value arrives. `Width` is the node's own width
   (wires follow it, because output anchors are `Node.X + Node.Width`) and `ContentHeight` sizes only

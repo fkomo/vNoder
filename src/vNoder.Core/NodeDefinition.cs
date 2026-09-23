@@ -3,8 +3,15 @@ namespace vNoder.Core;
 /// <summary>One entry in the node catalog, built by <see cref="NodeRegistry"/> from an attribute.</summary>
 public sealed class NodeDefinition
 {
-    public NodeDefinition(Type nodeType, string category, string name, string? description, bool isResizable)
+    public NodeDefinition(
+        Type nodeType,
+        string category,
+        string name,
+        string? description,
+        bool isResizable,
+        IReadOnlyList<string>? formerPaths = null)
     {
+        FormerPaths = formerPaths ?? [];
         NodeType = nodeType;
         Category = category;
         Name = name;
@@ -19,6 +26,9 @@ public sealed class NodeDefinition
     public bool IsResizable { get; }
 
     public string Path => $"{Category}/{Name}";
+
+    /// <summary>Earlier paths that still resolve to this definition; see <see cref="NodeDefinitionAttribute.FormerPaths"/>.</summary>
+    public IReadOnlyList<string> FormerPaths { get; }
 
     private IReadOnlyList<Type>? _inputTypes;
 

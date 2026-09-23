@@ -28,7 +28,7 @@ public sealed class NodeRegistry
                 continue;
 
             var (category, name) = SplitPath(attribute.Path, type);
-            _definitions.Add(new NodeDefinition(type, category, name, attribute.Description, attribute.Resizable));
+            _definitions.Add(new NodeDefinition(type, category, name, attribute.Description, attribute.Resizable, attribute.FormerPaths));
         }
 
         _definitions.Sort(static (a, b) =>
@@ -53,6 +53,7 @@ public sealed class NodeRegistry
     /// </summary>
     public NodeDefinition? Find(string path) =>
         _definitions.FirstOrDefault(d => string.Equals(d.Path, path, StringComparison.OrdinalIgnoreCase))
+        ?? _definitions.FirstOrDefault(d => d.FormerPaths.Contains(path, StringComparer.OrdinalIgnoreCase))
         ?? _definitions.FirstOrDefault(d => d.NodeType.FullName == path || d.NodeType.Name == path);
 
     private static (string Category, string Name) SplitPath(string path, Type type)

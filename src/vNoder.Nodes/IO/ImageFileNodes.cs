@@ -155,6 +155,7 @@ public sealed class ImageSaveNode : NodeBase
             bytes = await Task.Run(() => ImageConversion.Convert(bytes, target, quality, token), token).ConfigureAwait(false);
         }
 
+        FilePaths.EnsureDirectory(path);
         await File.WriteAllBytesAsync(path, bytes, context.CancellationToken).ConfigureAwait(false);
         _successOut.Value = true;
         _pathOut.Value = path;
@@ -172,6 +173,20 @@ public sealed class ImageSaveNode : NodeBase
             if (!File.Exists(candidate))
                 return candidate;
         }
+    }
+}
+
+internal static class FilePaths
+{
+    /// <summary>
+    /// Creates the folder a file is about to be written into, and any missing parents. A no-op when it
+    /// exists, and for a bare file name, which lands in the working directory.
+    /// </summary>
+    public static void EnsureDirectory(string filePath)
+    {
+        var directory = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(filePath));
+        if (!string.IsNullOrEmpty(directory))
+            Directory.CreateDirectory(directory);
     }
 }
 

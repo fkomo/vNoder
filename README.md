@@ -71,7 +71,7 @@ a collapsed group stay drawn, stubbed to its edge, so you can still see it is co
 | Logic | And, Or, Xor, Nand, Boolean, Equals, Compare |
 | Encoding | Base64 Encode / Decode, URL Encode / Decode, QR Code |
 | Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512), BCrypt Hash, BCrypt Verify, PBKDF2 |
-| IO | File Read, File Write, File Delete, File Search, Directory Size, Image Load, Image Save |
+| IO | File Read, File Write, Path Delete (files and directories), File Search, Directory Size, Image Load, Image Save |
 | Network | HTTP Request (GET, POST, PUT, PATCH, DELETE) |
 | Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM) |
 | Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text) |
@@ -84,7 +84,7 @@ Evaluation order comes from the wiring: nodes are sorted by data dependency, and
 between it and another has no guaranteed order relative to it. A node that fails is reported on the
 node itself and does not stop the rest of the pass.
 
-Nodes with side effects — File Write, File Delete, Image Save and HTTP Request — act on every pass, so in a
+Nodes with side effects — File Write, Path Delete, Image Save and HTTP Request — act on every pass, so in a
 continuous run they fire on every tick. An HTTP error status (404, 500) is a result, reported on the
 node's Status and Success outputs along with the body, not a failure.
 
@@ -94,6 +94,10 @@ Graphs save as JSON with a `.vnoder` extension, holding the nodes and their inli
 any groups, and the current zoom and pan. Node types are stored by name (`"type": "Math/Add"`), so the
 file stays readable. A file that references something this build does not have still opens — the parts
 that could not be restored are reported and the rest loads.
+
+File Write and Image Save create any missing folders in the path. Path Delete removes a file or an
+empty directory; a directory with contents is deleted only with Recursive ticked, links (junctions,
+symbolic links) are removed without touching what they point at, and a drive root is always refused.
 
 Image Save writes in the format its file extension names, converting when the image is in a
 different one (a PNG saved as `photo.jpg` becomes a JPEG); leave the extension off to keep the format.

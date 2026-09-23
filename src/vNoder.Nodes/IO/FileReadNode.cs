@@ -3,7 +3,7 @@ using vNoder.Core;
 
 namespace vNoder.Nodes;
 
-[NodeDefinition("IO/File Read", Description = "Reads a file as bytes and as UTF-8 text.", Resizable = true)]
+[NodeDefinition("IO/File Read", Description = "Reads a file as bytes and as UTF-8 text.")]
 public sealed class FileReadNode : NodeBase
 {
     private string _path = string.Empty;

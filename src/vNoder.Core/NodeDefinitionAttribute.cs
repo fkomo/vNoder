@@ -23,6 +23,14 @@ public sealed class NodeDefinitionAttribute(string path) : Attribute
     /// </summary>
     public bool Resizable { get; init; }
 
+    /// <summary>
+    /// Paths this node type was saved under before being renamed. Files are keyed by definition path,
+    /// so renaming one would otherwise turn every saved instance into an "unknown node type"; listing
+    /// the old path here lets those files load, and they are written back under the new path. The
+    /// node's persisted properties and port names must still match for the old state to carry over.
+    /// </summary>
+    public string[] FormerPaths { get; init; } = [];
+
     public static NodeDefinitionAttribute? For(Type nodeType) =>
         nodeType.GetCustomAttribute<NodeDefinitionAttribute>(inherit: false);
 }

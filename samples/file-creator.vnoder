@@ -2,83 +2,105 @@
   "formatVersion": 1,
   "view": {
     "scale": 1,
-    "offsetX": 189,
-    "offsetY": 133
+    "offsetX": -60,
+    "offsetY": -69
   },
   "intervalMilliseconds": 10,
   "nodes": [
     {
       "id": "607dcc76-323b-4c4b-935e-96429357c049",
       "type": "IO/File Write",
-      "x": 916,
-      "y": 548,
+      "x": 1357,
+      "y": 596,
       "state": {
         "AppendIfExists": false,
         "Path": ""
       }
     },
     {
-      "id": "1fe4b60a-254b-4494-9166-6d67be625d3c",
-      "type": "Input/Static Text",
-      "x": -15,
-      "y": 520,
-      "w": 177,
-      "h": 43,
-      "state": {
-        "Text": "d:\\tmp\\vNoder\\"
-      }
-    },
-    {
       "id": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
       "type": "Text/Concat",
-      "x": 340,
-      "y": 621
-    },
-    {
-      "id": "db44b715-6adf-4b73-9f1e-527a3e41bfa6",
-      "type": "Generators/Random String",
-      "x": -4,
-      "y": 695,
-      "state": {
-        "Charset": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-        "Length": 16
-      }
+      "x": 824,
+      "y": 737
     },
     {
       "id": "03d343d2-01cf-44a3-a8b1-de12592f1078",
       "type": "Output/Output",
-      "x": 781,
-      "y": 87,
-      "w": 551,
-      "h": 208,
+      "x": 1118,
+      "y": 146,
+      "w": 456,
+      "h": 263,
       "state": {
-        "Wrap": false
+        "Wrap": true
       }
     },
     {
       "id": "43ab01aa-aca4-440b-b898-c9036b3611fa",
       "type": "Generators/Random String",
-      "x": 133,
-      "y": 189,
+      "x": 524,
+      "y": 344,
       "state": {
         "Charset": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
         "Length": 1024
       }
+    },
+    {
+      "id": "776f3990-8362-44ba-a399-db7769d54d45",
+      "type": "Input/Static Text",
+      "x": 583,
+      "y": 800,
+      "state": {
+        "Text": ".txt"
+      }
+    },
+    {
+      "id": "2fbddc0a-ce10-4105-b196-6c2028c86b93",
+      "type": "Input/Static Text",
+      "x": 298,
+      "y": 650,
+      "state": {
+        "Text": ".\\tmp\\"
+      }
+    },
+    {
+      "id": "f245415d-a1a4-4924-83a5-71f5fa09c65b",
+      "type": "Text/Concat",
+      "x": 568,
+      "y": 680
+    },
+    {
+      "id": "ad04fc5c-732a-4e82-b015-3e00414808e8",
+      "type": "Output/Output",
+      "x": 1247,
+      "y": 879,
+      "w": 356,
+      "h": 74,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "57052509-32d4-4518-b009-090041abad22",
+      "type": "Generators/GUID",
+      "x": 279,
+      "y": 843,
+      "state": {
+        "Format": 1,
+        "Uppercase": false,
+        "Version": 1
+      }
+    },
+    {
+      "id": "f65c5be5-4825-4f26-95e1-bd822ca75b8b",
+      "type": "IO/Image Load",
+      "x": 277,
+      "y": 200,
+      "state": {
+        "Path": ""
+      }
     }
   ],
   "links": [
-    {
-      "fromNode": "db44b715-6adf-4b73-9f1e-527a3e41bfa6",
-      "fromPort": "Text",
-      "toNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
-      "toPort": "B"
-    },
-    {
-      "fromNode": "1fe4b60a-254b-4494-9166-6d67be625d3c",
-      "fromPort": "Text",
-      "toNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
-      "toPort": "A"
-    },
     {
       "fromNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
       "fromPort": "Text",
@@ -96,6 +118,36 @@
       "fromPort": "Text",
       "toNode": "607dcc76-323b-4c4b-935e-96429357c049",
       "toPort": "Data"
+    },
+    {
+      "fromNode": "776f3990-8362-44ba-a399-db7769d54d45",
+      "fromPort": "Text",
+      "toNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "2fbddc0a-ce10-4105-b196-6c2028c86b93",
+      "fromPort": "Text",
+      "toNode": "f245415d-a1a4-4924-83a5-71f5fa09c65b",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "f245415d-a1a4-4924-83a5-71f5fa09c65b",
+      "fromPort": "Text",
+      "toNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "fromPort": "Text",
+      "toNode": "ad04fc5c-732a-4e82-b015-3e00414808e8",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "57052509-32d4-4518-b009-090041abad22",
+      "fromPort": "GUID",
+      "toNode": "f245415d-a1a4-4924-83a5-71f5fa09c65b",
+      "toPort": "B"
     }
   ],
   "groups": [
@@ -104,9 +156,11 @@
       "name": "new file path",
       "isCollapsed": false,
       "nodeIds": [
-        "1fe4b60a-254b-4494-9166-6d67be625d3c",
         "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
-        "db44b715-6adf-4b73-9f1e-527a3e41bfa6"
+        "776f3990-8362-44ba-a399-db7769d54d45",
+        "2fbddc0a-ce10-4105-b196-6c2028c86b93",
+        "f245415d-a1a4-4924-83a5-71f5fa09c65b",
+        "57052509-32d4-4518-b009-090041abad22"
       ]
     }
   ]

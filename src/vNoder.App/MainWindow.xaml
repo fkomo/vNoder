@@ -75,15 +75,25 @@
             </StackPanel>
         </DataTemplate>
 
+        <!-- A row with a port on one side only: the empty side must draw nothing. Without this the
+             port template is still instantiated for a null port and paints an unbound dot. -->
+        <Style x:Key="PortSlot" TargetType="ContentControl">
+            <Style.Triggers>
+                <Trigger Property="Content" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <DataTemplate x:Key="PortRowTemplate">
             <Grid Height="22">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <ContentControl Grid.Column="0" Content="{Binding Input}" HorizontalAlignment="Left"
+                <ContentControl Grid.Column="0" Content="{Binding Input}" Style="{StaticResource PortSlot}" HorizontalAlignment="Left"
                                 VerticalAlignment="Center" ContentTemplate="{StaticResource InputPortTemplate}" />
-                <ContentControl Grid.Column="1" Content="{Binding Output}" HorizontalAlignment="Right"
+                <ContentControl Grid.Column="1" Content="{Binding Output}" Style="{StaticResource PortSlot}" HorizontalAlignment="Right"
                                 VerticalAlignment="Center" ContentTemplate="{StaticResource OutputPortTemplate}" />
             </Grid>
         </DataTemplate>
@@ -153,43 +163,39 @@
             </StackPanel>
         </DataTemplate>
 
-        <DataTemplate DataType="{x:Type n:FileDeleteNode}">
-            <DockPanel MinHeight="44">
-                <TextBlock DockPanel.Dock="Top" Text="Path" Style="{StaticResource NodeFieldLabel}" />
-                <TextBox Style="{StaticResource NodeFieldTextBox}" TextWrapping="Wrap"
-                         AcceptsReturn="False" VerticalContentAlignment="Top"
-                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+        <DataTemplate DataType="{x:Type n:PathDeleteNode}">
+            <StackPanel>
+                <TextBlock Text="Path (file or directory)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Path}"
                          Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
-            </DockPanel>
+                <CheckBox Content="Recursive (with contents)" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding Recursive}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type n:FileReadNode}">
-            <DockPanel MinHeight="44">
-                <TextBlock DockPanel.Dock="Top" Text="Path" Style="{StaticResource NodeFieldLabel}" />
-                <TextBox Style="{StaticResource NodeFieldTextBox}" TextWrapping="Wrap"
-                         AcceptsReturn="False" VerticalContentAlignment="Top"
-                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Path}"
                          Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
-            </DockPanel>
+            </StackPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type n:FileWriteNode}">
-            <DockPanel MinHeight="64">
-                <TextBlock DockPanel.Dock="Top" Text="Path" Style="{StaticResource NodeFieldLabel}" />
-                <CheckBox DockPanel.Dock="Bottom" Content="Append if exists" Margin="0,6,0,0"
-                          FontSize="10" IsChecked="{Binding AppendIfExists}"
-                          Foreground="{StaticResource TextMuted}" />
-                <TextBox Style="{StaticResource NodeFieldTextBox}" TextWrapping="Wrap"
-                         AcceptsReturn="False" VerticalContentAlignment="Top"
-                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Path}"
                          Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
-            </DockPanel>
+                <CheckBox Content="Append if exists" Margin="0,6,0,0"
+                          FontSize="10" IsChecked="{Binding AppendIfExists}"
+                          Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
         </DataTemplate>
 
         <!-- Shows the value in full, anchored top-left. A vertical scrollbar appears once the value

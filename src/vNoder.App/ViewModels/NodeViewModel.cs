@@ -8,6 +8,12 @@ public sealed partial class NodeViewModel : ObservableObject
 {
     public NodeViewModel(NodeBase model)
     {
+        // A node that cannot be resized has no business carrying a size, which it can only have from a
+        // file saved while its type was still resizable (the file nodes were). Honouring it would pin
+        // the editor to a height it no longer needs, with no grip to undo it.
+        if (!model.IsResizable && (model.Size.HasWidth || model.Size.HasHeight))
+            model.Size = GraphSize.Auto;
+
         Model = model;
         _x = model.Position.X;
         _y = model.Position.Y;

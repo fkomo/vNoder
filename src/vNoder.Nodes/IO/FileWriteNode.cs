@@ -3,7 +3,7 @@ using vNoder.Core;
 
 namespace vNoder.Nodes;
 
-[NodeDefinition("IO/File Write", Description = "Writes text or bytes to a file.", Resizable = true)]
+[NodeDefinition("IO/File Write", Description = "Writes text or bytes to a file, creating its folder if needed.")]
 public sealed class FileWriteNode : NodeBase
 {
     private string _path = string.Empty;
@@ -50,6 +50,8 @@ public sealed class FileWriteNode : NodeBase
             string[] parts => Encoding.UTF8.GetBytes(string.Join(Environment.NewLine, parts)),
             var other => Encoding.UTF8.GetBytes(Convert.ToString(other, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty),
         };
+
+        FilePaths.EnsureDirectory(path);
 
         if (AppendIfExists)
             await File.AppendAllBytesAsync(path, bytes, context.CancellationToken).ConfigureAwait(false);

@@ -21,7 +21,7 @@ public enum HttpMethodKind
 /// <remarks>
 /// A response with an error status is a result, not a failure: it is reported on Status and Success
 /// with its body, because an API's error body is usually the thing worth reading. Only a request that
-/// gets no response at all (bad URL, DNS, refused, timeout) throws. Like <c>FileDeleteNode</c> this has
+/// gets no response at all (bad URL, DNS, refused, timeout) throws. Like <c>PathDeleteNode</c> this has
 /// side effects on every pass, so a continuous run sends a request every tick.
 /// </remarks>
 [NodeDefinition(
