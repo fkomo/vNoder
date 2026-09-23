@@ -39,6 +39,17 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         Executor.Evaluated += OnEvaluated;
 
         SearchResults = [.. Registry.Definitions];
+
+        History = new GraphHistory(Graph, Registry);
+        _savedState = History.Current;
+
+        _editCommitTimer = new DispatcherTimer(DispatcherPriority.Background, _dispatcher)
+        {
+            Interval = EditCommitDelay,
+        };
+        _editCommitTimer.Tick += (_, _) => FlushPendingEdit();
+
+        Realizer = new NodeRealizer(Nodes, () => VisibleGraphRect, () => Scale, _dispatcher);
     }
 
     public NodeRegistry Registry { get; }
@@ -46,6 +57,11 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     public GraphExecutor Executor { get; }
 
     public ObservableCollection<NodeViewModel> Nodes { get; } = [];
+
+    /// <summary>The nodes that currently have visuals; the node layer is bound to this, not to <see cref="Nodes"/>.</summary>
+    public ObservableCollection<NodeViewModel> RealizedNodes => Realizer.Realized;
+
+    public NodeRealizer Realizer { get; }
     public ObservableCollection<LinkViewModel> Links { get; } = [];
     public ObservableCollection<NodeGroupViewModel> Groups { get; } = [];
 
@@ -62,6 +78,39 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
     public Point ScreenToGraph(Point screen) =>
         new((screen.X - OffsetX) / Scale, (screen.Y - OffsetY) / Scale);
+
+    private Size _viewportSize;
+
+    /// <summary>Size of the workspace on screen, reported by the view.</summary>
+    public Size ViewportSize
+    {
+        get => _viewportSize;
+        set
+        {
+            if (_viewportSize == value)
+                return;
+
+            _viewportSize = value;
+            OnViewportChanged();
+        }
+    }
+
+    /// <summary>The part of the graph currently on screen. Empty until the view has been laid out.</summary>
+    public Rect VisibleGraphRect => ViewportSize is { Width: > 0, Height: > 0 } size
+        ? new Rect(ScreenToGraph(new Point(0, 0)), ScreenToGraph(new Point(size.Width, size.Height)))
+        : Rect.Empty;
+
+    partial void OnScaleChanged(double value) => OnViewportChanged();
+
+    partial void OnOffsetXChanged(double value) => OnViewportChanged();
+
+    partial void OnOffsetYChanged(double value) => OnViewportChanged();
+
+    private void OnViewportChanged()
+    {
+        OnPropertyChanged(nameof(VisibleGraphRect));
+        Realizer?.Invalidate();
+    }
 
     // ---- Status ---------------------------------------------------------------------------
 
@@ -96,7 +145,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
             Graph.IntervalMilliseconds = value;
             OnPropertyChanged();
-            IsDirty = true;
+            NoteEdit("Change interval");
         }
     }
 
@@ -176,6 +225,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
     public NodeViewModel AddNode(NodeDefinition definition, Point graphPosition)
     {
+        using var change = BeginChange($"Add {definition.Name}");
+
         var model = definition.CreateInstance();
         model.Position = new GraphPoint(graphPosition.X, graphPosition.Y);
 
@@ -188,7 +239,6 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         SelectOnly(viewModel);
         RaiseRunStateChanged();
-        IsDirty = true;
         StatusText = $"Added {definition.Path}.";
         return viewModel;
     }
@@ -200,6 +250,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         if (selected.Count == 0)
             return;
 
+        using var change = BeginChange(selected.Count == 1 ? $"Delete {selected[0].Title}" : $"Delete {selected.Count} nodes");
+
         foreach (var node in selected)
             RemoveNode(node);
 
@@ -208,6 +260,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
     public void RemoveNode(NodeViewModel node)
     {
+        using var change = BeginChange($"Delete {node.Title}");
+
         foreach (var link in Graph.Remove(node.Model))
             ForgetLink(link);
 
@@ -220,7 +274,6 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         RaiseRunStateChanged();
         RaiseSelectionChanged();
-        IsDirty = true;
     }
 
     public IReadOnlyList<NodeViewModel> SelectedNodes => [.. Nodes.Where(n => n.IsSelected)];
@@ -272,10 +325,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     {
         foreach (var node in Nodes)
         {
-            node.IsSelected = keep.Contains(node)
-                              || (node.IsVisible
-                                  && rect.IntersectsWith(
-                                      new Rect(node.X, node.Y, node.Width, node.MeasuredHeight)));
+            node.IsSelected = keep.Contains(node) || (node.IsVisible && rect.IntersectsWith(node.Bounds));
         }
 
         RaiseSelectionChanged();
@@ -283,8 +333,11 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
     private void OnNodeGeometryChanged(object? sender, EventArgs e)
     {
-        if (sender is not NodeViewModel node)
+        // A restore refreshes everything once at the end, rather than per node as each one moves.
+        if (sender is not NodeViewModel node || _restoring)
             return;
+
+        Realizer.InvalidateLater();
 
         // The box must be up to date before wires are recomputed: a port inside a collapsed group
         // anchors to the box, so a stale box would leave those wires a frame behind.
@@ -296,7 +349,11 @@ public sealed partial class WorkspaceViewModel : ObservableObject
                 link.Refresh();
         }
 
-        IsDirty = true;
+        // Only a move or resize the user is making dirties the document, and shows as dirty while
+        // the drag is still going. Geometry also changes when a node is first measured, which, with
+        // virtualization, happens whenever panning brings one into view; that is not an edit.
+        if (_changeDepth > 0)
+            IsDirty = true;
     }
 
     private void Attach(NodeViewModel node)
@@ -314,8 +371,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     private void OnNodeModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         // RaiseBindingsChanged notifies with an empty name: that is evaluation output, not a user edit.
-        if (!string.IsNullOrEmpty(e.PropertyName))
-            IsDirty = true;
+        if (!string.IsNullOrEmpty(e.PropertyName) && sender is NodeBase node)
+            NoteEdit($"Edit {node.Title}");
     }
 
     // ---- Groups ---------------------------------------------------------------------------
@@ -333,6 +390,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
             return;
         }
 
+        using var change = BeginChange($"Group “{name}”");
+
         Graph.AddGroup(new NodeGroup
         {
             Name = name,
@@ -340,14 +399,14 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         });
 
         SyncGroups();
-        IsDirty = true;
         StatusText = $"Grouped {selected.Count} nodes as “{name}”.";
     }
 
     public void RenameGroup(NodeGroupViewModel group, string name)
     {
+        using var change = BeginChange("Rename group");
+
         group.Name = name;
-        IsDirty = true;
         StatusText = $"Renamed group to “{name}”.";
     }
 
@@ -357,10 +416,18 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         if (group is null)
             return;
 
+        using var change = BeginChange($"Ungroup “{group.Name}”");
+
         Graph.RemoveGroup(group.Model);
         SyncGroups();
-        IsDirty = true;
         StatusText = "Ungrouped.";
+    }
+
+    public void ToggleCollapsed(NodeGroupViewModel group)
+    {
+        using var change = BeginChange(group.IsCollapsed ? $"Expand “{group.Name}”" : $"Collapse “{group.Name}”");
+
+        group.IsCollapsed = !group.IsCollapsed;
     }
 
     public NodeGroupViewModel? GroupContaining(NodeViewModel node) =>
@@ -440,6 +507,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
             link.Refresh();
             link.RaiseVisibilityChanged();
         }
+
+        Realizer.Invalidate();
     }
 
     private void RefreshLinkVisibility()
@@ -454,6 +523,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     {
         if (source.AsOutput is not { } output || target.AsInput is not { } input)
             return false;
+
+        using var change = BeginChange("Connect");
 
         if (!Graph.TryConnect(output, input, out var link, out var replaced, out var error))
         {
@@ -471,7 +542,6 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         source.Node.RefreshPortConnections();
         target.Node.RefreshPortConnections();
-        IsDirty = true;
         StatusText = $"Connected {source.Node.Title}.{source.Name} to {target.Node.Title}.{target.Name}.";
         return true;
     }
@@ -482,9 +552,10 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         if (port.AsInput?.Link is not { } link)
             return;
 
+        using var change = BeginChange("Disconnect");
+
         Graph.Disconnect(link);
         ForgetLink(link);
-        IsDirty = true;
         StatusText = "Disconnected.";
     }
 
@@ -588,6 +659,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
             return;
         }
 
+        using var change = BeginChange("Paste");
+
         var added = GraphRestore.Append(Graph, document, Registry, PasteOffset, PasteOffset);
         if (added.Count == 0)
         {
@@ -598,7 +671,6 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         RebuildFromGraph();
         SelectNodes(Nodes.Where(n => added.Contains(n.Model)));
 
-        IsDirty = true;
         RaiseRunStateChanged();
         StatusText = $"Pasted {added.Count} node(s).";
     }
@@ -669,8 +741,15 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     {
         var matches = Registry.Search(query);
 
+        // Filtered to what can take the dropped wire, with Output first: looking at a value is the
+        // commonest reason to drag a wire into empty space. OrderBy is stable, so the rest keep the
+        // registry's order.
         if (_pendingLinkSource is { } source)
-            matches = matches.Where(d => d.AcceptsInput(source.ValueType));
+        {
+            matches = matches
+                .Where(d => d.AcceptsInput(source.ValueType))
+                .OrderBy(d => d.NodeType == typeof(OutputNode) ? 0 : 1);
+        }
 
         SearchResults.Clear();
         foreach (var definition in matches)
@@ -728,6 +807,9 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         if (definition is null)
             return;
 
+        // Adding, joining the group and auto-wiring are one step as far as undo is concerned.
+        using var change = BeginChange($"Add {definition.Name}");
+
         var node = AddNode(definition, _pendingNodePosition);
 
         if (group is not null)
@@ -784,7 +866,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         OffsetX = 0;
         OffsetY = 0;
         CurrentFilePath = null;
-        IsDirty = false;
+        ResetHistory();
         RaiseRunStateChanged();
         OnPropertyChanged(nameof(IntervalMilliseconds));
         StatusText = "New graph.";
@@ -793,10 +875,14 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     public async Task SaveAsync(string path)
     {
         var view = new GraphViewState { Scale = Scale, OffsetX = OffsetX, OffsetY = OffsetY };
+        FlushPendingEdit();
         await GraphFile.SaveAsync(Graph, path, view);
 
+        // What is marked clean is what was written, including anything never made an undo step.
+        History.Amend();
+        _savedState = History.Current;
         CurrentFilePath = path;
-        IsDirty = false;
+        RefreshHistoryState();
         StatusText = $"Saved {System.IO.Path.GetFileName(path)}.";
     }
 
@@ -807,6 +893,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     public async Task<GraphRestoreResult> LoadAsync(string path)
     {
         await Executor.StopContinuousAsync();
+        FlushPendingEdit();
 
         var document = await GraphFile.LoadAsync(path);
         var result = GraphRestore.Into(Graph, document, Registry);
@@ -820,7 +907,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         }
 
         CurrentFilePath = path;
-        IsDirty = false;
+        ResetHistory();
         RaiseRunStateChanged();
         OnPropertyChanged(nameof(IntervalMilliseconds));
 
@@ -833,50 +920,293 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rebuilds every view-model from the current <see cref="Graph"/>. Used after a load, so the views
-    /// mirror the model rather than the load having to drive the view-model layer itself.
+    /// Brings the view-models into line with <see cref="Graph"/> after the model was changed directly:
+    /// a load, a paste or an undo. Incremental: a node or link that is still in the graph keeps its
+    /// view-model (and so its visual, its selection and its measured height), and only what was added
+    /// or removed is touched. A load, where nothing survives, degenerates to a plain rebuild.
     /// </summary>
     private void RebuildFromGraph()
     {
-        foreach (var node in Nodes)
-            Detach(node);
-
-        Nodes.Clear();
-        Links.Clear();
-        _linksByNode.Clear();
         ClearPreview();
 
-        var portLookup = new Dictionary<Port, PortViewModel>();
+        // ---- Nodes, in graph order, which is z-order.
+        var previous = Nodes.ToDictionary(n => n.Model);
+        var nodes = new List<NodeViewModel>(Graph.Nodes.Count);
 
         foreach (var model in Graph.Nodes)
         {
-            var node = new NodeViewModel(model);
-            Attach(node);
-            Nodes.Add(node);
-            _linksByNode[model.Id] = [];
+            if (previous.Remove(model, out var node))
+            {
+                node.SyncFromModel();
+            }
+            else
+            {
+                node = new NodeViewModel(model);
+                Attach(node);
+            }
 
-            foreach (var port in node.Inputs.Concat(node.Outputs))
-                portLookup[port.Model] = port;
+            nodes.Add(node);
         }
+
+        foreach (var stale in previous.Values)
+            Detach(stale);
+
+        SyncCollection(Nodes, nodes);
+
+        // ---- Links, by model instance: a link that survived a restore is the same Link object.
+        var portLookup = new Dictionary<Port, PortViewModel>();
+        foreach (var node in Nodes)
+        foreach (var port in node.Inputs.Concat(node.Outputs))
+            portLookup[port.Model] = port;
+
+        var previousLinks = Links.ToDictionary(l => l.Model);
+        var links = new List<LinkViewModel>(Graph.Links.Count);
 
         foreach (var link in Graph.Links)
         {
-            if (!portLookup.TryGetValue(link.Source, out var source)
-                || !portLookup.TryGetValue(link.Target, out var target))
+            if (previousLinks.Remove(link, out var viewModel))
             {
-                continue;
+                links.Add(viewModel);
             }
+            else if (portLookup.TryGetValue(link.Source, out var source)
+                     && portLookup.TryGetValue(link.Target, out var target))
+            {
+                links.Add(new LinkViewModel(link, source, target));
+            }
+        }
 
-            var viewModel = new LinkViewModel(link, source, target);
-            Links.Add(viewModel);
-            Track(viewModel, source.Node);
-            Track(viewModel, target.Node);
+        SyncCollection(Links, links);
+
+        _linksByNode.Clear();
+        foreach (var node in Nodes)
+            _linksByNode[node.Model.Id] = [];
+
+        foreach (var link in Links)
+        {
+            Track(link, link.Source.Node);
+            Track(link, link.Target.Node);
         }
 
         foreach (var node in Nodes)
             node.RefreshPortConnections();
 
+        // Groups first: a collapsed group moves the anchors of every wire touching it.
         SyncGroups();
+
+        foreach (var link in Links)
+            link.Refresh();
+
         RaiseSelectionChanged();
+        Realizer.Invalidate();
+    }
+
+    /// <summary>
+    /// Makes <paramref name="collection"/> equal <paramref name="wanted"/> in content and order, with
+    /// few change notifications when most items survive, and a plain refill when none do.
+    /// </summary>
+    private static void SyncCollection<T>(ObservableCollection<T> collection, IReadOnlyList<T> wanted)
+        where T : class
+    {
+        var wantedSet = wanted.ToHashSet();
+
+        if (!collection.Any(wantedSet.Contains))
+        {
+            collection.Clear();
+            foreach (var item in wanted)
+                collection.Add(item);
+
+            return;
+        }
+
+        for (var i = collection.Count - 1; i >= 0; i--)
+        {
+            if (!wantedSet.Contains(collection[i]))
+                collection.RemoveAt(i);
+        }
+
+        for (var i = 0; i < wanted.Count; i++)
+        {
+            if (i < collection.Count && ReferenceEquals(collection[i], wanted[i]))
+                continue;
+
+            var at = collection.IndexOf(wanted[i]);
+            if (at >= 0)
+                collection.Move(at, i);
+            else
+                collection.Insert(i, wanted[i]);
+        }
+    }
+
+    // ---- Undo / redo ----------------------------------------------------------------------
+
+    /// <summary>
+    /// How long inline typing must pause before it becomes an undo step. Without this, every
+    /// keystroke in a node's text box would be a step of its own.
+    /// </summary>
+    private static readonly TimeSpan EditCommitDelay = TimeSpan.FromMilliseconds(700);
+
+    public GraphHistory History { get; }
+
+    /// <summary>The committed state when the document was last saved or opened; clean means equal to it.</summary>
+    private string _savedState;
+
+    private readonly DispatcherTimer _editCommitTimer;
+    private string? _pendingEditLabel;
+
+    private int _changeDepth;
+    private string _changeLabel = string.Empty;
+
+    /// <summary>
+    /// True while an undo or redo is writing the graph. Property and geometry notifications it causes
+    /// are its own doing, not edits to record.
+    /// </summary>
+    private bool _restoring;
+
+    public bool CanUndo => History.CanUndo;
+    public bool CanRedo => History.CanRedo;
+
+    public string UndoToolTip => History.UndoLabel is { } label ? $"Undo {label} (Ctrl+Z)" : "Nothing to undo";
+    public string RedoToolTip => History.RedoLabel is { } label ? $"Redo {label} (Ctrl+Y)" : "Nothing to redo";
+
+    /// <summary>
+    /// Opens a change that becomes one undo step when disposed. Nested changes fold into the outermost
+    /// one, so an operation built from others (add a node, put it in a group, wire it) undoes as a
+    /// whole, under the outer label. A change that turns out to alter nothing records nothing.
+    /// </summary>
+    /// <remarks>
+    /// Pending inline edits are committed first, as a step of their own: they happened before this
+    /// change and should not be undone along with it.
+    /// </remarks>
+    public IDisposable BeginChange(string label)
+    {
+        if (_changeDepth++ == 0)
+        {
+            FlushPendingEdit();
+            _changeLabel = label;
+        }
+
+        return new ChangeScope(this);
+    }
+
+    private void EndChange()
+    {
+        if (--_changeDepth > 0)
+            return;
+
+        if (!_restoring)
+            History.Commit(_changeLabel);
+
+        RefreshHistoryState();
+    }
+
+    private sealed class ChangeScope(WorkspaceViewModel owner) : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+            owner.EndChange();
+        }
+    }
+
+    /// <summary>
+    /// Records an edit that arrives as a stream: typing into a node, or into the interval box. The
+    /// step is committed once the stream pauses, when focus moves, or before any other change.
+    /// </summary>
+    private void NoteEdit(string label)
+    {
+        // Inside a change the edit is part of it; during a restore it is the restore's own doing.
+        if (_changeDepth > 0 || _restoring)
+            return;
+
+        _pendingEditLabel ??= label;
+        IsDirty = true;
+
+        _editCommitTimer.Stop();
+        _editCommitTimer.Start();
+    }
+
+    /// <summary>Commits a pending inline edit now. Called by the view when keyboard focus moves.</summary>
+    public void FlushPendingEdit()
+    {
+        _editCommitTimer.Stop();
+
+        if (_pendingEditLabel is not { } label)
+            return;
+
+        _pendingEditLabel = null;
+        History.Commit(label);
+        RefreshHistoryState();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanUndo))]
+    private Task UndoAsync() => StepAsync(undo: true);
+
+    [RelayCommand(CanExecute = nameof(CanRedo))]
+    private Task RedoAsync() => StepAsync(undo: false);
+
+    private async Task StepAsync(bool undo)
+    {
+        // Mid-gesture (a drag in progress) the graph is between states; there is nothing sound to undo to.
+        if (_changeDepth > 0)
+            return;
+
+        FlushPendingEdit();
+
+        // A continuous run must not evaluate a graph that is being rewritten underneath it.
+        using (await Executor.ExclusiveAsync())
+        {
+            if (_changeDepth > 0)
+                return;
+
+            string? label;
+            _restoring = true;
+            try
+            {
+                label = undo ? History.Undo() : History.Redo();
+                if (label is not null)
+                    RebuildFromGraph();
+            }
+            finally
+            {
+                _restoring = false;
+            }
+
+            if (label is null)
+                return;
+
+            StatusText = undo ? $"Undid {label}." : $"Redid {label}.";
+        }
+
+        OnPropertyChanged(nameof(IntervalMilliseconds));
+        RaiseRunStateChanged();
+        RefreshHistoryState();
+    }
+
+    private void ResetHistory()
+    {
+        _editCommitTimer.Stop();
+        _pendingEditLabel = null;
+        History.Reset();
+        _savedState = History.Current;
+        RefreshHistoryState();
+    }
+
+    private void RefreshHistoryState()
+    {
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
+        OnPropertyChanged(nameof(UndoToolTip));
+        OnPropertyChanged(nameof(RedoToolTip));
+        UndoCommand.NotifyCanExecuteChanged();
+        RedoCommand.NotifyCanExecuteChanged();
+
+        // Clean exactly when the committed state is the saved one, so undoing back to it clears the
+        // title's asterisk. An edit still waiting to be committed keeps the document dirty.
+        IsDirty = _pendingEditLabel is not null || History.Current != _savedState;
     }
 }

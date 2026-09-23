@@ -30,6 +30,15 @@ public static class NodeMetrics
     /// </summary>
     public const double MinContentHeight = 24;
 
+    /// <summary>
+    /// Guess at an Auto-height editor, for a node that has never been realized and so never measured.
+    /// Only culling and group boxes read it, and only until the node is first drawn.
+    /// </summary>
+    public const double EstimatedEditorHeight = 40;
+
+    /// <summary>The editor's top and bottom margin in the node template (<c>Margin="9,2,9,8"</c>).</summary>
+    public const double EditorVerticalMargin = 10;
+
     // Group box metrics.
     public const double GroupHeaderHeight = 26;
     public const double GroupPadding = 18;

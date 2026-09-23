@@ -29,12 +29,10 @@ public static class GraphFile
 
         foreach (var node in graph.Nodes)
         {
-            var definition = NodeDefinitionAttribute.For(node.GetType());
-
             document.Nodes.Add(new NodeDocument
             {
                 Id = node.Id,
-                Type = definition?.Path ?? node.GetType().FullName ?? node.GetType().Name,
+                Type = TypeKey(node),
                 X = node.Position.X,
                 Y = node.Position.Y,
                 W = node.Size.HasWidth ? node.Size.Width : null,
@@ -80,12 +78,10 @@ public static class GraphFile
 
         foreach (var node in graph.Nodes.Where(included.Contains))
         {
-            var definition = NodeDefinitionAttribute.For(node.GetType());
-
             document.Nodes.Add(new NodeDocument
             {
                 Id = node.Id,
-                Type = definition?.Path ?? node.GetType().FullName ?? node.GetType().Name,
+                Type = TypeKey(node),
                 X = node.Position.X,
                 Y = node.Position.Y,
                 W = node.Size.HasWidth ? node.Size.Width : null,
@@ -113,6 +109,18 @@ public static class GraphFile
 
     public static string Serialize(GraphDocument document) =>
         JsonSerializer.Serialize(document, Options);
+
+    /// <summary>
+    /// Parses a document that is known to be well formed, such as an undo snapshot. Unlike
+    /// <see cref="TryParse"/> this accepts an empty graph and throws on malformed input.
+    /// </summary>
+    public static GraphDocument Deserialize(string json) =>
+        JsonSerializer.Deserialize<GraphDocument>(json, Options)
+        ?? throw new InvalidDataException("The text did not contain a graph.");
+
+    /// <summary>What a node is saved as: its definition path, so files survive class renames.</summary>
+    internal static string TypeKey(NodeBase node) =>
+        NodeDefinitionAttribute.For(node.GetType())?.Path ?? node.GetType().FullName ?? node.GetType().Name;
 
     /// <summary>Parses a document, returning null rather than throwing on anything unrecognisable.</summary>
     public static GraphDocument? TryParse(string json)

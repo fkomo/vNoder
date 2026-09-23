@@ -37,6 +37,29 @@ public sealed class GraphExecutor(Graph graph)
         }
     }
 
+    /// <summary>
+    /// Holds evaluation off until the returned handle is disposed, waiting for a pass in progress to
+    /// finish first. For edits that rewrite much of the graph at once, such as an undo, which must not
+    /// happen underneath a continuous run's pass. A continuous tick that falls inside is skipped, as
+    /// any tick is when the previous pass is still running.
+    /// </summary>
+    public async Task<IDisposable> ExclusiveAsync(CancellationToken cancellationToken = default)
+    {
+        await _runGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        return new GateRelease(_runGate);
+    }
+
+    private sealed class GateRelease(SemaphoreSlim gate) : IDisposable
+    {
+        private int _released;
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _released, 1) == 0)
+                gate.Release();
+        }
+    }
+
     public void StartContinuous()
     {
         if (IsRunningContinuously)

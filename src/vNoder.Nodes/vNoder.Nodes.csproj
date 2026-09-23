@@ -4,6 +4,12 @@
     <ProjectReference Include="..\vNoder.Core\vNoder.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" />
+    <PackageReference Include="QRCoder" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

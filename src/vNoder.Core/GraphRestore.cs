@@ -152,6 +152,125 @@ public static class GraphRestore
         return added;
     }
 
+    /// <summary>
+    /// Brings <paramref name="graph"/> to exactly the state a document describes, changing only what
+    /// differs. This is the undo path: unlike <see cref="Into"/> it keeps every node and link that
+    /// survives, so a node's last evaluated outputs are not wiped by undoing an unrelated edit, and
+    /// the view can keep the visuals it already has.
+    /// </summary>
+    /// <remarks>
+    /// Ids are the identity. A node whose id is present but whose type differs is replaced rather
+    /// than mutated, and the graph's node and link order is made to match the document, so capturing
+    /// the graph afterwards reproduces the document byte for byte.
+    /// </remarks>
+    public static GraphRestoreResult Reconcile(Graph graph, GraphDocument document, NodeRegistry registry)
+    {
+        var warnings = new List<string>();
+
+        if (document.IntervalMilliseconds is > 0 and var interval)
+            graph.IntervalMilliseconds = interval;
+
+        var wanted = new Dictionary<Guid, NodeDocument>();
+        foreach (var entry in document.Nodes)
+            wanted.TryAdd(entry.Id, entry);
+
+        // Drop what the document does not have, or has as a different type.
+        foreach (var node in graph.Nodes.ToList())
+        {
+            if (!wanted.TryGetValue(node.Id, out var entry) || entry.Type != GraphFile.TypeKey(node))
+                graph.Remove(node);
+        }
+
+        var existing = graph.Nodes.ToDictionary(n => n.Id);
+        var byDocumentId = new Dictionary<Guid, NodeBase>();
+        var nodeRank = new Dictionary<NodeBase, int>();
+
+        foreach (var entry in document.Nodes)
+        {
+            if (byDocumentId.ContainsKey(entry.Id))
+                continue;
+
+            if (!existing.TryGetValue(entry.Id, out var node))
+            {
+                if (registry.Find(entry.Type) is not { } definition)
+                {
+                    warnings.Add($"Unknown node type '{entry.Type}' was skipped.");
+                    continue;
+                }
+
+                try
+                {
+                    node = definition.CreateInstance();
+                }
+                catch (Exception exception)
+                {
+                    warnings.Add($"Could not create '{entry.Type}': {exception.Message}");
+                    continue;
+                }
+
+                node.Id = entry.Id;
+                graph.Add(node);
+            }
+
+            node.Position = new GraphPoint(entry.X, entry.Y);
+            node.Size = new GraphSize(entry.W ?? 0, entry.H ?? 0);
+            RestoreState(node, entry, warnings);
+
+            byDocumentId[entry.Id] = node;
+            nodeRank[node] = nodeRank.Count;
+        }
+
+        // Links are keyed by their endpoints: a link the document still has is kept as it is.
+        static (Guid, string, Guid, string) Key(Link link) =>
+            (link.Source.Owner.Id, link.Source.Name, link.Target.Owner.Id, link.Target.Name);
+
+        var wantedLinks = document.Links
+            .Select(l => (l.FromNode, l.FromPort, l.ToNode, l.ToPort))
+            .ToHashSet();
+
+        foreach (var link in graph.Links.ToList())
+        {
+            if (!wantedLinks.Contains(Key(link)))
+                graph.Disconnect(link);
+        }
+
+        var present = graph.Links.ToDictionary(Key);
+        var linkRank = new Dictionary<Link, int>();
+
+        foreach (var entry in document.Links)
+        {
+            var key = (entry.FromNode, entry.FromPort, entry.ToNode, entry.ToPort);
+
+            if (!present.TryGetValue(key, out var link))
+            {
+                if (!byDocumentId.TryGetValue(entry.FromNode, out var source)
+                    || !byDocumentId.TryGetValue(entry.ToNode, out var target)
+                    || source.Outputs.FirstOrDefault(p => p.Name == entry.FromPort) is not { } output
+                    || target.Inputs.FirstOrDefault(p => p.Name == entry.ToPort) is not { } input)
+                {
+                    continue;
+                }
+
+                if (!graph.TryConnect(output, input, out link, out _, out var error))
+                {
+                    warnings.Add($"Link {output} to {input} was rejected: {error}");
+                    continue;
+                }
+
+                present[key] = link!;
+            }
+
+            linkRank.TryAdd(link!, linkRank.Count);
+        }
+
+        graph.Reorder(nodeRank, linkRank);
+
+        graph.ClearGroups();
+        RestoreGroups(graph, document, byDocumentId, warnings);
+
+        return new GraphRestoreResult(warnings);
+    }
+
     private static void RestoreGroups(
         Graph graph,
         GraphDocument document,

@@ -26,7 +26,7 @@ dotnet build src/vNoder.slnx
 Double-click empty canvas to open the node catalogue, type to filter, press Enter to place. Drag from
 an output port to an input port to wire them up — incompatible ports are refused, and so are
 connections that would form a cycle. Drop a wire on empty canvas and the catalogue opens filtered to
-nodes that can accept it, then wires the one you pick automatically.
+nodes that can accept it, with Output at the top, then wires the one you pick automatically.
 
 Press **Run Once** to evaluate the graph, or **Continuous** to re-run it on a timer (the interval is
 the box beside the button). While a continuous run is going the button turns red and the status bar
@@ -47,9 +47,15 @@ counts iterations and elapsed time.
 | Group selection | `G`, or right-click a node |
 | Collapse a group | Double-click its header |
 | Copy / paste | `Ctrl+C` / `Ctrl+V` |
+| Undo / redo | `Ctrl+Z` / `Ctrl+Y` (or `Ctrl+Shift+Z`), or the toolbar buttons |
 | Run once | `F5` |
 | Run continuously | `Ctrl+F5` |
 | New / open / save | `Ctrl+N` / `Ctrl+O` / `Ctrl+S`, `Ctrl+Shift+S` to save as |
+
+Everything that is saved can be undone: adding, deleting, wiring, moving, resizing, grouping, pasting,
+inline values and the run interval. A drag is one step however far it goes, and typing into a node
+becomes one step once you pause or move focus. While a text box has focus, `Ctrl+Z` undoes its typing
+first. Undoing back to the last save clears the unsaved-changes marker.
 
 Groups are a purely visual convenience: a named box you can drag, collapse and rename. Wires crossing
 a collapsed group stay drawn, stubbed to its edge, so you can still see it is connected.
@@ -59,21 +65,28 @@ a collapsed group stay drawn, stubbed to its edge, so you can still see it is co
 | Category | Nodes |
 |---|---|
 | Input | Static Number, Static Text |
-| Generators | Random Number, Random String, Random Bytes, Random Boolean |
-| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower |
-| Math | Add, Sqrt |
+| Generators | Random Number, Random String, Random Bytes, Random Boolean, GUID (v4 / v7), Date Time |
+| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Format Date Time |
+| Math | Add, Subtract, Multiply, Divide, Modulo, Power, Min, Max, Abs, Negate, Sign, Floor, Ceiling, Round, Clamp, Sqrt, Exp, Ln, Log10, Sin, Cos, Tan, Asin, Acos, Atan, Constant (π, τ, e) |
 | Logic | And, Or, Xor, Nand, Boolean, Equals, Compare |
-| Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512) |
-| IO | File Read, File Write, File Delete |
-| Output | Output, Length |
+| Encoding | Base64 Encode / Decode, URL Encode / Decode, QR Code |
+| Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512), BCrypt Hash, BCrypt Verify, PBKDF2 |
+| IO | File Read, File Write, File Delete, File Search, Directory Size, Image Load, Image Save |
+| Network | HTTP Request (GET, POST, PUT, PATCH, DELETE) |
+| Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM) |
+| Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text) |
 
-Ports carry one of `number`, `text`, `boolean`, `bytes`, `text list`, or `any`, and wire colour
-follows the type. Most node parameters can be either typed in place or driven by a wire — connect one
+Ports carry one of `number`, `text`, `boolean`, `bytes`, `text list`, `date/time`, or `any`, and wire
+colour follows the type. Most node parameters can be either typed in place or driven by a wire — connect one
 and the inline field greys out.
 
 Evaluation order comes from the wiring: nodes are sorted by data dependency, and a node with no path
 between it and another has no guaranteed order relative to it. A node that fails is reported on the
 node itself and does not stop the rest of the pass.
+
+Nodes with side effects — File Write, File Delete, Image Save and HTTP Request — act on every pass, so in a
+continuous run they fire on every tick. An HTTP error status (404, 500) is a result, reported on the
+node's Status and Success outputs along with the body, not a failure.
 
 ## Files
 
@@ -82,10 +95,18 @@ any groups, and the current zoom and pan. Node types are stored by name (`"type"
 file stays readable. A file that references something this build does not have still opens — the parts
 that could not be restored are reported and the rest loads.
 
+Image Save writes in the format its file extension names, converting when the image is in a
+different one (a PNG saved as `photo.jpg` becomes a JPEG); leave the extension off to keep the format.
+Converting a transparent image to JPEG, BMP or PBM, which have no transparency, puts it on white.
+
 ## Project layout
 
 - `src/vNoder.Core` — graph model, port types, node registry, execution engine. No UI dependency.
 - `src/vNoder.Nodes` — the node implementations.
+
+Image conversion uses [ImageSharp](https://github.com/SixLabors/ImageSharp), which is under the
+Six Labors Split License: Apache 2.0 for open-source use, for-profits under 1M USD annual revenue and
+non-profits, and a commercial license otherwise. It is pinned to 3.1 (see `src/Directory.Packages.props`).
 - `src/vNoder.App` — the WPF application.
 
 Adding a node type is one class with one attribute; the registry finds it by reflection and it
@@ -94,5 +115,6 @@ appears in the catalogue, with its editable properties saved and loaded automati
 
 ## Status
 
-A working proof of concept. It has no undo, and the canvas is drawn with plain WPF shapes rather than
-a virtualised surface, which is comfortable into the hundreds of nodes rather than thousands.
+A working proof of concept. The canvas is virtualized: only nodes near the viewport have visuals, and
+wires are drawn as lightweight visuals culled to the viewport, so graphs in the thousands of nodes
+open in a fraction of a second and stay responsive to pan and zoom.

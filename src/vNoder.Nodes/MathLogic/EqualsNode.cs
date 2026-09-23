@@ -42,6 +42,7 @@ public sealed class EqualsNode : NodeBase
         (null, _) or (_, null) => false,
         (double a, double b) => a.Equals(b),
         (bool a, bool b) => a == b,
+        (DateTime a, DateTime b) => a == b,
         (byte[] a, byte[] b) => a.AsSpan().SequenceEqual(b),
         (string[] a, string[] b) => a.SequenceEqual(b, Comparer(ignoreCase)),
         _ => string.Equals(Text(left), Text(right), ignoreCase
@@ -59,6 +60,7 @@ public sealed class EqualsNode : NodeBase
         double number => number.ToString("0.######", CultureInfo.InvariantCulture),
         byte[] bytes => Convert.ToHexString(bytes),
         string[] parts => string.Join('\u001f', parts),
+        DateTime moment => moment.ToString("o", CultureInfo.InvariantCulture),
         _ => value.ToString() ?? string.Empty,
     };
 }

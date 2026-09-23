@@ -56,6 +56,7 @@ public sealed class OutputNode : NodeBase
         double number => number.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture),
         byte[] bytes => Convert.ToHexString(bytes).ToLowerInvariant(),
         string[] parts => string.Join(Environment.NewLine, parts),
+        DateTime moment => moment.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
         string text => text,
         var other => other.ToString() ?? string.Empty,
     };

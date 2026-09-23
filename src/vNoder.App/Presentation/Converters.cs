@@ -14,15 +14,21 @@ public sealed class PortBrushConverter : IValueConverter
     private static readonly SolidColorBrush Boolean = Frozen("#FF7BD88F");
     private static readonly SolidColorBrush Bytes = Frozen("#FFC792EA");
     private static readonly SolidColorBrush List = Frozen("#FF5FD4C4");
+    private static readonly SolidColorBrush DateTimeBrush = Frozen("#FFFF8A65");
     private static readonly SolidColorBrush Any = Frozen("#FFAEB4C0");
 
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        For(value as Type);
+
+    /// <summary>The brush for a port type; also used directly by <see cref="WireLayer"/>.</summary>
+    public static SolidColorBrush For(Type? type) => type switch
     {
-        Type t when t == typeof(double) => Number,
-        Type t when t == typeof(string) => Text,
-        Type t when t == typeof(bool) => Boolean,
-        Type t when t == typeof(byte[]) => Bytes,
-        Type t when t == typeof(string[]) => List,
+        _ when type == typeof(double) => Number,
+        _ when type == typeof(string) => Text,
+        _ when type == typeof(bool) => Boolean,
+        _ when type == typeof(byte[]) => Bytes,
+        _ when type == typeof(string[]) => List,
+        _ when type == typeof(DateTime) => DateTimeBrush,
         _ => Any,
     };
 
@@ -50,6 +56,9 @@ public sealed class CategoryBrushConverter : IValueConverter
         ["IO"] = PortBrushConverter.Frozen("#FF7D5F2B"),
         ["Control"] = PortBrushConverter.Frozen("#FF954A36"),
         ["Output"] = PortBrushConverter.Frozen("#FF3C4758"),
+        ["Encoding"] = PortBrushConverter.Frozen("#FF2F5F6E"),
+        ["Network"] = PortBrushConverter.Frozen("#FF2E4F86"),
+        ["Image"] = PortBrushConverter.Frozen("#FF7A3F8C"),
     };
 
     private static readonly SolidColorBrush Fallback = PortBrushConverter.Frozen("#FF414250");
@@ -90,13 +99,72 @@ public sealed class ScaleToStrokeThicknessConverter : IValueConverter
 {
     private const double OnScreenThickness = 2;
 
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        For(value is double s ? s : 1);
+
+    /// <summary>The thickness for a zoom level; also used directly by <see cref="WireLayer"/>.</summary>
+    public static double For(double scale)
     {
-        var scale = value is double s and > 0.01 ? s : 1;
+        scale = scale > 0.01 ? scale : 1;
 
         // Clamped so a deep zoom-in does not leave hairlines and a deep zoom-out does not leave ropes.
         return Math.Clamp(OnScreenThickness / scale, 1.2, 10);
     }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// The values of whatever enum the bound property holds, so an enum property renders as a combo box
+/// with <c>ItemsSource="{Binding X, Converter={StaticResource EnumValues}}"</c> and nothing else: no
+/// <c>ObjectDataProvider</c> resource per enum type.
+/// </summary>
+public sealed class EnumValuesConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is Enum ? Enum.GetValues(value.GetType()) : null;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>An image from encoded bytes (PNG, JPEG, ...), for previews; null when there is none.</summary>
+public sealed class BytesToImageConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not byte[] { Length: > 0 } bytes)
+            return null;
+
+        try
+        {
+            var image = new System.Windows.Media.Imaging.BitmapImage();
+            image.BeginInit();
+            image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+            image.StreamSource = new System.IO.MemoryStream(bytes);
+            image.EndInit();
+            image.Freeze();
+            return image;
+        }
+        catch (Exception)
+        {
+            // Not an image: show nothing rather than break the binding.
+            return null;
+        }
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>"290 × 290" for a decoded image, empty for none; captions the Image node's preview.</summary>
+public sealed class ImageSizeConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is System.Windows.Media.Imaging.BitmapSource image
+            ? $"{image.PixelWidth} × {image.PixelHeight}"
+            : string.Empty;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();

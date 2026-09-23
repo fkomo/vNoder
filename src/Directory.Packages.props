@@ -1,0 +1,19 @@
+<Project>
+  <!--
+    Central package management: every NuGet version is set here, once, and project files carry only
+    <PackageReference Include="..." /> with no Version. Applies to every project under src/.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- vNoder.App -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- vNoder.Nodes -->
+    <PackageVersion Include="BCrypt.Net-Next" Version="4.2.0" />
+    <PackageVersion Include="QRCoder" Version="1.8.0" />
+    <!-- Pinned to 3.1: 4.x adds a build-time license-key check that fails Release builds without a key. -->
+    <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12" />
+  </ItemGroup>
+</Project>

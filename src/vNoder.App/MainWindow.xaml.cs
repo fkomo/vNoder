@@ -64,6 +64,12 @@ namespace vNoder.App
         private PortViewModel? _wireSource;
 
         /// <summary>
+        /// The undo step a drag or resize is building. Opened when the gesture starts and closed when
+        /// it ends, so a drag across a hundred mouse-moves undoes as one step.
+        /// </summary>
+        private IDisposable? _gestureChange;
+
+        /// <summary>
         /// Where a double-click asked for the node catalog. The popup is opened from the matching
         /// mouse-up rather than here: it is <c>StaysOpen="False"</c>, so a button release outside its
         /// content dismisses it, and opening on the second mouse-down means its own double-click's
@@ -206,11 +212,7 @@ namespace vNoder.App
             BeginNodeDrag(group.CaptureMemberOrigins(), e);
         }
 
-        private void ToggleCollapsed(NodeGroupViewModel group)
-        {
-            group.IsCollapsed = !group.IsCollapsed;
-            Workspace.IsDirty = true;
-        }
+        private void ToggleCollapsed(NodeGroupViewModel group) => Workspace.ToggleCollapsed(group);
 
         private void BeginNodeDrag(
             IReadOnlyList<(NodeViewModel Node, double X, double Y)> origins,
@@ -221,6 +223,7 @@ namespace vNoder.App
 
             _gesture = Gesture.DraggingNodes;
             _dragOrigins = origins;
+            _gestureChange = Workspace.BeginChange(origins.Count == 1 ? "Move node" : $"Move {origins.Count} nodes");
             _dragStartGraph = Workspace.ScreenToGraph(e.GetPosition(WorkspaceHost));
             WorkspaceHost.CaptureMouse();
         }
@@ -232,6 +235,7 @@ namespace vNoder.App
 
             _gesture = Gesture.Resizing;
             _resizeNode = node;
+            _gestureChange = Workspace.BeginChange($"Resize {node.Title}");
             _resizeStartWidth = node.Width;
 
             // An unresized node has an Auto body height; start from what it currently renders as, so
@@ -448,6 +452,7 @@ namespace vNoder.App
             }
 
             _gesture = Gesture.None;
+            EndGestureChange();
             _dragOrigins = [];
             _textScroller = null;
             _resizeNode = null;
@@ -465,6 +470,76 @@ namespace vNoder.App
             // dismiss it is still being routed.
             Dispatcher.BeginInvoke(() => Workspace.OpenSearch(at), DispatcherPriority.Input);
         }
+
+        private void EndGestureChange()
+        {
+            _gestureChange?.Dispose();
+            _gestureChange = null;
+        }
+
+        /// <summary>
+        /// Capture can be lost without a button release (another window takes focus mid-drag). The
+        /// gesture is over either way, so its undo step must be closed, or every later change would
+        /// fold into it.
+        /// </summary>
+        private void WorkspaceHost_LostMouseCapture(object sender, MouseEventArgs e)
+        {
+            // The event bubbles: a text box inside a node releasing its own capture is not this.
+            if (!ReferenceEquals(e.OriginalSource, WorkspaceHost))
+                return;
+
+            if (_gesture is Gesture.DraggingNodes or Gesture.Resizing)
+                _gesture = Gesture.None;
+
+            EndGestureChange();
+        }
+
+        private void WorkspaceHost_SizeChanged(object sender, SizeChangedEventArgs e) =>
+            Workspace.ViewportSize = e.NewSize;
+
+        /// <summary>
+        /// Any move of keyboard focus ends a burst of inline typing, so it becomes its own undo step
+        /// rather than merging with whatever is typed next. The node that now holds focus is kept
+        /// realized even if it is panned out of view, so its text box is not destroyed under the caret.
+        /// </summary>
+        private void Window_PreviewGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            Workspace.FlushPendingEdit();
+
+            Workspace.Realizer.Pinned = NodeOf(e.NewFocus as DependencyObject);
+        }
+
+        private static NodeViewModel? NodeOf(DependencyObject? element)
+        {
+            while (element is not null)
+            {
+                if (element is FrameworkElement { DataContext: NodeViewModel node })
+                    return node;
+
+                element = VisualTreeHelper.GetParent(element) ?? (element as FrameworkElement)?.Parent;
+            }
+
+            return null;
+        }
+
+        // ---- Undo / redo ----------------------------------------------------------------------
+
+        /// <summary>
+        /// Routed through <see cref="ApplicationCommands.Undo"/> so that a focused text box, which
+        /// handles that command itself, undoes its own typing first; only when focus is elsewhere does
+        /// Ctrl+Z reach the graph. Ignored mid-gesture, when the graph is between two states.
+        /// </summary>
+        private void UndoCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e) =>
+            e.CanExecute = _gesture == Gesture.None && Workspace.CanUndo;
+
+        private void UndoCommand_Executed(object sender, ExecutedRoutedEventArgs e) =>
+            Workspace.UndoCommand.Execute(null);
+
+        private void RedoCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e) =>
+            e.CanExecute = _gesture == Gesture.None && Workspace.CanRedo;
+
+        private void RedoCommand_Executed(object sender, ExecutedRoutedEventArgs e) =>
+            Workspace.RedoCommand.Execute(null);
 
         private void FinishWiring(Point screen)
         {

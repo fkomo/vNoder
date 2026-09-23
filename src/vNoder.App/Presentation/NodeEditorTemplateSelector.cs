@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using vNoder.Core;
 
 namespace vNoder.App.Presentation;
 
@@ -20,6 +21,14 @@ public sealed class NodeEditorTemplateSelector : DataTemplateSelector
         if (item is null || container is not FrameworkElement element)
             return Empty;
 
-        return element.TryFindResource(new DataTemplateKey(item.GetType())) as DataTemplate ?? Empty;
+        // Walk up the node's base types, so a family of nodes sharing inline state on a common base
+        // (the trig nodes' Degrees) shares one template declared for that base.
+        for (var type = item.GetType(); type is not null && type != typeof(NodeBase); type = type.BaseType)
+        {
+            if (element.TryFindResource(new DataTemplateKey(type)) is DataTemplate template)
+                return template;
+        }
+
+        return Empty;
     }
 }

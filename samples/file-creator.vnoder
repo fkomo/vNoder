@@ -1,0 +1,113 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 1,
+    "offsetX": 189,
+    "offsetY": 133
+  },
+  "intervalMilliseconds": 10,
+  "nodes": [
+    {
+      "id": "607dcc76-323b-4c4b-935e-96429357c049",
+      "type": "IO/File Write",
+      "x": 916,
+      "y": 548,
+      "state": {
+        "AppendIfExists": false,
+        "Path": ""
+      }
+    },
+    {
+      "id": "1fe4b60a-254b-4494-9166-6d67be625d3c",
+      "type": "Input/Static Text",
+      "x": -15,
+      "y": 520,
+      "w": 177,
+      "h": 43,
+      "state": {
+        "Text": "d:\\tmp\\vNoder\\"
+      }
+    },
+    {
+      "id": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "type": "Text/Concat",
+      "x": 340,
+      "y": 621
+    },
+    {
+      "id": "db44b715-6adf-4b73-9f1e-527a3e41bfa6",
+      "type": "Generators/Random String",
+      "x": -4,
+      "y": 695,
+      "state": {
+        "Charset": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "Length": 16
+      }
+    },
+    {
+      "id": "03d343d2-01cf-44a3-a8b1-de12592f1078",
+      "type": "Output/Output",
+      "x": 781,
+      "y": 87,
+      "w": 551,
+      "h": 208,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "43ab01aa-aca4-440b-b898-c9036b3611fa",
+      "type": "Generators/Random String",
+      "x": 133,
+      "y": 189,
+      "state": {
+        "Charset": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "Length": 1024
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "db44b715-6adf-4b73-9f1e-527a3e41bfa6",
+      "fromPort": "Text",
+      "toNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "1fe4b60a-254b-4494-9166-6d67be625d3c",
+      "fromPort": "Text",
+      "toNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+      "fromPort": "Text",
+      "toNode": "607dcc76-323b-4c4b-935e-96429357c049",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "43ab01aa-aca4-440b-b898-c9036b3611fa",
+      "fromPort": "Text",
+      "toNode": "03d343d2-01cf-44a3-a8b1-de12592f1078",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "43ab01aa-aca4-440b-b898-c9036b3611fa",
+      "fromPort": "Text",
+      "toNode": "607dcc76-323b-4c4b-935e-96429357c049",
+      "toPort": "Data"
+    }
+  ],
+  "groups": [
+    {
+      "id": "68576391-084d-484f-bbf7-c97bb9192216",
+      "name": "new file path",
+      "isCollapsed": false,
+      "nodeIds": [
+        "1fe4b60a-254b-4494-9166-6d67be625d3c",
+        "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
+        "db44b715-6adf-4b73-9f1e-527a3e41bfa6"
+      ]
+    }
+  ]
+}

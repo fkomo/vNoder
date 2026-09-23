@@ -33,6 +33,7 @@ public sealed class LengthNode : NodeBase
             string[] parts => (parts.Length, Unit(parts.Length, "item")),
             bool flag => (flag ? 1d : 0d, flag ? "true" : "false"),
             double number => Measure(number.ToString("0.######", CultureInfo.InvariantCulture)),
+            DateTime moment => Measure(moment.ToString("o", CultureInfo.InvariantCulture)),
             var other => Measure(other.ToString() ?? string.Empty),
         };
 

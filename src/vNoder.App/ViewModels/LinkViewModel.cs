@@ -34,11 +34,28 @@ public sealed class LinkViewModel : ObservableObject
 
     public void RaiseVisibilityChanged() => OnPropertyChanged(nameof(IsVisible));
 
+    /// <summary>
+    /// A box that contains the whole curve: the hull of its control points, which a cubic Bezier
+    /// never leaves. Cheaper than <see cref="Geometry.Bounds"/> and exact enough for culling.
+    /// </summary>
+    public Rect Bounds { get; private set; }
+
     public void Refresh()
     {
-        Geometry = BuildCurve(Source.Anchor, Target.Anchor);
+        var from = Source.Anchor;
+        var to = Target.Anchor;
+        var handle = Handle(from, to);
+
+        Geometry = BuildCurve(from, to);
+
+        var bounds = new Rect(from, to);
+        bounds.Union(new Rect(new Point(from.X + handle, from.Y), new Point(to.X - handle, to.Y)));
+        Bounds = bounds;
+
         OnPropertyChanged(nameof(Geometry));
     }
+
+    private static double Handle(Point from, Point to) => Math.Clamp(Math.Abs(to.X - from.X) * 0.5, 40, 160);
 
     /// <summary>
     /// Horizontal control-point handles, so wires leave an output rightwards and enter an input
@@ -46,7 +63,7 @@ public sealed class LinkViewModel : ObservableObject
     /// </summary>
     internal static Geometry BuildCurve(Point from, Point to)
     {
-        var handle = Math.Clamp(Math.Abs(to.X - from.X) * 0.5, 40, 160);
+        var handle = Handle(from, to);
 
         var figure = new PathFigure { StartPoint = from, IsFilled = false };
         figure.Segments.Add(new BezierSegment(

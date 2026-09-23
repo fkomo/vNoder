@@ -32,6 +32,7 @@ public sealed class CompareNode : NodeBase
         _out.Value = (_a.Value, _b.Value) switch
         {
             (double a, double b) => (double)a.CompareTo(b),
+            (DateTime a, DateTime b) => (double)a.CompareTo(b),
             var (a, b) => (double)Math.Sign(string.Compare(
                 EqualsNode.Text(a),
                 EqualsNode.Text(b),

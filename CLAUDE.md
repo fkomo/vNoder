@@ -27,11 +27,20 @@ dotnet run --project src/vNoder.App
 
 Requires the .NET 10 SDK, and builds/runs on Windows only (WPF).
 
+NuGet versions are managed centrally in `src/Directory.Packages.props`: a project's
+`<PackageReference>` has no `Version`, and adding or upgrading a package means editing that one file.
+
 ## Projects
 
 - `src/vNoder.Core` — plain `net10.0`: graph model, port/type system, node registry, execution
   engine. **No WPF reference**, so it can be exercised without a UI host.
-- `src/vNoder.Nodes` — plain `net10.0`, references Core only: the node implementations.
+- `src/vNoder.Nodes` — plain `net10.0`, references Core only: the node implementations. Its only
+  NuGet dependencies are `BCrypt.Net-Next`, `QRCoder` and `SixLabors.ImageSharp`, all pure managed
+  code; prefer the BCL, and add a package only for something the BCL genuinely lacks.
+- **ImageSharp is pinned to 3.1.x — do not upgrade to 4.x casually.** 4.x adds a build-time license-key
+  check (`SixLabors_ValidateLicense`) that only warns in Debug but **fails Release builds** without a
+  key. It is also under the Six Labors Split License (free for open source, small for-profits and
+  non-profits; commercial otherwise), which is the project owner's call, not a technical one.
 - `src/vNoder.App` — WPF (`net10.0-windows`), references Core and Nodes. Only new NuGet dependency
   is `CommunityToolkit.Mvvm`.
 
@@ -74,6 +83,20 @@ Conventions that go with it:
   input, keep the inline property, and read `_minIn.ValueOr(Min)`. Prefer this to a fixed inline-only
   value wherever a parameter could plausibly be computed — the generators do it for min/max, length
   and charset.
+- An **enum property** renders as a combo box with
+  `ItemsSource="{Binding X, Converter={StaticResource EnumValues}}"` — no `ObjectDataProvider`
+  resource per enum — and persists through the generic state capture like any other property.
+- A **family of nodes** can share inline state on an abstract base (`TrigNode.Degrees`) and one
+  template declared for that base: `NodeEditorTemplateSelector` walks base types. The same goes for
+  port boilerplate: `UnaryMathNode` / `BinaryMathNode` declare the ports, and each operator is still
+  its own attributed class. The registry only lists attributed types, so bases never appear in the
+  catalogue.
+- A text-or-bytes `any` input goes through `NodeValues.AsBytes` (text as UTF-8).
+- CPU-heavy work (password hashing) and blocking I/O with no async API (directory walks) run in
+  `Task.Run` with the context's cancellation token, so a slow node neither blocks the UI nor outlives
+  a stopped continuous run.
+- Port names appear in XAML as `ConverterParameter`; quote one that contains a space
+  (`ConverterParameter='Work Factor'`).
 - User-editable state is a plain property using the `Set(ref _field, value)` helper. To give it an
   inline editor, add a `DataTemplate` with `DataType="{x:Type n:YourNode}"` to `MainWindow.xaml`; a
   node without one simply renders no editor (`NodeEditorTemplateSelector` handles the fallback).
@@ -96,7 +119,8 @@ Conventions that go with it:
   so the value can be selected and copied. WPF `TextBlock` has no text selection.
 - `OutputNode` shows its value **in full and nothing but the value** — no truncation, no byte counts,
   no glyphs, no placeholder when empty; it is meant to be read and copied verbatim, and `LengthNode`
-  is where sizes come from. No scrollbars, anchored top-left, clipped to the node, with an inline Wrap
+  is where sizes come from. A vertical scrollbar when the value is taller than the node (nothing horizontal), anchored top-left,
+  clipped to the node, with an inline Wrap
   toggle. It also passes its input straight through an `any`
   output, so a display can sit mid-chain rather than only at the end. `Resizable = true` (as are the
   file nodes): enlarging is how you read a long value.
@@ -107,9 +131,49 @@ Conventions that go with it:
   to evaluation, where `ValueOr` falls back instead of failing. Without the second half, `OutputNode`'s
   pass-through port could only ever feed another `any` input, which made it useless.
 - **Port types** are `double`, `string`, `bool`, `byte[]`, `string[]` (a text list, produced by
-  `SplitNode` and consumed by `JoinNode`) and `object` for "any". Adding a type means touching four
+  `SplitNode` and `FileSearchNode`, consumed by `JoinNode`), `DateTime` ("date/time", from
+  `DateTimeNode` to `FormatDateTimeNode`) and `object` for "any". Adding a type means touching four
   places: `Graph.FriendlyTypeName`, `PortTypeNames.For`, `PortBrushConverter` for its wire colour, and
-  usually `OutputNode.Format` / `LengthNode` so it can be displayed and measured.
+  usually `OutputNode.Format` / `LengthNode` so it can be displayed and measured — plus
+  `EqualsNode.AreEqual` / `Text` and `CompareNode` if the type has a natural order (dates compare as
+  dates, and display as ISO 8601).
+- A new **category** gets its header colour in `CategoryBrushConverter`; one without an entry falls back
+  to grey.
+- `HttpRequestNode` is one node with a method selector, not one per verb, so switching verb needs no
+  rewiring; the verbs are in its description so catalogue search still finds "post". An error status
+  is a *result* (Status, Success, Body), not a throw — an API's error body is what you want to read.
+  Only no response at all throws. It uses one static `HttpClient` with per-request timeouts. Like
+  file writes and deletes, it fires every tick in a continuous run.
+- `DateTimeNode` clamps its offset in **ticks**, comparing as doubles but never converting a limit back
+  from one: `DateTime.MaxValue.Ticks` rounds up past itself as a `double`, which is how `AddSeconds`
+  with a large offset threw. `FormatDateTimeNode` resolves cultures with `predefinedOnly: true`, since
+  under ICU any well-formed name is otherwise accepted as an invariant-formatting culture.
+- Images travel as **encoded bytes** (`byte[]`), never pixels: Nodes cannot reference WPF, so
+  `ImageData` (in `vNoder.Nodes/Imaging`) is everything the nodes know about an image without decoding
+  it — accepting bytes or Base64 / `data:` text (`FromValue`), the format from the signature
+  (`Sniff`), the size from the headers (`Dimensions`, for all seven formats), and the file extensions.
+  Decoding to pixels happens only in the view (`BytesToImageConverter`). `ImageNode` (Output/Image) is
+  the universal viewer; `ImageLoadNode` / `ImageSaveNode` read and write files.
+- **Conversion is `ImageConversion` (ImageSharp)**, the one place Nodes decodes pixels; `ImageData`
+  stays header-only and falls back to ImageSharp only to *detect* and *size* formats it has no
+  signature for (TGA, QOI, PBM). TGA is detected heuristically, so ~0.06% of random byte buffers pass
+  as one; decoding then fails cleanly. ImageSharp 3.1 cannot read or write **ICO**, so an ICO passes
+  through the nodes but cannot be converted.
+- Converting to a format without alpha (JPEG, BMP, PBM) **composites onto white** first; otherwise
+  transparent pixels come out black. WebP at quality 100 is lossless.
+- **Image Save writes the format its extension names**: a matching extension writes the bytes as they
+  arrive (no re-encode), a different known one converts, no extension adds the right one, an unknown
+  one (or `.ico` from another format) is refused. The target is decided before the if-exists check,
+  but conversion runs after it, so `Skip` never pays for an encode. `AddNumber` makes a numbered
+  series, which is what a continuous run wants; `Skip` reports `Success = false`.
+- `ImageNode.Preview` is what the view shows: the image itself, or a PNG rendering for formats WPF
+  cannot be relied on to decode (TGA, QOI, PBM, and WebP, whose WIC codec is absent on N editions and
+  Server).
+- `ImageNode`'s computed `Bytes` / `ImageFormat` have private setters, so they are never persisted.
+- Dropping a wire on empty canvas lists **Output first**, then the other compatible nodes in registry
+  order (`RefreshSearchResults`), and pre-selects it, so drag-drop-Enter shows a value.
+- `QrCodeNode` keeps its last PNG in a computed `Png` property (non-public setter, so not persisted)
+  for the inline preview, shown through `BytesToImageConverter` with nearest-neighbour scaling.
 - `FileDeleteNode` is destructive and unconditional — in a continuous run it fires every tick. Its
   `Deleted` output reports whether *this* pass removed something, since `File.Delete` is silent about
   a file that was not there and "nothing to do" should not read as success.
@@ -178,14 +242,63 @@ shows the file name and a `*` when dirty.
 
 Dirty tracking listens to each node model's `PropertyChanged` and **ignores an empty property name**,
 because that is what `RaiseBindingsChanged()` sends — without that filter a continuous run would mark the
-document dirty several times a second.
+document dirty several times a second. Beyond that, **clean means "the committed undo state equals the
+saved one"** (`History.Current == _savedState`), so undoing back to the last save clears the `*`.
+Geometry changes dirty the document only inside an open change (a drag or resize): a node reporting
+its measured height is not an edit, and with virtualization that happens on every pan.
+
+## Undo / redo
+
+`GraphHistory` (Core) is a stack of **whole-document snapshots**, the same JSON a file saves, not a
+command per operation. That is deliberate and for the same reason persistence is reflective: a new
+node's inline state is undoable with no undo code, and a new operation cannot forget to be undoable.
+Do not replace it with per-operation commands.
+
+- **Commit after, never before.** `Commit(label)` snapshots the graph and records a step only if it
+  differs from the current one, so a click that moves nothing or a rejected connection leaves no
+  empty step.
+- In the workspace every mutating operation is wrapped in `using var change = BeginChange("label")`.
+  Scopes nest and only the outermost commits, which is how add-node + join-group + auto-wire from the
+  catalog undo as one step. A drag or resize opens a scope at gesture start (`_gestureChange` in
+  `MainWindow`) and closes it on mouse-up or `LostMouseCapture`, so a drag is one step. **A new
+  mutating operation needs a `BeginChange`**, or it will be folded into whatever is committed next.
+- Streams of edits (typing into a node, the interval box) go through `NoteEdit`, which debounces
+  them into one step (`EditCommitDelay`). A pending edit is flushed before any other change, on
+  save, and whenever keyboard focus moves, so it never merges with an unrelated step.
+- **Undo restores in place** via `GraphRestore.Reconcile`, not `Into`: surviving nodes and links keep
+  their instances (so evaluated outputs are not wiped), and node and link order is restored so a
+  capture afterwards reproduces the snapshot byte for byte. `RebuildFromGraph` is incremental for the
+  same reason: it keeps each surviving view-model and calls `NodeViewModel.SyncFromModel()`, which
+  must not write back to the model (an unresized node's model has no size, and writing the view's
+  default into it would make the next snapshot differ).
+- `_restoring` suppresses the property and geometry notifications a restore causes, and undo holds
+  `GraphExecutor.ExclusiveAsync()` while it rewrites the graph so a continuous run cannot evaluate
+  it mid-restore.
+- `Ctrl+Z` is the routed `ApplicationCommands.Undo`, so a focused `TextBox` undoes its own typing
+  first; the toolbar buttons bind to the workspace commands directly and always mean the graph.
 
 ## Canvas mechanics
 
-- One wrapper (`SceneRoot` in `MainWindow.xaml`) carries the zoom/pan `TransformGroup`; the wire
-  `ItemsControl` and the node `ItemsControl` both sit inside it, wires declared first so they render
-  underneath. Both use a `Canvas` items panel, which measures to zero — children still render and
-  hit-test, which is what makes the unbounded canvas work.
+- One wrapper (`SceneRoot` in `MainWindow.xaml`) carries the zoom/pan `TransformGroup`; the
+  `WireLayer` and the node `ItemsControl` both sit inside it, wires declared first so they render
+  underneath. Both are on a `Canvas`, which measures to zero — children still render and hit-test,
+  which is what makes the unbounded canvas work.
+- **The canvas is virtualized.** The node `ItemsControl` binds to `RealizedNodes`, not `Nodes`:
+  `NodeRealizer` keeps only nodes near the viewport (enter at 200 screen px, leave at 600, so an edge
+  node is not churned on every pixel of a pan). Every node still has its view-model; only visuals are
+  virtual, and since anchors come from `NodeMetrics` rather than visuals, wires, groups and selection
+  do not care. On-screen nodes are realized at once; margin nodes at most `MarginBudget` per update,
+  the rest at background priority, because template instantiation is the expensive part and a
+  grid-aligned column crossing the margin together used to hitch the pan. **Geometry-driven
+  invalidation must use `InvalidateLater`**: a realized node's first measurement raises
+  `GeometryChanged`, and a Render-priority update from there re-runs within the same frame with a
+  fresh budget — that cascade silently realized whole columns at once. The node holding keyboard
+  focus is pinned so its text box is not destroyed mid-typing. A never-realized node's
+  `MeasuredHeight` is an estimate (`NodeMetrics.EstimatedEditorHeight`) until it is first drawn.
+- **Wires are `DrawingVisual`s in `WireLayer`, not elements.** One visual per link, no template or
+  bindings; a moved wire re-renders only itself, and wires outside the viewport (by the Bezier's
+  control-point hull, `LinkViewModel.Bounds`) render nothing. The layer is not hit-testable, so a
+  click on a wire falls through to the canvas.
 - Wire endpoints come from `NodeMetrics` plus the node's own width, not from measuring the visual
   tree, so an anchor is exact the instant a node moves or is resized. **The header height and port
   row height in `NodeMetrics` and in the node template in `MainWindow.xaml` must be changed
@@ -201,7 +314,8 @@ document dirty several times a second.
   edge in *scene* coordinates, which panning moves to an arbitrary place on screen. A `Canvas`
   measures children with infinite space, so no clip. This bit the live preview wire, which was the one
   element not on a Canvas. `LayoutInformation.GetLayoutClip` is how to spot it.
-- **Wire thickness compensates for zoom** (`ScaleToStrokeThicknessConverter`). The scene carries the
+- **Wire thickness compensates for zoom** (`ScaleToStrokeThicknessConverter.For`, used by
+  `WireLayer` and the preview wire). The scene carries the
   zoom transform, so a fixed thickness of 2 renders at half a pixel at 25% zoom and antialiases away
   to nothing, which reads as wires simply not being drawn. Anything else drawn in scene space and
   meant to stay legible needs the same treatment.
@@ -347,6 +461,12 @@ instead, and both have caught real bugs:
   bug survived one round of testing.
 - **Inspect layout instead of guessing.** `LayoutInformation.GetLayoutClip` / `GetLayoutSlot`, and
   `DesiredSize` vs `RenderSize`, name the culprit directly when something is cut off or mis-sized.
+
+`RenderTargetBitmap.Render(WorkspaceHost)` keeps the host's own offset in the window (the 40px
+toolbar), so sampled pixels sit that far down the bitmap; read `VisualTreeHelper.GetOffset(host)`
+rather than assuming the origin. With virtualization on, remember that only realized nodes are in the
+visual tree — pan there (and pump the dispatcher) before looking for one. Call async workspace methods
+with a `DispatcherSynchronizationContext` installed, or their continuations resume off the UI thread.
 
 Two traps when doing this: a rendered check can pass for the wrong reason (thin strokes antialias
 away at low zoom — compare against a baseline), and `mv`/`cp` that preserves an old timestamp will

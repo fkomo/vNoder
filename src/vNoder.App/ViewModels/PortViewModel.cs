@@ -82,6 +82,7 @@ public static class PortTypeNames
         _ when type == typeof(bool) => "boolean",
         _ when type == typeof(byte[]) => "bytes",
         _ when type == typeof(string[]) => "text list",
+        _ when type == typeof(DateTime) => "date/time",
         _ when type == typeof(object) => "any",
         _ => type.Name,
     };

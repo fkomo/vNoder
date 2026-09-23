@@ -44,6 +44,25 @@ public sealed class Graph
 
     public void RemoveGroup(NodeGroup group) => _groups.Remove(group);
 
+    /// <summary>Drops every group. Used when groups are restored wholesale from a snapshot.</summary>
+    internal void ClearGroups() => _groups.Clear();
+
+    /// <summary>
+    /// Puts nodes and links into the given orders. Node order is z-order in the view and the order a
+    /// file lists things in, so restoring a snapshot in place has to reproduce it exactly, or an
+    /// undo would not round-trip to the same document. Anything not ranked keeps its place at the end.
+    /// </summary>
+    internal void Reorder(IReadOnlyDictionary<NodeBase, int> nodeRank, IReadOnlyDictionary<Link, int> linkRank)
+    {
+        var nodes = _nodes.OrderBy(n => nodeRank.TryGetValue(n, out var r) ? r : int.MaxValue).ToList();
+        _nodes.Clear();
+        _nodes.AddRange(nodes);
+
+        var links = _links.OrderBy(l => linkRank.TryGetValue(l, out var r) ? r : int.MaxValue).ToList();
+        _links.Clear();
+        _links.AddRange(links);
+    }
+
     /// <summary>The group a node belongs to, if any.</summary>
     public NodeGroup? GroupOf(NodeBase node) => _groups.FirstOrDefault(g => g.NodeIds.Contains(node.Id));
 
@@ -203,6 +222,7 @@ public sealed class Graph
         _ when type == typeof(bool) => "boolean",
         _ when type == typeof(byte[]) => "bytes",
         _ when type == typeof(string[]) => "text list",
+        _ when type == typeof(DateTime) => "date/time",
         _ when type == typeof(object) => "any",
         _ => type.Name,
     };

@@ -1,3 +1,4 @@
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using vNoder.Core;
 
@@ -10,13 +11,8 @@ public sealed partial class NodeViewModel : ObservableObject
         Model = model;
         _x = model.Position.X;
         _y = model.Position.Y;
-        _width = model.Size.HasWidth ? model.Size.Width : NodeMetrics.Width;
-
-        // NaN is WPF's "Auto". Resizable nodes instead start at a fixed height, so that a long value
-        // arriving at a display node does not resize the node under the user.
-        _contentHeight = model.Size.HasHeight ? model.Size.Height
-            : model.IsResizable ? NodeMetrics.DefaultContentHeight
-            : double.NaN;
+        _width = WidthOf(model);
+        _contentHeight = ContentHeightOf(model);
 
         Inputs = [.. model.Inputs.Select(p => new PortViewModel(this, p))];
         Outputs = [.. model.Outputs.Select(p => new PortViewModel(this, p))];
@@ -25,7 +21,21 @@ public sealed partial class NodeViewModel : ObservableObject
         Rows = [.. Enumerable.Range(0, rowCount).Select(i => new NodeRowViewModel(
             i < Inputs.Count ? Inputs[i] : null,
             i < Outputs.Count ? Outputs[i] : null))];
+
+        MeasuredHeight = EstimateHeight();
     }
+
+    private static double WidthOf(NodeBase model) =>
+        model.Size.HasWidth ? model.Size.Width : NodeMetrics.Width;
+
+    /// <summary>
+    /// NaN is WPF's "Auto". Resizable nodes instead start at a fixed height, so that a long value
+    /// arriving at a display node does not resize the node under the user.
+    /// </summary>
+    private static double ContentHeightOf(NodeBase model) =>
+        model.Size.HasHeight ? model.Size.Height
+        : model.IsResizable ? NodeMetrics.DefaultContentHeight
+        : double.NaN;
 
     public NodeBase Model { get; }
 
@@ -73,7 +83,23 @@ public sealed partial class NodeViewModel : ObservableObject
     /// cannot be derived from <see cref="NodeMetrics"/> the way port anchors can; groups need it to
     /// size their box.
     /// </summary>
-    public double MeasuredHeight { get; private set; } = NodeMetrics.HeaderHeight;
+    /// <remarks>
+    /// Until the node has been realized and measured this is an estimate, since a node far outside
+    /// the viewport has no visual to measure (see <see cref="NodeRealizer"/>). The estimate only has
+    /// to be good enough to decide when the node comes into view; the real height replaces it then.
+    /// </remarks>
+    public double MeasuredHeight { get; private set; }
+
+    public bool HasMeasuredHeight { get; private set; }
+
+    /// <summary>The node's box in graph space, for culling and marquee selection.</summary>
+    public Rect Bounds => new(X, Y, Width, MeasuredHeight);
+
+    private double EstimateHeight() =>
+        (2 * NodeMetrics.BorderThickness) + NodeMetrics.HeaderHeight + NodeMetrics.PortsTopPadding
+        + (Rows.Count * NodeMetrics.PortRowHeight)
+        + (double.IsNaN(ContentHeight) ? NodeMetrics.EstimatedEditorHeight : ContentHeight)
+        + NodeMetrics.EditorVerticalMargin;
 
     /// <summary>
     /// Smallest body height that still shows the whole inline editor. Reported by the view from the
@@ -111,7 +137,9 @@ public sealed partial class NodeViewModel : ObservableObject
 
     partial void OnWidthChanged(double value)
     {
-        Model.Size = new GraphSize(value, Model.Size.Height);
+        if (!_syncing)
+            Model.Size = new GraphSize(value, Model.Size.Height);
+
         OnGeometryChanged();
     }
 
@@ -125,15 +153,47 @@ public sealed partial class NodeViewModel : ObservableObject
             return;
         }
 
-        Model.Size = new GraphSize(Model.Size.Width, double.IsNaN(value) ? 0 : value);
+        if (!_syncing)
+            Model.Size = new GraphSize(Model.Size.Width, double.IsNaN(value) ? 0 : value);
+
+        if (!HasMeasuredHeight)
+            MeasuredHeight = EstimateHeight();
+
         OnGeometryChanged();
     }
 
     private bool _movingBothAxes;
 
+    /// <summary>
+    /// Set while the view-model is being pulled from its model, so the model is not written back.
+    /// An unresized node's model has no size at all, and writing the view's default into it would
+    /// make the next snapshot differ from the one just restored.
+    /// </summary>
+    private bool _syncing;
+
+    /// <summary>
+    /// Re-reads position and size from the model, after something other than this view-model changed
+    /// them — an undo, which restores the model in place.
+    /// </summary>
+    public void SyncFromModel()
+    {
+        _syncing = true;
+        try
+        {
+            MoveTo(Model.Position.X, Model.Position.Y);
+            Width = WidthOf(Model);
+            ContentHeight = ContentHeightOf(Model);
+        }
+        finally
+        {
+            _syncing = false;
+        }
+    }
+
     private void OnGeometryChanged()
     {
-        Model.Position = new GraphPoint(X, Y);
+        if (!_syncing)
+            Model.Position = new GraphPoint(X, Y);
 
         if (_movingBothAxes)
             return;
@@ -166,7 +226,10 @@ public sealed partial class NodeViewModel : ObservableObject
 
     public void SetMeasuredHeight(double height)
     {
-        if (Math.Abs(MeasuredHeight - height) < 0.5)
+        var wasEstimate = !HasMeasuredHeight;
+        HasMeasuredHeight = true;
+
+        if (!wasEstimate && Math.Abs(MeasuredHeight - height) < 0.5)
             return;
 
         MeasuredHeight = height;

@@ -29,6 +29,9 @@
         <p:BoolToTextWrappingConverter x:Key="BoolToTextWrapping" />
         <p:PortNotWiredConverter x:Key="PortNotWired" />
         <p:ScaleToStrokeThicknessConverter x:Key="ScaleToStroke" />
+        <p:EnumValuesConverter x:Key="EnumValues" />
+        <p:BytesToImageConverter x:Key="BytesToImage" />
+        <p:ImageSizeConverter x:Key="ImageSize" />
 
         <!-- Toolbar button -->
         <Style x:Key="ToolbarButton" TargetType="Button">
