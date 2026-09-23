@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="vNoder.App/vNoder.App.csproj" />
+  <Project Path="vNoder.Core/vNoder.Core.csproj" />
+  <Project Path="vNoder.Nodes/vNoder.Nodes.csproj" />
+</Solution>

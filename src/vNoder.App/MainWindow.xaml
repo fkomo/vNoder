@@ -1,0 +1,644 @@
+<Window x:Class="vNoder.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:p="clr-namespace:vNoder.App.Presentation"
+        xmlns:n="clr-namespace:vNoder.Nodes;assembly=vNoder.Nodes"
+        xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+        Title="{Binding WindowTitle}" Height="760" Width="1220"
+        Background="{StaticResource WindowBackground}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        KeyDown="Window_KeyDown">
+
+    <Window.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RunOnceCommand}" />
+        <KeyBinding Key="F5" Modifiers="Ctrl" Command="{Binding ToggleContinuousCommand}" />
+        <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="ApplicationCommands.SaveAs" />
+    </Window.InputBindings>
+
+    <!-- New/Open/Save reuse the built-in Ctrl+N / Ctrl+O / Ctrl+S gestures. -->
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.New" Executed="NewCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Open" Executed="OpenCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Save" Executed="SaveCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.SaveAs" Executed="SaveAsCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Copy" Executed="CopyCommand_Executed" />
+        <CommandBinding Command="ApplicationCommands.Paste" Executed="PasteCommand_Executed" />
+    </Window.CommandBindings>
+
+    <Window.Resources>
+
+        <ObjectDataProvider x:Key="HashAlgorithms" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="n:HashAlgorithmKind" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <!-- ===== Ports ================================================================== -->
+
+        <Style x:Key="PortDot" TargetType="Ellipse">
+            <Setter Property="Width" Value="11" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="Stroke" Value="{Binding ValueType, Converter={StaticResource PortBrush}}" />
+            <Setter Property="Fill" Value="{StaticResource CanvasBackground}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                    <Setter Property="Fill" Value="{Binding ValueType, Converter={StaticResource PortBrush}}" />
+                </DataTrigger>
+                <!-- Last, so it wins: this is the port the cursor can act on right now. -->
+                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                    <Setter Property="Stroke" Value="{StaticResource TextPrimary}" />
+                    <Setter Property="StrokeThickness" Value="3" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Dot hangs half outside the node edge so wires meet it exactly at Node.X / Node.X+Width. -->
+        <DataTemplate x:Key="InputPortTemplate">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Background="Transparent"
+                        ToolTip="{Binding TypeLabel}">
+                <Ellipse Style="{StaticResource PortDot}" Margin="-6,0,0,0"
+                         MouseLeftButtonDown="InputPortDot_MouseLeftButtonDown" />
+                <TextBlock Text="{Binding Name}" Margin="7,0,0,0" VerticalAlignment="Center"
+                           FontSize="11" Foreground="{StaticResource TextSecondary}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="OutputPortTemplate">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right"
+                        Background="Transparent" ToolTip="{Binding TypeLabel}">
+                <TextBlock Text="{Binding Name}" Margin="0,0,7,0" VerticalAlignment="Center"
+                           FontSize="11" Foreground="{StaticResource TextSecondary}" />
+                <Ellipse Style="{StaticResource PortDot}" Margin="0,0,-6,0"
+                         MouseLeftButtonDown="OutputPortDot_MouseLeftButtonDown" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate x:Key="PortRowTemplate">
+            <Grid Height="22">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ContentControl Grid.Column="0" Content="{Binding Input}" HorizontalAlignment="Left"
+                                VerticalAlignment="Center" ContentTemplate="{StaticResource InputPortTemplate}" />
+                <ContentControl Grid.Column="1" Content="{Binding Output}" HorizontalAlignment="Right"
+                                VerticalAlignment="Center" ContentTemplate="{StaticResource OutputPortTemplate}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- ===== Inline editors: one implicit template per editable node type ============ -->
+
+        <DataTemplate x:Key="NoEditorTemplate" />
+
+        <DataTemplate DataType="{x:Type n:StaticNumberNode}">
+            <TextBox Style="{StaticResource NodeFieldTextBox}"
+                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:StaticTextNode}">
+            <TextBox Style="{StaticResource NodeFieldTextBox}" MinHeight="23"
+                     AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                     VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                     Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RandomNumberNode}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Min" Style="{StaticResource NodeFieldLabel}" />
+                    <TextBox Style="{StaticResource NodeFieldTextBox}"
+                             IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Min}"
+                         Text="{Binding Min, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Max" Style="{StaticResource NodeFieldLabel}" />
+                    <TextBox Style="{StaticResource NodeFieldTextBox}"
+                             IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Max}"
+                         Text="{Binding Max, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RandomStringNode}">
+            <StackPanel>
+                <TextBlock Text="Length" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Length}"
+                         Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Charset" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Charset}"
+                         Text="{Binding Charset, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RandomBytesNode}">
+            <StackPanel>
+                <TextBlock Text="Length" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Length}"
+                         Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:FileDeleteNode}">
+            <DockPanel MinHeight="44">
+                <TextBlock DockPanel.Dock="Top" Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}" TextWrapping="Wrap"
+                         AcceptsReturn="False" VerticalContentAlignment="Top"
+                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:FileReadNode}">
+            <DockPanel MinHeight="44">
+                <TextBlock DockPanel.Dock="Top" Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}" TextWrapping="Wrap"
+                         AcceptsReturn="False" VerticalContentAlignment="Top"
+                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:FileWriteNode}">
+            <DockPanel MinHeight="64">
+                <TextBlock DockPanel.Dock="Top" Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <CheckBox DockPanel.Dock="Bottom" Content="Append if exists" Margin="0,6,0,0"
+                          FontSize="10" IsChecked="{Binding AppendIfExists}"
+                          Foreground="{StaticResource TextMuted}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}" TextWrapping="Wrap"
+                         AcceptsReturn="False" VerticalContentAlignment="Top"
+                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </DockPanel>
+        </DataTemplate>
+
+        <!-- Shows the value in full: no wrapping, no scrollbars, anchored top-left. Anything longer
+             than the node is clipped, which is what the resize grip is for. -->
+        <!-- A read-only TextBox rather than a TextBlock, so the value can be selected and copied. -->
+        <DataTemplate DataType="{x:Type n:OutputNode}">
+            <DockPanel MinHeight="48">
+                <CheckBox DockPanel.Dock="Bottom" Content="Wrap" Margin="0,5,0,0" FontSize="10"
+                          IsChecked="{Binding Wrap}" Foreground="{StaticResource TextMuted}" />
+                <Border Background="{StaticResource FieldBackground}" CornerRadius="3" Padding="5,3"
+                        BorderBrush="#FF3E3E4A" BorderThickness="1" ClipToBounds="True">
+                    <TextBox Text="{Binding DisplayText, Mode=OneWay}" IsReadOnly="True"
+                             Background="Transparent" BorderThickness="0" Padding="0"
+                             Foreground="{StaticResource TextPrimary}" CaretBrush="Transparent"
+                             SelectionBrush="#FF6FB3FF" FontFamily="Consolas" FontSize="11"
+                             VerticalContentAlignment="Top"
+                             TextWrapping="{Binding Wrap, Converter={StaticResource BoolToTextWrapping}}"
+                             VerticalScrollBarVisibility="Hidden"
+                             HorizontalScrollBarVisibility="Hidden" />
+                </Border>
+            </DockPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:LengthNode}">
+            <Border Background="{StaticResource FieldBackground}" CornerRadius="3" Padding="5,3"
+                    BorderBrush="#FF3E3E4A" BorderThickness="1" ClipToBounds="True">
+                <TextBox Text="{Binding DisplayText, Mode=OneWay}" IsReadOnly="True"
+                         Background="Transparent" BorderThickness="0" Padding="0"
+                         Foreground="{StaticResource TextPrimary}" CaretBrush="Transparent"
+                         SelectionBrush="#FF6FB3FF" FontFamily="Consolas" FontSize="11"
+                         VerticalContentAlignment="Top" TextWrapping="NoWrap"
+                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden" />
+            </Border>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:BooleanNode}">
+            <CheckBox Content="{Binding Value}" IsChecked="{Binding Value}" FontSize="11"
+                      Foreground="{StaticResource TextPrimary}" />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:HashNode}">
+            <StackPanel>
+                <TextBlock Text="Algorithm" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Algorithm}"
+                          ItemsSource="{Binding Source={StaticResource HashAlgorithms}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:SubstringNode}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="6" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Start" Style="{StaticResource NodeFieldLabel}" />
+                    <TextBox Style="{StaticResource NodeFieldTextBox}"
+                             IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Start}"
+                         Text="{Binding Start, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Length" Style="{StaticResource NodeFieldLabel}" />
+                    <TextBox Style="{StaticResource NodeFieldTextBox}"
+                             IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Length}"
+                         Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ReplaceAllNode}">
+            <StackPanel>
+                <TextBlock Text="Find" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Find}"
+                         Text="{Binding Find, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Replace with" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Replace}"
+                         Text="{Binding ReplaceWith, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CountOccurrencesNode}">
+            <StackPanel>
+                <TextBlock Text="Find" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Find}"
+                         Text="{Binding Find, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:SplitNode}">
+            <StackPanel>
+                <TextBlock Text="Separator" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Separator}"
+                         Text="{Binding Separator, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:JoinNode}">
+            <StackPanel>
+                <TextBlock Text="Separator" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Separator}"
+                         Text="{Binding Separator, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:EqualsNode}">
+            <CheckBox Content="Ignore case" FontSize="10" IsChecked="{Binding IgnoreCase}"
+                      Foreground="{StaticResource TextMuted}" />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CompareNode}">
+            <CheckBox Content="Ignore case" FontSize="10" IsChecked="{Binding IgnoreCase}"
+                      Foreground="{StaticResource TextMuted}" />
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RandomBooleanNode}">
+            <StackPanel>
+                <TextBlock Text="Probability of true" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Probability}"
+                         Text="{Binding Probability, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <p:NodeEditorTemplateSelector x:Key="NodeEditorSelector" Empty="{StaticResource NoEditorTemplate}" />
+
+        <!-- ===== Node shell ============================================================= -->
+
+        <Style x:Key="NodeShell" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource NodeBackground}" />
+            <Setter Property="BorderBrush" Value="{StaticResource NodeBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Style.Triggers>
+                <!-- Order matters: a later active trigger wins, so error beats selected beats hover. -->
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="BorderBrush" Value="#FF7C8497" />
+                    <Setter Property="Background" Value="#FF32323D" />
+                </Trigger>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource NodeBorderSelected}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding HasError}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource NodeBorderError}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="NodeTemplate">
+            <Grid SizeChanged="NodeShell_SizeChanged" MouseRightButtonUp="NodeShell_MouseRightButtonUp">
+                <Border Style="{StaticResource NodeShell}" Width="{Binding Width}">
+                    <StackPanel>
+                        <Border Height="26" CornerRadius="5,5,0,0" Cursor="SizeAll"
+                                Background="{Binding Category, Converter={StaticResource CategoryBrush}}"
+                                MouseLeftButtonDown="NodeHeader_MouseLeftButtonDown">
+                            <TextBlock Text="{Binding Title}" Margin="9,0" VerticalAlignment="Center"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" />
+                        </Border>
+                        <ItemsControl ItemsSource="{Binding Rows}" Margin="0,6,0,0"
+                                      ItemTemplate="{StaticResource PortRowTemplate}" />
+                        <!-- Tag marks the area the resize grip sizes; Height is NaN (Auto) until resized. -->
+                        <ContentControl Tag="Editor" Content="{Binding Model}" Margin="9,2,9,8"
+                                        Height="{Binding ContentHeight}"
+                                        HorizontalContentAlignment="Stretch"
+                                        VerticalContentAlignment="Stretch"
+                                        ContentTemplateSelector="{StaticResource NodeEditorSelector}" />
+                        <TextBlock Text="{Binding Error}" Margin="9,0,9,8" FontSize="10" TextWrapping="Wrap"
+                                   Foreground="{StaticResource ErrorText}"
+                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+                <Path HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,2"
+                      Cursor="SizeNWSE" Fill="{StaticResource TextMuted}" Opacity="0.75"
+                      Data="M 10,0 L 10,10 L 0,10 Z" ToolTip="Drag to resize"
+                      Visibility="{Binding IsResizable, Converter={StaticResource BoolToVisibility}}"
+                      MouseLeftButtonDown="ResizeGrip_MouseLeftButtonDown" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- ===== Group box ============================================================== -->
+
+        <!-- The box is not hit-testable, so hover comes from the workspace rather than IsMouseOver. -->
+        <Style x:Key="GroupBox" TargetType="Border">
+            <Setter Property="BorderBrush" Value="#FF585A70" />
+            <Setter Property="Background" Value="#1A6FB3FF" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsHovered}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource NodeBorderSelected}" />
+                    <Setter Property="Background" Value="#2E6FB3FF" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="GroupHeaderBar" TargetType="Border">
+            <Setter Property="Background" Value="#FF3A3D4E" />
+            <Setter Property="CornerRadius" Value="7,7,0,0" />
+            <Style.Triggers>
+                <!-- Collapsed, the bar is the whole group, so it gets all four corners. -->
+                <DataTrigger Binding="{Binding IsCollapsed}" Value="True">
+                    <Setter Property="CornerRadius" Value="7" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsHovered}" Value="True">
+                    <Setter Property="Background" Value="#FF4A4E64" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <DataTemplate x:Key="GroupTemplate">
+            <Grid>
+                <!-- The box itself must not swallow clicks aimed at the canvas or its nodes. -->
+                <Border Width="{Binding Width}" Height="{Binding Height}" CornerRadius="8"
+                        IsHitTestVisible="False" BorderThickness="1"
+                        Style="{StaticResource GroupBox}"
+                        Visibility="{Binding IsCollapsed,
+                                     Converter={StaticResource InverseBoolToVisibility}}" />
+                <!-- The entire bar is the drag handle: nothing inside it is hit-testable, and it
+                     collapses on double-click. Renaming is on its context menu. -->
+                <Border Width="{Binding Width}" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left"
+                        Cursor="SizeAll" Style="{StaticResource GroupHeaderBar}"
+                        ToolTip="Drag to move, double-click to collapse"
+                        MouseLeftButtonDown="GroupHeader_MouseLeftButtonDown"
+                        MouseRightButtonUp="GroupHeader_MouseRightButtonUp">
+                    <StackPanel Orientation="Horizontal" Margin="10,0" VerticalAlignment="Center"
+                                IsHitTestVisible="False">
+                        <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextPrimary}" />
+                        <TextBlock Text="{Binding MemberCountLabel}" Margin="8,0,0,0" FontSize="11"
+                                   VerticalAlignment="Center" Foreground="{StaticResource TextMuted}"
+                                   Visibility="{Binding IsCollapsed,
+                                                Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+    </Window.Resources>
+
+    <DockPanel>
+
+        <!-- Slim toolbar: the only permanent chrome. -->
+        <Border DockPanel.Dock="Top" Height="40" Background="{StaticResource ToolbarBackground}"
+                BorderBrush="{StaticResource ChromeBorder}" BorderThickness="0,0,0,1">
+            <DockPanel LastChildFill="True" Margin="10,0">
+                <Button DockPanel.Dock="Left" Content="New" VerticalAlignment="Center" ToolTip="Ctrl+N"
+                        Style="{StaticResource ToolbarButton}" Command="ApplicationCommands.New" />
+                <Button DockPanel.Dock="Left" Content="Open" VerticalAlignment="Center" ToolTip="Ctrl+O"
+                        Style="{StaticResource ToolbarButton}" Command="ApplicationCommands.Open" />
+                <Button DockPanel.Dock="Left" Content="Save" VerticalAlignment="Center" ToolTip="Ctrl+S"
+                        Style="{StaticResource ToolbarButton}" Command="ApplicationCommands.Save" />
+                <Border DockPanel.Dock="Left" Width="1" Margin="4,10,10,10"
+                        Background="{StaticResource ChromeBorder}" />
+                <Button DockPanel.Dock="Left" Content="Run Once" VerticalAlignment="Center" ToolTip="F5"
+                        Style="{StaticResource ToolbarButton}" Command="{Binding RunOnceCommand}" />
+                <Button DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Ctrl+F5"
+                        Style="{StaticResource RunToggleButton}"
+                        Content="{Binding ContinuousButtonText}"
+                        Command="{Binding ToggleContinuousCommand}" />
+                <!-- Tick rate for continuous runs: graph-level, so it needs no node. -->
+                <TextBox DockPanel.Dock="Left" VerticalAlignment="Center" Width="56" Padding="4,3"
+                         Style="{StaticResource NodeFieldTextBox}" FontSize="11"
+                         ToolTip="Continuous run interval, in milliseconds"
+                         Text="{Binding IntervalMilliseconds, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="6,0,0,0"
+                           FontSize="11" Foreground="{StaticResource TextMuted}" Text="ms" />
+                <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"
+                           FontSize="11" Foreground="{StaticResource TextMuted}"
+                           Text="{Binding Scale, StringFormat={}{0:P0}}" />
+                <TextBlock />
+            </DockPanel>
+        </Border>
+
+        <!-- Status line: the running commentary belongs out of the way, at the bottom. -->
+        <Border DockPanel.Dock="Bottom" Height="24" Background="{StaticResource ToolbarBackground}"
+                BorderBrush="{StaticResource ChromeBorder}" BorderThickness="0,1,0,0">
+            <DockPanel Margin="10,0">
+                <!-- Live iteration count and elapsed time while a continuous run is going. -->
+                <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Margin="12,0,0,0"
+                           FontSize="11" FontWeight="SemiBold" Foreground="#FFFF6B5E"
+                           Text="{Binding RunProgressText}"
+                           Visibility="{Binding IsRunningContinuously,
+                                        Converter={StaticResource BoolToVisibility}}" />
+                <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                           FontSize="11" Foreground="{StaticResource TextSecondary}"
+                           Text="{Binding StatusText}" />
+            </DockPanel>
+        </Border>
+
+        <!-- Workspace. Mouse handling lives on this host; the scene beneath it carries the transform. -->
+        <Grid x:Name="WorkspaceHost" ClipToBounds="True" Background="{StaticResource CanvasBackground}"
+              Focusable="True"
+              MouseLeftButtonDown="WorkspaceHost_MouseLeftButtonDown"
+              MouseDown="WorkspaceHost_MouseDown"
+              MouseMove="WorkspaceHost_MouseMove"
+              MouseUp="WorkspaceHost_MouseUp"
+              MouseWheel="WorkspaceHost_MouseWheel"
+              MouseLeave="WorkspaceHost_MouseLeave">
+
+            <Rectangle x:Name="GridBackdrop" IsHitTestVisible="True">
+                <Rectangle.Fill>
+                    <DrawingBrush TileMode="Tile" ViewportUnits="Absolute" Stretch="None">
+                        <DrawingBrush.Viewport>
+                            <MultiBinding Converter="{StaticResource GridViewport}">
+                                <Binding Path="Scale" />
+                                <Binding Path="OffsetX" />
+                                <Binding Path="OffsetY" />
+                            </MultiBinding>
+                        </DrawingBrush.Viewport>
+                        <DrawingBrush.Drawing>
+                            <GeometryDrawing Brush="#FF32323E">
+                                <GeometryDrawing.Geometry>
+                                    <EllipseGeometry Center="1,1" RadiusX="1" RadiusY="1" />
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <!-- One wrapper carries the zoom/pan transform, so wires and nodes cannot drift apart.
+                 Wires are declared first and therefore render beneath the nodes. -->
+            <Grid x:Name="SceneRoot" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="{Binding Scale}" ScaleY="{Binding Scale}" />
+                        <TranslateTransform X="{Binding OffsetX}" Y="{Binding OffsetY}" />
+                    </TransformGroup>
+                </Grid.RenderTransform>
+
+                <ItemsControl ItemsSource="{Binding Groups}" ItemTemplate="{StaticResource GroupTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding X}" />
+                            <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+
+                <ItemsControl ItemsSource="{Binding Links}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Path Data="{Binding Geometry}"
+                                  StrokeThickness="{Binding DataContext.Scale,
+                                                    RelativeSource={RelativeSource AncestorType=ItemsControl},
+                                                    Converter={StaticResource ScaleToStroke}}"
+                                  Stroke="{Binding Source.ValueType, Converter={StaticResource PortBrush}}"
+                                  Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- On a Canvas, not loose in the Grid. A Grid measures its children against the
+                     viewport, so a wire longer than the window has its DesiredSize clamped and WPF
+                     applies a layout clip at that size, cutting it off at a hard edge in scene
+                     coordinates. A Canvas measures children with infinite space, so no clip. -->
+                <Canvas>
+                    <Path Data="{Binding PreviewGeometry}" Stroke="{StaticResource TextSecondary}"
+                          StrokeThickness="{Binding Scale, Converter={StaticResource ScaleToStroke}}"
+                          StrokeDashArray="4 3" IsHitTestVisible="False" />
+                </Canvas>
+
+                <ItemsControl ItemsSource="{Binding Nodes}" ItemTemplate="{StaticResource NodeTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding X}" />
+                            <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                            <Setter Property="Visibility"
+                                    Value="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+            </Grid>
+
+            <!-- Marquee is drawn in screen space, so it needs no transform maths. -->
+            <Canvas x:Name="Overlay" IsHitTestVisible="False">
+                <Rectangle x:Name="Marquee" Visibility="Collapsed" StrokeThickness="1"
+                           Stroke="{StaticResource NodeBorderSelected}" Fill="#206FB3FF" />
+            </Canvas>
+
+            <!-- Add-node search: the only node catalog, opened at the cursor by double-click. -->
+            <Popup x:Name="SearchPopup" Placement="Relative" PlacementTarget="{Binding ElementName=WorkspaceHost}"
+                   HorizontalOffset="{Binding SearchScreenX}" VerticalOffset="{Binding SearchScreenY}"
+                   IsOpen="{Binding IsSearchOpen, Mode=TwoWay}" StaysOpen="False"
+                   AllowsTransparency="True" Opened="SearchPopup_Opened">
+                <Border Width="320" Background="{StaticResource PopupBackground}" CornerRadius="6"
+                        BorderBrush="#FF4A4A58" BorderThickness="1" Padding="6">
+                    <StackPanel>
+                        <TextBox x:Name="SearchBox" Style="{StaticResource NodeFieldTextBox}" Padding="6,4"
+                                 FontSize="12" PreviewKeyDown="SearchBox_PreviewKeyDown"
+                                 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" />
+                        <!-- Says why the list is short when a dropped wire narrowed it. -->
+                        <TextBlock Margin="2,6,2,0" FontSize="10" Foreground="{StaticResource TextMuted}"
+                                   Text="{Binding SearchFilterLabel}"
+                                   Visibility="{Binding IsSearchFiltered,
+                                                Converter={StaticResource BoolToVisibility}}" />
+                        <ListBox x:Name="SearchList" MaxHeight="280" Margin="0,6,0,0" Background="Transparent"
+                                 BorderThickness="0" ItemsSource="{Binding SearchResults}"
+                                 SelectedItem="{Binding SelectedSearchResult, Mode=TwoWay}"
+                                 PreviewMouseLeftButtonUp="SearchList_PreviewMouseLeftButtonUp"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="2">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimary}" />
+                                            <TextBlock Text="{Binding Category}" Margin="8,0,0,0" FontSize="10"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextMuted}" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Description}" FontSize="10" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource TextSecondary}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+            </Popup>
+
+        </Grid>
+    </DockPanel>
+</Window>
