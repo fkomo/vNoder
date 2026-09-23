@@ -50,6 +50,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         _editCommitTimer.Tick += (_, _) => FlushPendingEdit();
 
         Realizer = new NodeRealizer(Nodes, () => VisibleGraphRect, () => Scale, _dispatcher);
+        _runFeedback = new RunFeedback(_dispatcher);
     }
 
     public NodeRegistry Registry { get; }
@@ -149,12 +150,15 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         }
     }
 
+    /// <summary>Flashes nodes in evaluation order during a Run Once.</summary>
+    private readonly RunFeedback _runFeedback;
+
     [RelayCommand]
     private async Task RunOnceAsync()
     {
         try
         {
-            var result = await Executor.RunOnceAsync();
+            var result = await Executor.RunOnceAsync(_runFeedback.Begin(Nodes));
             StatusText = DescribeRun(result);
         }
         catch (Exception exception)

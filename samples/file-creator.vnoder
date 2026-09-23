@@ -10,8 +10,8 @@
     {
       "id": "607dcc76-323b-4c4b-935e-96429357c049",
       "type": "IO/File Write",
-      "x": 1357,
-      "y": 596,
+      "x": 1408,
+      "y": 626,
       "state": {
         "AppendIfExists": false,
         "Path": ""
@@ -20,14 +20,14 @@
     {
       "id": "7d90af55-87bc-4857-bcb5-fb4fd3edfbf7",
       "type": "Text/Concat",
-      "x": 824,
-      "y": 737
+      "x": 764,
+      "y": 785
     },
     {
       "id": "03d343d2-01cf-44a3-a8b1-de12592f1078",
       "type": "Output/Output",
-      "x": 1118,
-      "y": 146,
+      "x": 1172,
+      "y": 164,
       "w": 456,
       "h": 263,
       "state": {
@@ -37,8 +37,8 @@
     {
       "id": "43ab01aa-aca4-440b-b898-c9036b3611fa",
       "type": "Generators/Random String",
-      "x": 524,
-      "y": 344,
+      "x": 577,
+      "y": 335,
       "state": {
         "Charset": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
         "Length": 1024
@@ -47,8 +47,8 @@
     {
       "id": "776f3990-8362-44ba-a399-db7769d54d45",
       "type": "Input/Static Text",
-      "x": 583,
-      "y": 800,
+      "x": 528,
+      "y": 856,
       "state": {
         "Text": ".txt"
       }
@@ -56,8 +56,8 @@
     {
       "id": "2fbddc0a-ce10-4105-b196-6c2028c86b93",
       "type": "Input/Static Text",
-      "x": 298,
-      "y": 650,
+      "x": 245,
+      "y": 694,
       "state": {
         "Text": ".\\tmp\\"
       }
@@ -65,14 +65,14 @@
     {
       "id": "f245415d-a1a4-4924-83a5-71f5fa09c65b",
       "type": "Text/Concat",
-      "x": 568,
-      "y": 680
+      "x": 515,
+      "y": 724
     },
     {
       "id": "ad04fc5c-732a-4e82-b015-3e00414808e8",
       "type": "Output/Output",
-      "x": 1247,
-      "y": 879,
+      "x": 1246,
+      "y": 875,
       "w": 356,
       "h": 74,
       "state": {
@@ -82,21 +82,12 @@
     {
       "id": "57052509-32d4-4518-b009-090041abad22",
       "type": "Generators/GUID",
-      "x": 279,
-      "y": 843,
+      "x": 226,
+      "y": 887,
       "state": {
         "Format": 1,
         "Uppercase": false,
         "Version": 1
-      }
-    },
-    {
-      "id": "f65c5be5-4825-4f26-95e1-bd822ca75b8b",
-      "type": "IO/Image Load",
-      "x": 277,
-      "y": 200,
-      "state": {
-        "Path": ""
       }
     }
   ],

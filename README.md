@@ -28,8 +28,10 @@ an output port to an input port to wire them up — incompatible ports are refus
 connections that would form a cycle. Drop a wire on empty canvas and the catalogue opens filtered to
 nodes that can accept it, with Output at the top, then wires the one you pick automatically.
 
-Press **Run Once** to evaluate the graph, or **Continuous** to re-run it on a timer (the interval is
-the box beside the button). While a continuous run is going the button turns red and the status bar
+Press **Run Once** (`Ctrl+R`) to evaluate the graph. Each node flashes as it finishes, in the order
+the graph evaluated it — green, or red if it failed — and a node that takes a while, such as an HTTP
+request, is outlined in amber while it runs. **Continuous** (`Ctrl+Shift+R`) re-runs it on a timer
+(the interval is the box beside the button), without the flashes. While a continuous run is going the button turns red and the status bar
 counts iterations and elapsed time.
 
 ### Controls
@@ -48,8 +50,8 @@ counts iterations and elapsed time.
 | Collapse a group | Double-click its header |
 | Copy / paste | `Ctrl+C` / `Ctrl+V` |
 | Undo / redo | `Ctrl+Z` / `Ctrl+Y` (or `Ctrl+Shift+Z`), or the toolbar buttons |
-| Run once | `F5` |
-| Run continuously | `Ctrl+F5` |
+| Run once | `Ctrl+R` |
+| Run continuously | `Ctrl+Shift+R` |
 | New / open / save | `Ctrl+N` / `Ctrl+O` / `Ctrl+S`, `Ctrl+Shift+S` to save as |
 
 Everything that is saved can be undone: adding, deleting, wiring, moving, resizing, grouping, pasting,

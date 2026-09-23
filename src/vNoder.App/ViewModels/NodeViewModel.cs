@@ -77,6 +77,28 @@ public sealed partial class NodeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isSelected;
 
+    /// <summary>True while a Run Once is evaluating this node; see <see cref="RunFeedback"/>.</summary>
+    [ObservableProperty]
+    private bool _isRunning;
+
+    /// <summary>Set to play the node's completion flash; the node template animates on the rising edge.</summary>
+    [ObservableProperty]
+    private bool _isFlashing;
+
+    /// <summary>Whether the current flash reports a failure, which colours it red.</summary>
+    [ObservableProperty]
+    private bool _flashFailed;
+
+    /// <summary>Plays the completion flash, restarting it if one is already showing.</summary>
+    public void Flash(bool failed)
+    {
+        FlashFailed = failed;
+        IsFlashing = false;
+        IsFlashing = true;
+    }
+
+    public void EndFlash() => IsFlashing = false;
+
     /// <summary>False while the node is inside a collapsed group.</summary>
     [ObservableProperty]
     private bool _isVisible = true;

@@ -24,12 +24,25 @@ public sealed class GraphExecutor(Graph graph)
     /// </summary>
     public event EventHandler<GraphRunResult>? Evaluated;
 
-    public async Task<GraphRunResult> RunOnceAsync(CancellationToken cancellationToken = default)
+    public Task<GraphRunResult> RunOnceAsync(CancellationToken cancellationToken = default) =>
+        RunOnceAsync(observer: null, cancellationToken);
+
+    /// <summary>
+    /// Runs one pass, reporting each node to <paramref name="observer"/> as it starts and as it
+    /// finishes, in evaluation order. This is what lets the view show execution as it happens.
+    /// </summary>
+    /// <remarks>
+    /// The observer is called on the evaluation thread, inline, so it must be quick and must marshal
+    /// anything that touches UI state. Continuous runs take no observer, so they pay nothing for it.
+    /// </remarks>
+    public async Task<GraphRunResult> RunOnceAsync(
+        Action<NodeBase, NodeRunPhase>? observer,
+        CancellationToken cancellationToken = default)
     {
         await _runGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            return await EvaluateAsync(Interlocked.Increment(ref _tick), cancellationToken).ConfigureAwait(false);
+            return await EvaluateAsync(Interlocked.Increment(ref _tick), cancellationToken, observer).ConfigureAwait(false);
         }
         finally
         {
@@ -136,7 +149,10 @@ public sealed class GraphExecutor(Graph graph)
     private TimeSpan IntervalOrDefault() =>
         TimeSpan.FromMilliseconds(Math.Clamp(Graph.IntervalMilliseconds, 16, 60_000));
 
-    private async Task<GraphRunResult> EvaluateAsync(long tick, CancellationToken cancellationToken)
+    private async Task<GraphRunResult> EvaluateAsync(
+        long tick,
+        CancellationToken cancellationToken,
+        Action<NodeBase, NodeRunPhase>? observer = null)
     {
         var context = new NodeEvaluationContext(tick, cancellationToken);
         var order = Graph.TopologicalOrder();
@@ -152,11 +168,14 @@ public sealed class GraphExecutor(Graph graph)
             foreach (var input in node.Inputs)
                 input.Value = input.Link?.Source.Value;
 
+            observer?.Invoke(node, NodeRunPhase.Started);
+
             try
             {
                 await node.EvaluateAsync(context).ConfigureAwait(false);
                 node.LastError = null;
                 evaluated++;
+                observer?.Invoke(node, NodeRunPhase.Succeeded);
             }
             catch (OperationCanceledException)
             {
@@ -167,6 +186,7 @@ public sealed class GraphExecutor(Graph graph)
                 // One bad node must not abort the pass; downstream nodes see its stale/null outputs.
                 node.LastError = exception.Message;
                 failed.Add(node);
+                observer?.Invoke(node, NodeRunPhase.Failed);
             }
         }
 
@@ -174,4 +194,17 @@ public sealed class GraphExecutor(Graph graph)
         Evaluated?.Invoke(this, result);
         return result;
     }
+}
+
+/// <summary>What <see cref="GraphExecutor.RunOnceAsync(Action{NodeBase, NodeRunPhase}?, CancellationToken)"/> reports about a node.</summary>
+public enum NodeRunPhase
+{
+    /// <summary>The node's inputs are pulled and it is about to evaluate.</summary>
+    Started,
+
+    /// <summary>The node evaluated without error.</summary>
+    Succeeded,
+
+    /// <summary>The node threw; its message is on <see cref="NodeBase.LastError"/>.</summary>
+    Failed,
 }

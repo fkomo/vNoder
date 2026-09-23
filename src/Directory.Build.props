@@ -1,0 +1,14 @@
+<Project>
+  <!--
+    Settings shared by every project under src/. Package versions live next door, in
+    Directory.Packages.props.
+  -->
+  <PropertyGroup>
+    <!--
+      Debug symbols go inside each assembly instead of a separate .pdb, so a copied or published
+      build always carries them: exception stack traces keep file names and line numbers, and a
+      debugger can step into the code, with no loose .pdb files to lose or mismatch.
+    -->
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+</Project>

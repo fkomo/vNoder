@@ -11,8 +11,8 @@
         PreviewGotKeyboardFocus="Window_PreviewGotKeyboardFocus">
 
     <Window.InputBindings>
-        <KeyBinding Key="F5" Command="{Binding RunOnceCommand}" />
-        <KeyBinding Key="F5" Modifiers="Ctrl" Command="{Binding ToggleContinuousCommand}" />
+        <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding RunOnceCommand}" />
+        <KeyBinding Key="R" Modifiers="Ctrl+Shift" Command="{Binding ToggleContinuousCommand}" />
         <KeyBinding Key="S" Modifiers="Ctrl+Shift" Command="ApplicationCommands.SaveAs" />
         <KeyBinding Key="Z" Modifiers="Ctrl+Shift" Command="ApplicationCommands.Redo" />
     </Window.InputBindings>
@@ -702,6 +702,46 @@
                 <DataTrigger Binding="{Binding HasError}" Value="True">
                     <Setter Property="BorderBrush" Value="{StaticResource NodeBorderError}" />
                 </DataTrigger>
+                <!-- Last: while a node is evaluating, its error from the previous run is stale. -->
+                <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                    <!-- Colour only: a thicker border would move the port dots off their wire anchors,
+                         which NodeMetrics derives from a 1px border. -->
+                    <Setter Property="BorderBrush" Value="#FFF2C14E" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- The completion flash: a glow over the node that fades in fast and out slowly. It plays on
+             IsFlashing's rising edge (RunFeedback), and must last as long as RunFeedback.FlashDuration. -->
+        <Style x:Key="NodeFlash" TargetType="Border">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush" Value="#FF7BD88F" />
+            <Setter Property="Background" Value="#307BD88F" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FlashFailed}" Value="True">
+                    <Setter Property="BorderBrush" Value="#FFFF6B5E" />
+                    <Setter Property="Background" Value="#40FF6B5E" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsFlashing}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                    <LinearDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+                                    <LinearDoubleKeyFrame KeyTime="0:0:0.03" Value="1" />
+                                    <EasingDoubleKeyFrame KeyTime="0:0:0.128" Value="0">
+                                        <EasingDoubleKeyFrame.EasingFunction>
+                                            <QuadraticEase EasingMode="EaseIn" />
+                                        </EasingDoubleKeyFrame.EasingFunction>
+                                    </EasingDoubleKeyFrame>
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -728,6 +768,7 @@
                                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
                 </Border>
+                <Border Style="{StaticResource NodeFlash}" Width="{Binding Width}" />
                 <Path HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,2,2"
                       Cursor="SizeNWSE" Fill="{StaticResource TextMuted}" Opacity="0.75"
                       Data="M 10,0 L 10,10 L 0,10 Z" ToolTip="Drag to resize"
@@ -819,9 +860,9 @@
                         Style="{StaticResource ToolbarButton}" Command="{Binding RedoCommand}" />
                 <Border DockPanel.Dock="Left" Width="1" Margin="4,10,10,10"
                         Background="{StaticResource ChromeBorder}" />
-                <Button DockPanel.Dock="Left" Content="Run Once" VerticalAlignment="Center" ToolTip="F5"
+                <Button DockPanel.Dock="Left" Content="Run Once" VerticalAlignment="Center" ToolTip="Ctrl+R"
                         Style="{StaticResource ToolbarButton}" Command="{Binding RunOnceCommand}" />
-                <Button DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Ctrl+F5"
+                <Button DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Ctrl+Shift+R"
                         Style="{StaticResource RunToggleButton}"
                         Content="{Binding ContinuousButtonText}"
                         Command="{Binding ToggleContinuousCommand}" />

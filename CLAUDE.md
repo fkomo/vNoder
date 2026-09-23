@@ -30,6 +30,11 @@ Requires the .NET 10 SDK, and builds/runs on Windows only (WPF).
 NuGet versions are managed centrally in `src/Directory.Packages.props`: a project's
 `<PackageReference>` has no `Version`, and adding or upgrading a package means editing that one file.
 
+Settings shared by every project live in `src/Directory.Build.props`. Today that is only
+`DebugType=embedded`: symbols are compiled into each DLL rather than written as `.pdb` files, so any
+copy of a build — including Release — gives stack traces with file and line numbers. Do not set
+`DebugType` in an individual project file.
+
 ## Projects
 
 - `src/vNoder.Core` — plain `net10.0`: graph model, port/type system, node registry, execution
@@ -212,11 +217,28 @@ Two things follow from this that are easy to get wrong:
   (string), so a write and a read in one graph are unordered — read may run first. Sequencing side
   effects needs a new mechanism (an execution-flow port type, or a pulse chain), not a bug fix.
 - **Continuous mode is graph-level configuration, not a node.** `Graph.IntervalMilliseconds` drives
-  it (edited in the toolbar box beside the Continuous button, `Ctrl+F5` to toggle), so every graph can
+  it (edited in the toolbar box beside the Continuous button, `Ctrl+Shift+R` to toggle), so every graph can
   run continuously with nothing to wire up. The loop is `PeriodicTimer` on a background task, and a
   tick is *skipped* rather than queued when the previous pass is still running. There was a
   `ClockNode`/`IClockNode`/`Pulse` trio here; it is gone, so old files mentioning `Control/Clock`
   load with an "unknown node type" warning, which is the intended degradation.
+
+**Run Once shows execution** (`RunFeedback`): the executor's optional per-node observer
+(`RunOnceAsync(observer)`, `NodeRunPhase`) reports each node starting and finishing, on the
+evaluation thread; the view marks a node `IsRunning` while it evaluates and queues a flash when it
+finishes. Flashes are **paced**, never less than a spacing apart (30 ms, shrinking so the whole cascade
+fits 0.75 s; each flash plays for 0.3 s), because a pass over ordinary nodes takes microseconds and
+would otherwise light up in a single frame with no visible order. Keep `RunFeedback.FlashDuration`
+and the `NodeFlash` storyboard in step. When the spacing is under a frame the schedule catches up
+(several flashes per tick, which is what holds a big graph to its budget); above it, the next flash is
+timed from the last one instead, since at ~2 timer ticks apart a late tick would otherwise fire two
+flashes together. A slow node holds the queue back naturally, so the playback never
+shows an order that did not happen. `IsFlashing` is cleared once the flash has played, or a node
+realized later (scrolled into view) would replay it. Continuous runs pass no observer: they would
+flicker constantly, and pay nothing for the feature. The running highlight changes only the border
+colour — a thicker border would move the port dots off their anchors (`NodeMetrics` assumes 1px).
+`Ctrl+R` is safe inside a node's text box: a plain `TextBox` has no binding for it, unlike
+`RichTextBox`, where it means align-right.
 
 Evaluation runs off the UI thread. Nodes must not raise `PropertyChanged` from inside
 `EvaluateAsync`: assign quietly, and let `WorkspaceViewModel` call `NodeBase.RaiseBindingsChanged()`
