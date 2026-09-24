@@ -118,7 +118,13 @@ Conventions that go with it:
   inline editor, add a `DataTemplate` with `DataType="{x:Type n:YourNode}"` to `MainWindow.xaml`; a
   node without one simply renders no editor (`NodeEditorTemplateSelector` handles the fallback).
 - Throw from `EvaluateAsync` to report a failure. The executor catches it, records it on
-  `NodeBase.LastError`, shows it on the node, and carries on with the rest of the pass.
+  `NodeBase.LastError`, shows it on the node, **clears the node's outputs**, skips the nodes that take
+  data from it, and carries on with the rest of the pass. A node need not clear its own outputs
+  before throwing.
+- A node that **touches the outside world** (reads or writes files, the network, processes) calls
+  `AddRunGate()` as the last line of its constructor. That declares the Run If input and Done output;
+  the executor does the rest, and the node's own code never looks at them. A node that brings branches
+  together or displays whatever arrives sets `Merges = true` on its attribute instead.
 - `EvaluateAsync` is genuinely async — do real async I/O rather than blocking.
 - An inline field that mirrors an input port should be gated with
   `IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired}, ConverterParameter=<PortName>}"`,
@@ -171,9 +177,9 @@ Conventions that go with it:
   invariant-formatting culture.
 - `FormatDateTimeNode` moved from `Text/Format Date Time` to `Date/Format`, with the old path in
   `FormerPaths`. The Date nodes read an unwired date input as "now", as Format always has.
-- **Select picks a value; it does not skip work.** The executor evaluates every node on every pass, so
-  both branches feeding a Select run, side effects included. Real branching needs the execution-flow
-  work in `TODO.md`.
+- **Select picks a value; it does not skip work by itself.** Skipping a branch is Run If's job (see
+  **Execution model**); Select, Coalesce, Is Empty and Output are declared `Merges = true`, so they
+  still run when one side is skipped and read it as empty.
 - Regex nodes (and the Regex mode of Contains / List Filter) use a 2 s match timeout, so a
   catastrophically backtracking pattern fails the node instead of hanging a continuous run. An empty
   pattern is a no-op, like an empty Find in Replace All.
@@ -259,10 +265,23 @@ executor never has to deal with feedback loops.
 Two things follow from this that are easy to get wrong:
 
 - **Order is data dependency, and nothing else.** Two nodes with no wire between them may evaluate in
-  either order. In particular `FileWriteNode.Success` (bool) cannot feed `FileReadNode.Path`
-  (string), so a write and a read in one graph are unordered — read may run first. Sequencing side
-  effects needs a new mechanism (an execution-flow port type, or a pulse chain), not a bug fix.
-  `TODO.md` sketches the options, along with per-item loops.
+  either order. Side effects are sequenced with **Run If / Done** (`NodeBase.AddRunGate`), which is
+  just another wire, so Kahn's algorithm honours it with no special case: File Write's Done into File
+  Read's Run If makes the read run second.
+- **Skipping is the one thing the executor adds.** A node is skipped when its Run If is wired and not
+  `true`, or when any wired input comes from a node that failed or was skipped this pass (unless the
+  node `Merges`). Skipped means not evaluated, outputs cleared, `IsSkipped` set,
+  `NodeRunPhase.Skipped` reported without a `Started`, and listed in `GraphRunResult.Skipped`. A failed
+  node's outputs are cleared too. Before this, a failed node's dependents ran on whatever it had left
+  behind: null if it had cleared its outputs, **the previous pass's values** if not. Inputs from a
+  blocked node are pulled as null even into a merge node, never as a stale value.
+- Run If and Done are a plain `bool` input and output, not a dedicated signal type, so a Success,
+  Compare or Is Empty output gates a node directly with no Gate node, and the four places a new port
+  type touches are untouched. Done is set by the executor after a successful evaluation; it means "ran",
+  not "succeeded". The ports are declared last, so they sit at the bottom of the node, and since links
+  are saved by port name, files saved before the ports existed load with them unwired.
+- Dropping a wire from a `Done` output on empty canvas connects the new node's Run If, not the first
+  boolean input it fits (`WorkspaceViewModel`, where the catalog's auto-connect picks the target).
 - **Continuous mode is graph-level configuration, not a node.** `Graph.IntervalMilliseconds` drives
   it (edited in the toolbar box beside the Continuous button, `Ctrl+Shift+R` to toggle), so every graph can
   run continuously with nothing to wire up. The loop is `PeriodicTimer` on a background task, and a
@@ -273,7 +292,8 @@ Two things follow from this that are easy to get wrong:
 **Run Once shows execution** (`RunFeedback`): the executor's optional per-node observer
 (`RunOnceAsync(observer)`, `NodeRunPhase`) reports each node starting and finishing, on the
 evaluation thread; the view marks a node `IsRunning` while it evaluates and queues a flash when it
-finishes. Flashes are **paced**, never less than a spacing apart (30 ms, shrinking so the whole cascade
+finishes (a skipped node reports `Skipped` and gets no flash: it did not run, and its dimmed
+style already says so). Flashes are **paced**, never less than a spacing apart (30 ms, shrinking so the whole cascade
 fits 0.75 s; each flash plays for 0.3 s), because a pass over ordinary nodes takes microseconds and
 would otherwise light up in a single frame with no visible order. Keep `RunFeedback.FlashDuration`
 and the `NodeFlash` storyboard in step. When the spacing is under a frame the schedule catches up
@@ -487,6 +507,13 @@ otherwise an **output**, since outputs are where a wire starts.
   *before* its wires: a stale box would leave stubbed wires a frame behind.
 - The group box computes its own bounds from member geometry, so it has no stored rectangle to keep
   in sync.
+- A **collapsed** box is as wide as its header text (name plus node count, measured with
+  `FormattedText` in `NodeGroupViewModel.CollapsedWidth`), never narrower than
+  `NodeMetrics.GroupCollapsedWidth`. The width is computed in the view-model, not left to the view,
+  because wires crossing into a collapsed group anchor to its edge. Keep the measurement in step with
+  the header in `GroupTemplate` (font sizes, weight, margins). A rename while collapsed changes the width
+  with no member moving, so it raises `AnchorsMoved` and the workspace refreshes the wires touching
+  the group.
 - The group header is a `TextBlock` with `IsHitTestVisible="False"`, not a `TextBox`, and has no
   buttons, so the **whole bar** is a drag handle. Double-clicking it collapses or expands. Groups are
   named in a prompt when created and renamed from the header's context menu (`AppDialog.Prompt` —

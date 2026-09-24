@@ -34,6 +34,8 @@ public sealed class PathDeleteNode : NodeBase
     {
         _pathIn = AddInput<string>("Path");
         _deletedOut = AddOutput<bool>("Deleted");
+
+        AddRunGate();
     }
 
     /// <summary>Inline path, used when the Path input is not wired.</summary>

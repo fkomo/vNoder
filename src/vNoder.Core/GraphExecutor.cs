@@ -146,6 +146,12 @@ public sealed class GraphExecutor(Graph graph)
         }
     }
 
+    private static void ClearOutputs(NodeBase node)
+    {
+        foreach (var output in node.Outputs)
+            output.Value = null;
+    }
+
     private TimeSpan IntervalOrDefault() =>
         TimeSpan.FromMilliseconds(Math.Clamp(Graph.IntervalMilliseconds, 16, 60_000));
 
@@ -157,22 +163,56 @@ public sealed class GraphExecutor(Graph graph)
         var context = new NodeEvaluationContext(tick, cancellationToken);
         var order = Graph.TopologicalOrder();
         var failed = new List<NodeBase>();
+        var skipped = new List<NodeBase>();
         var evaluated = 0;
+
+        // Nodes that failed or were skipped this pass. Whatever takes data from one of them is
+        // skipped in turn, unless it merges branches.
+        var blocked = new HashSet<NodeBase>();
 
         foreach (var node in order)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Pull each input from the output it is wired to; unconnected inputs stay null so nodes
-            // can fall back to their inline value.
+            // can fall back to their inline value. An input from a blocked node reads as empty too,
+            // never as the value that node left behind on an earlier pass.
+            var upstreamBlocked = false;
             foreach (var input in node.Inputs)
-                input.Value = input.Link?.Source.Value;
+            {
+                var source = input.Link?.Source;
+                if (source is not null && blocked.Contains(source.Owner))
+                {
+                    input.Value = null;
+                    upstreamBlocked = true;
+                }
+                else
+                {
+                    input.Value = source?.Value;
+                }
+            }
 
+            var gatedOff = node.RunIfPort is { IsConnected: true } gate && gate.Value is not true;
+            if (gatedOff || (upstreamBlocked && !node.Merges))
+            {
+                ClearOutputs(node);
+                node.LastError = null;
+                node.IsSkipped = true;
+                blocked.Add(node);
+                skipped.Add(node);
+                observer?.Invoke(node, NodeRunPhase.Skipped);
+                continue;
+            }
+
+            node.IsSkipped = false;
             observer?.Invoke(node, NodeRunPhase.Started);
 
             try
             {
                 await node.EvaluateAsync(context).ConfigureAwait(false);
+                if (node.DonePort is { } done)
+                    done.Value = true;
+
                 node.LastError = null;
                 evaluated++;
                 observer?.Invoke(node, NodeRunPhase.Succeeded);
@@ -183,14 +223,17 @@ public sealed class GraphExecutor(Graph graph)
             }
             catch (Exception exception)
             {
-                // One bad node must not abort the pass; downstream nodes see its stale/null outputs.
+                // One bad node must not abort the pass, but nothing downstream runs on what it left
+                // behind: its outputs are cleared, and the nodes that take data from it are skipped.
+                ClearOutputs(node);
                 node.LastError = exception.Message;
                 failed.Add(node);
+                blocked.Add(node);
                 observer?.Invoke(node, NodeRunPhase.Failed);
             }
         }
 
-        var result = new GraphRunResult(tick, evaluated, failed);
+        var result = new GraphRunResult(tick, evaluated, failed, skipped);
         Evaluated?.Invoke(this, result);
         return result;
     }
@@ -207,4 +250,10 @@ public enum NodeRunPhase
 
     /// <summary>The node threw; its message is on <see cref="NodeBase.LastError"/>.</summary>
     Failed,
+
+    /// <summary>
+    /// The node did not run: its Run If was wired and not true, or a node it takes data from failed or
+    /// was skipped. Reported without a preceding <see cref="Started"/>.
+    /// </summary>
+    Skipped,
 }

@@ -1,0 +1,257 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 1,
+    "offsetX": 390,
+    "offsetY": 470
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "d469d5b8-bf7f-4c62-8205-be4f54a2a4ab",
+      "type": "System/Environment Variable",
+      "x": -160,
+      "y": 384,
+      "state": {
+        "Name": "TEMP"
+      }
+    },
+    {
+      "id": "55174f59-009b-4746-b1c8-e49371a54449",
+      "type": "Path/Combine",
+      "x": 90,
+      "y": 384,
+      "state": {
+        "A": "",
+        "B": "vnoder-sample-02-cache.html",
+        "C": ""
+      }
+    },
+    {
+      "id": "60814d33-ce7c-49eb-b9f5-246b7446469e",
+      "type": "IO/Path Exists",
+      "x": 336,
+      "y": 477,
+      "state": {
+        "Path": ""
+      }
+    },
+    {
+      "id": "9ce9d94e-41e8-46a4-b0a6-83518d1b18e0",
+      "type": "Logic/Not",
+      "x": 716,
+      "y": 328
+    },
+    {
+      "id": "8de659b7-46d1-4181-9370-cd1403cbcba5",
+      "type": "Network/HTTP Request",
+      "x": 966,
+      "y": 328,
+      "h": 220,
+      "state": {
+        "Body": "",
+        "ContentType": "application/json",
+        "Headers": "",
+        "Method": 0,
+        "TimeoutSeconds": 30,
+        "Url": "https://example.com"
+      }
+    },
+    {
+      "id": "75ecb2c5-f320-4a8a-b38d-b7c3045fc14e",
+      "type": "IO/File Write",
+      "x": 1220,
+      "y": 502,
+      "state": {
+        "AppendIfExists": false,
+        "Path": ""
+      }
+    },
+    {
+      "id": "a1910bab-3df4-4234-b84c-cc2e85f4c487",
+      "type": "IO/File Read",
+      "x": 746,
+      "y": 63,
+      "state": {
+        "Path": ""
+      }
+    },
+    {
+      "id": "8dbde790-0a47-41cc-ab5a-45356b45e20d",
+      "type": "Logic/Coalesce",
+      "x": 1537,
+      "y": 106,
+      "state": {
+        "WhitespaceIsEmpty": false
+      }
+    },
+    {
+      "id": "ed9622af-8c9f-448a-9f8a-2e92e3fdd326",
+      "type": "Text/Regex Extract All",
+      "x": 1787,
+      "y": 106,
+      "state": {
+        "Group": 1,
+        "IgnoreCase": false,
+        "Multiline": false,
+        "Pattern": "\u003Ch1\u003E(.*?)\u003C/h1\u003E"
+      }
+    },
+    {
+      "id": "5541fa73-2f24-4548-9050-882b3358c6ac",
+      "type": "Output/Output",
+      "x": 2037,
+      "y": 106,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "8b95ba88-dc2a-44e7-b1b8-8ab23548dcd2",
+      "type": "Output/Output",
+      "x": 710,
+      "y": -99,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "c800dbf8-3594-4256-af07-3bfb407de926",
+      "type": "Output/Output",
+      "x": 1262,
+      "y": -394,
+      "w": 431,
+      "h": 336,
+      "state": {
+        "Wrap": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "d469d5b8-bf7f-4c62-8205-be4f54a2a4ab",
+      "fromPort": "Value",
+      "toNode": "55174f59-009b-4746-b1c8-e49371a54449",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "55174f59-009b-4746-b1c8-e49371a54449",
+      "fromPort": "Path",
+      "toNode": "60814d33-ce7c-49eb-b9f5-246b7446469e",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "60814d33-ce7c-49eb-b9f5-246b7446469e",
+      "fromPort": "Exists",
+      "toNode": "8b95ba88-dc2a-44e7-b1b8-8ab23548dcd2",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "55174f59-009b-4746-b1c8-e49371a54449",
+      "fromPort": "Path",
+      "toNode": "a1910bab-3df4-4234-b84c-cc2e85f4c487",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "60814d33-ce7c-49eb-b9f5-246b7446469e",
+      "fromPort": "Exists",
+      "toNode": "a1910bab-3df4-4234-b84c-cc2e85f4c487",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "60814d33-ce7c-49eb-b9f5-246b7446469e",
+      "fromPort": "Exists",
+      "toNode": "9ce9d94e-41e8-46a4-b0a6-83518d1b18e0",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "9ce9d94e-41e8-46a4-b0a6-83518d1b18e0",
+      "fromPort": "Result",
+      "toNode": "8de659b7-46d1-4181-9370-cd1403cbcba5",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "8de659b7-46d1-4181-9370-cd1403cbcba5",
+      "fromPort": "Body",
+      "toNode": "75ecb2c5-f320-4a8a-b38d-b7c3045fc14e",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "55174f59-009b-4746-b1c8-e49371a54449",
+      "fromPort": "Path",
+      "toNode": "75ecb2c5-f320-4a8a-b38d-b7c3045fc14e",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "8de659b7-46d1-4181-9370-cd1403cbcba5",
+      "fromPort": "Body",
+      "toNode": "8dbde790-0a47-41cc-ab5a-45356b45e20d",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "a1910bab-3df4-4234-b84c-cc2e85f4c487",
+      "fromPort": "Text",
+      "toNode": "8dbde790-0a47-41cc-ab5a-45356b45e20d",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "8dbde790-0a47-41cc-ab5a-45356b45e20d",
+      "fromPort": "Result",
+      "toNode": "ed9622af-8c9f-448a-9f8a-2e92e3fdd326",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "ed9622af-8c9f-448a-9f8a-2e92e3fdd326",
+      "fromPort": "Matches",
+      "toNode": "5541fa73-2f24-4548-9050-882b3358c6ac",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "8de659b7-46d1-4181-9370-cd1403cbcba5",
+      "fromPort": "Body",
+      "toNode": "c800dbf8-3594-4256-af07-3bfb407de926",
+      "toPort": "Value"
+    }
+  ],
+  "groups": [
+    {
+      "id": "9f303997-34dd-427f-aa24-2c95a2b57f94",
+      "name": "The cache file: %TEMP%\\vnoder-sample-02-cache.html",
+      "isCollapsed": false,
+      "nodeIds": [
+        "d469d5b8-bf7f-4c62-8205-be4f54a2a4ab",
+        "55174f59-009b-4746-b1c8-e49371a54449",
+        "60814d33-ce7c-49eb-b9f5-246b7446469e"
+      ]
+    },
+    {
+      "id": "d02d509a-d047-478e-ba95-893be71447f2",
+      "name": "Cached? Read it (Run If = Exists)",
+      "isCollapsed": false,
+      "nodeIds": [
+        "8b95ba88-dc2a-44e7-b1b8-8ab23548dcd2",
+        "a1910bab-3df4-4234-b84c-cc2e85f4c487"
+      ]
+    },
+    {
+      "id": "5488413d-5757-4ec1-8562-b5af0a592b8b",
+      "name": "Not cached? Download and save it (Run If = not Exists)",
+      "isCollapsed": false,
+      "nodeIds": [
+        "9ce9d94e-41e8-46a4-b0a6-83518d1b18e0",
+        "8de659b7-46d1-4181-9370-cd1403cbcba5",
+        "75ecb2c5-f320-4a8a-b38d-b7c3045fc14e"
+      ]
+    },
+    {
+      "id": "0398c244-8236-4310-9876-a054bd65bfcb",
+      "name": "Join: Coalesce takes whichever branch ran",
+      "isCollapsed": false,
+      "nodeIds": [
+        "8dbde790-0a47-41cc-ab5a-45356b45e20d",
+        "ed9622af-8c9f-448a-9f8a-2e92e3fdd326",
+        "5541fa73-2f24-4548-9050-882b3358c6ac"
+      ]
+    }
+  ]
+}

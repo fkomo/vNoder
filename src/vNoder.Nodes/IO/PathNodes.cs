@@ -29,6 +29,8 @@ public sealed class PathExistsNode : NodeBase
         _existsOut = AddOutput<bool>("Exists");
         _isFileOut = AddOutput<bool>("Is File");
         _isDirectoryOut = AddOutput<bool>("Is Directory");
+
+        AddRunGate();
     }
 
     public string Path
@@ -71,6 +73,8 @@ public sealed class FileInfoNode : NodeBase
         _createdOut = AddOutput<DateTime>("Created");
         _modifiedOut = AddOutput<DateTime>("Modified");
         _readOnlyOut = AddOutput<bool>("Read Only");
+
+        AddRunGate();
     }
 
     public string Path
@@ -122,6 +126,8 @@ public sealed class CreateDirectoryNode : NodeBase
         _pathIn = AddInput<string>("Path");
         _pathOut = AddOutput<string>("Path");
         _createdOut = AddOutput<bool>("Created");
+
+        AddRunGate();
     }
 
     public string Path

@@ -6,7 +6,7 @@ namespace vNoder.Nodes;
 /// Terminal display node. Multiple instances are allowed anywhere in the graph; each shows whatever
 /// reaches it, formatted by type.
 /// </summary>
-[NodeDefinition("Output/Output", Description = "Shows the value wired into it.", Resizable = true)]
+[NodeDefinition("Output/Output", Merges = true, Description = "Shows the value wired into it.", Resizable = true)]
 public sealed class OutputNode : NodeBase
 {
     private bool _wrap;

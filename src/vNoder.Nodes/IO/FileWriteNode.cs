@@ -18,6 +18,8 @@ public sealed class FileWriteNode : NodeBase
         _pathIn = AddInput<string>("Path");
         _dataIn = AddInput("Data", PortTypeCompatibility.Any);
         _successOut = AddOutput<bool>("Success");
+
+        AddRunGate();
     }
 
     /// <summary>Inline path, used when the Path input is not wired.</summary>

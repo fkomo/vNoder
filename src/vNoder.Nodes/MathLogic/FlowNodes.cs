@@ -2,10 +2,11 @@ using vNoder.Core;
 
 namespace vNoder.Nodes;
 
-// Choosing between values. Both branches are always evaluated — the executor runs every node on each
-// pass — so Select picks a result, it does not skip the side effects of the branch not taken.
+// Choosing between values. Select picks a result; it does not stop the branch not taken from running.
+// To skip a branch, gate its head with Run If: the executor then skips everything downstream of it, and
+// these nodes, which merge branches (Merges = true), still run and read the skipped side as empty.
 
-[NodeDefinition("Logic/Select", Description = "If / else: passes on If True or If False depending on the condition.")]
+[NodeDefinition("Logic/Select", Merges = true, Description = "If / else: passes on If True or If False depending on the condition.")]
 public sealed class SelectNode : NodeBase
 {
     private bool _condition;
@@ -56,7 +57,7 @@ public sealed class NotNode : NodeBase
     }
 }
 
-[NodeDefinition("Logic/Is Empty", Description = "True when the value is missing, empty text, an empty list or empty bytes.")]
+[NodeDefinition("Logic/Is Empty", Merges = true, Description = "True when the value is missing, empty text, an empty list or empty bytes.")]
 public sealed class IsEmptyNode : NodeBase
 {
     private bool _whitespaceIsEmpty = true;
@@ -88,7 +89,7 @@ public sealed class IsEmptyNode : NodeBase
     }
 }
 
-[NodeDefinition("Logic/Coalesce", Description = "The first of its inputs that is not empty — a fallback chain.")]
+[NodeDefinition("Logic/Coalesce", Merges = true, Description = "The first of its inputs that is not empty — a fallback chain.")]
 public sealed class CoalesceNode : NodeBase
 {
     private bool _whitespaceIsEmpty;

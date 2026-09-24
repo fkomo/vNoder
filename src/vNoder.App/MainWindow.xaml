@@ -1446,6 +1446,10 @@
                 <DataTrigger Binding="{Binding HasError}" Value="True">
                     <Setter Property="BorderBrush" Value="{StaticResource NodeBorderError}" />
                 </DataTrigger>
+                <!-- Skipped by the last pass: dimmed, which moves nothing, so the ports stay on their anchors. -->
+                <DataTrigger Binding="{Binding IsSkipped}" Value="True">
+                    <Setter Property="Opacity" Value="0.45" />
+                </DataTrigger>
                 <!-- Last: while a node is evaluating, its error from the previous run is stale. -->
                 <DataTrigger Binding="{Binding IsRunning}" Value="True">
                     <!-- Colour only: a thicker border would move the port dots off their wire anchors,

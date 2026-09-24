@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Windows;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using vNoder.Core;
 
@@ -56,7 +58,23 @@ public sealed partial class NodeGroupViewModel : ObservableObject
     /// <summary>Raised when collapsing changes member visibility, so wires can be re-evaluated.</summary>
     public event EventHandler? VisibilityChanged;
 
-    partial void OnNameChanged(string value) => Model.Name = value;
+    /// <summary>
+    /// Raised when a collapsed box changes size without any member moving (a rename), since the wires
+    /// crossing into it anchor to its edge.
+    /// </summary>
+    public event EventHandler? AnchorsMoved;
+
+    partial void OnNameChanged(string value)
+    {
+        Model.Name = value;
+
+        // A collapsed box is sized to its title, so a rename can change its width, and with it where
+        // the wires crossing into the box meet it.
+        var width = Width;
+        Refresh();
+        if (IsCollapsed && Width != width)
+            AnchorsMoved?.Invoke(this, EventArgs.Empty);
+    }
 
     partial void OnIsCollapsedChanged(bool value)
     {
@@ -101,7 +119,7 @@ public sealed partial class NodeGroupViewModel : ObservableObject
         if (IsCollapsed)
         {
             // Collapsed, the box is just its header: the members are hidden.
-            Width = NodeMetrics.GroupCollapsedWidth;
+            Width = CollapsedWidth();
             Height = NodeMetrics.GroupHeaderHeight;
             return;
         }
@@ -112,6 +130,33 @@ public sealed partial class NodeGroupViewModel : ObservableObject
         Width = right + NodeMetrics.GroupPadding - X;
         Height = bottom + NodeMetrics.GroupPadding - Y;
     }
+
+    /// <summary>
+    /// Wide enough for the whole header, name and member count, and never narrower than
+    /// <see cref="NodeMetrics.GroupCollapsedWidth"/>. Measured here rather than left to the view,
+    /// because wires crossing into a collapsed group anchor to this box's edge, so its width is
+    /// geometry, not just presentation.
+    /// </summary>
+    private double CollapsedWidth()
+    {
+        // Must match the header in the GroupTemplate: 12pt SemiBold name, 11pt count 8px after it,
+        // and 10px margins either side.
+        var content = MeasureText(Name, 12, FontWeights.SemiBold) + 8 + MeasureText(MemberCountLabel, 11, FontWeights.Normal);
+        return Math.Max(NodeMetrics.GroupCollapsedWidth, Math.Ceiling(content + (2 * 10) + 2));
+    }
+
+    private static double MeasureText(string text, double size, FontWeight weight) =>
+        new FormattedText(
+                text,
+                CultureInfo.CurrentUICulture,
+                FlowDirection.LeftToRight,
+                new Typeface(SystemFonts.MessageFontFamily, FontStyles.Normal, weight, FontStretches.Normal),
+                size,
+                Brushes.Black,
+                null,
+                TextFormattingMode.Display,
+                1.0)
+            .WidthIncludingTrailingWhitespace;
 
     /// <summary>Moves every member by the same delta; the box follows through <see cref="Refresh"/>.</summary>
     public void MoveBy(double dx, double dy)

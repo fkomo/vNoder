@@ -1,0 +1,154 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 1,
+    "offsetX": 875,
+    "offsetY": 562
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "d70e63dc-ce88-4e39-9a16-fdfe2263a49d",
+      "type": "System/Environment Variable",
+      "x": -44,
+      "y": -43,
+      "state": {
+        "Name": "TEMP"
+      }
+    },
+    {
+      "id": "d5e6b3ea-913b-425c-80b6-930803fb214e",
+      "type": "Path/Combine",
+      "x": 206,
+      "y": -43,
+      "state": {
+        "A": "",
+        "B": "vnoder-sample-01.txt",
+        "C": ""
+      }
+    },
+    {
+      "id": "baf0c966-afab-44e3-bca9-29c2cfa546dd",
+      "type": "Generators/Date Time",
+      "x": 0,
+      "y": 330,
+      "state": {
+        "OffsetSeconds": 0,
+        "Source": 0
+      }
+    },
+    {
+      "id": "f6f7a108-bdd0-40e2-9020-69752747a485",
+      "type": "Text/Template",
+      "x": 250,
+      "y": 330,
+      "state": {
+        "Template": "Written at {A}"
+      }
+    },
+    {
+      "id": "da233552-b39a-49c1-954e-05cf505d21b1",
+      "type": "IO/File Write",
+      "x": 649,
+      "y": 273,
+      "state": {
+        "AppendIfExists": false,
+        "Path": ""
+      }
+    },
+    {
+      "id": "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
+      "type": "IO/File Read",
+      "x": 894,
+      "y": 139,
+      "state": {
+        "Path": ""
+      }
+    },
+    {
+      "id": "711979fc-25df-438a-a75b-27fccf8a1ea8",
+      "type": "Output/Output",
+      "x": 1144,
+      "y": 139,
+      "w": 348,
+      "h": 48,
+      "state": {
+        "Wrap": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "d70e63dc-ce88-4e39-9a16-fdfe2263a49d",
+      "fromPort": "Value",
+      "toNode": "d5e6b3ea-913b-425c-80b6-930803fb214e",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "baf0c966-afab-44e3-bca9-29c2cfa546dd",
+      "fromPort": "ISO 8601",
+      "toNode": "f6f7a108-bdd0-40e2-9020-69752747a485",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "d5e6b3ea-913b-425c-80b6-930803fb214e",
+      "fromPort": "Path",
+      "toNode": "da233552-b39a-49c1-954e-05cf505d21b1",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "f6f7a108-bdd0-40e2-9020-69752747a485",
+      "fromPort": "Text",
+      "toNode": "da233552-b39a-49c1-954e-05cf505d21b1",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "d5e6b3ea-913b-425c-80b6-930803fb214e",
+      "fromPort": "Path",
+      "toNode": "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "da233552-b39a-49c1-954e-05cf505d21b1",
+      "fromPort": "Done",
+      "toNode": "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
+      "fromPort": "Text",
+      "toNode": "711979fc-25df-438a-a75b-27fccf8a1ea8",
+      "toPort": "Value"
+    }
+  ],
+  "groups": [
+    {
+      "id": "4faa8dc3-26f7-47ea-aa3b-207309665572",
+      "name": "The file: %TEMP%\\vnoder-sample-01.txt",
+      "isCollapsed": false,
+      "nodeIds": [
+        "d70e63dc-ce88-4e39-9a16-fdfe2263a49d",
+        "d5e6b3ea-913b-425c-80b6-930803fb214e"
+      ]
+    },
+    {
+      "id": "c9598fb4-ffe0-4a51-b4a9-8a8aa79d4f99",
+      "name": "What to write: the current time",
+      "isCollapsed": false,
+      "nodeIds": [
+        "baf0c966-afab-44e3-bca9-29c2cfa546dd",
+        "f6f7a108-bdd0-40e2-9020-69752747a485"
+      ]
+    },
+    {
+      "id": "0c5ec11c-678a-408c-b36b-62dde0164756",
+      "name": "Write, THEN read - File Write\u0027s Done drives File Read\u0027s Run If",
+      "isCollapsed": false,
+      "nodeIds": [
+        "da233552-b39a-49c1-954e-05cf505d21b1",
+        "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
+        "711979fc-25df-438a-a75b-27fccf8a1ea8"
+      ]
+    }
+  ]
+}

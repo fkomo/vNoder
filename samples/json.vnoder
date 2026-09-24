@@ -2,8 +2,8 @@
   "formatVersion": 1,
   "view": {
     "scale": 0.8928571428571426,
-    "offsetX": -294.5871291364042,
-    "offsetY": 134.93179766512935
+    "offsetX": -307.5871291364042,
+    "offsetY": 119.93179766512935
   },
   "intervalMilliseconds": 500,
   "nodes": [
@@ -105,8 +105,8 @@
     {
       "id": "f8f9ca24-afca-49ad-b90b-409b2e22589e",
       "type": "IO/File Info",
-      "x": 2755.857584632773,
-      "y": 499.59638661505534,
+      "x": 2786.0975846327738,
+      "y": 449.19638661505536,
       "state": {
         "Path": ""
       }
@@ -114,8 +114,8 @@
     {
       "id": "cc5fadd0-fbf4-40aa-a9ad-21075c4ea7cb",
       "type": "Output/Output",
-      "x": 2737.937584632774,
-      "y": 280.0763866150552,
+      "x": 2818.5775846327742,
+      "y": 254.3163866150552,
       "state": {
         "Wrap": false
       }
@@ -123,8 +123,8 @@
     {
       "id": "1a939ddb-d41c-4508-b954-9121b6f142d3",
       "type": "Output/Output",
-      "x": 2983.2175846327737,
-      "y": 528.7163866150553,
+      "x": 3095.2175846327737,
+      "y": 423.4363866150553,
       "state": {
         "Wrap": false
       }
@@ -192,8 +192,14 @@
       "toPort": "Value"
     },
     {
+      "fromNode": "7eb4e671-8bf2-47b1-8c19-87808ab3adc8",
+      "fromPort": "Done",
+      "toNode": "f8f9ca24-afca-49ad-b90b-409b2e22589e",
+      "toPort": "Run If"
+    },
+    {
       "fromNode": "f8f9ca24-afca-49ad-b90b-409b2e22589e",
-      "fromPort": "Exists",
+      "fromPort": "Size",
       "toNode": "1a939ddb-d41c-4508-b954-9121b6f142d3",
       "toPort": "Value"
     }

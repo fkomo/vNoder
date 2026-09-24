@@ -66,6 +66,8 @@ public sealed class HttpRequestNode : NodeBase
         _bodyOut = AddOutput<string>("Body");
         _bytesOut = AddOutput<byte[]>("Bytes");
         _headersOut = AddOutput<string[]>("Headers");
+
+        AddRunGate();
     }
 
     public HttpMethodKind Method

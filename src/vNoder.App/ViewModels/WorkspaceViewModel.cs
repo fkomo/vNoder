@@ -207,9 +207,13 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         });
     }
 
-    private static string DescribeRun(GraphRunResult result) => result.HasErrors
-        ? $"Evaluated {result.NodesEvaluated} node(s); {result.Failed.Count} failed - {result.Failed[0].Title}: {result.Failed[0].LastError}"
-        : $"Evaluated {result.NodesEvaluated} node(s).";
+    private static string DescribeRun(GraphRunResult result)
+    {
+        var skipped = result.Skipped.Count > 0 ? $"; {result.Skipped.Count} skipped" : string.Empty;
+        return result.HasErrors
+            ? $"Evaluated {result.NodesEvaluated} node(s){skipped}; {result.Failed.Count} failed - {result.Failed[0].Title}: {result.Failed[0].LastError}"
+            : $"Evaluated {result.NodesEvaluated} node(s){skipped}.";
+    }
 
     private void RaiseRunStateChanged()
     {
@@ -481,6 +485,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         foreach (var group in Groups)
         {
             group.VisibilityChanged -= OnGroupVisibilityChanged;
+            group.AnchorsMoved -= OnGroupAnchorsMoved;
             group.Detach();
         }
 
@@ -496,6 +501,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
             var group = new NodeGroupViewModel(model, members);
             group.VisibilityChanged += OnGroupVisibilityChanged;
+            group.AnchorsMoved += OnGroupAnchorsMoved;
             Groups.Add(group);
         }
 
@@ -513,6 +519,22 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         }
 
         Realizer.Invalidate();
+    }
+
+    private void OnGroupAnchorsMoved(object? sender, EventArgs e)
+    {
+        if (sender is not NodeGroupViewModel group)
+            return;
+
+        // Only the links touching a member can anchor to this box.
+        foreach (var member in group.Members)
+        {
+            if (_linksByNode.TryGetValue(member.Model.Id, out var touching))
+            {
+                foreach (var link in touching)
+                    link.Refresh();
+            }
+        }
     }
 
     private void RefreshLinkVisibility()
@@ -825,9 +847,13 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         if (linkSource is null)
             return;
 
-        // Wire the dropped output into the first input that accepts it.
-        var target = node.Inputs.FirstOrDefault(
-            input => PortTypeCompatibility.CanConnect(linkSource.ValueType, input.ValueType));
+        // Wire the dropped output into the first input that accepts it. A Done wire means "after
+        // that", so it goes to Run If rather than to the first boolean parameter it happens to fit.
+        var target = (linkSource.Name == NodeBase.DonePortName
+                         ? node.Inputs.FirstOrDefault(input => input.Name == NodeBase.RunIfPortName)
+                         : null)
+                     ?? node.Inputs.FirstOrDefault(
+                         input => PortTypeCompatibility.CanConnect(linkSource.ValueType, input.ValueType));
 
         if (target is not null)
             TryConnect(linkSource, target);

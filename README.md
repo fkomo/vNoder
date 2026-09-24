@@ -90,7 +90,28 @@ and the inline field greys out.
 
 Evaluation order comes from the wiring: nodes are sorted by data dependency, and a node with no path
 between it and another has no guaranteed order relative to it. A node that fails is reported on the
-node itself and does not stop the rest of the pass.
+node itself; the rest of the pass carries on, but the nodes that take data from it are skipped rather
+than run on an empty or stale value.
+
+### Run If and Done
+
+Nodes that touch the outside world — the file and folder nodes, Image Load and Save, HTTP Request and
+Run Process — have a **Run If** input and a **Done** output:
+
+- Left unwired, Run If changes nothing: the node runs on every pass.
+- Wired, the node runs only when the value is true. Since the wire also orders the two nodes, wiring
+  one node's **Done** into another's **Run If** means "after that": File Write → Done → Run If → File
+  Read reads what was just written. Any boolean works as a condition, such as Compare or Is Empty.
+- Done is true once the node has run without error. It is not the same as the node's own Success: a
+  File Copy that skipped an existing file still ran.
+
+A node that is not run is **skipped**: drawn dimmed (and without a flash during Run Once), and its
+outputs empty. Everything that takes data from a skipped or failed node is skipped as well, so gating
+the first node of a branch stops the whole branch. Select, Coalesce, Is Empty and Output are the
+exception: they bring branches together, so they still run and read the skipped side as empty. That is
+how to build an if / else: gate each branch, and join them with Select or Coalesce.
+
+Dropping a Done wire on empty canvas connects the new node's Run If. The graphs in [`samples/`](samples/README.md) show each of these in action.
 
 Nodes with side effects — File Write, File Copy, File Move, Path Delete, Create Directory, Image Save,
 HTTP Request and Run Process — act on every pass, so in a continuous run they fire on every tick. An
@@ -98,9 +119,6 @@ HTTP error status (404, 500) is a result, reported on the node's Status and Succ
 the body, not a failure. The same goes for a value that does not parse (To Number, Parse, JSON Get on a
 missing path): the node reports it on a Success or Found output rather than failing, so it can drive a
 Select.
-
-Select picks a value; it does not skip work. Every node runs on every pass, so both branches feeding a
-Select are evaluated, side effects included.
 
 JSON travels as text, so HTTP Request and File Read wire straight into JSON Get, and a JSON array comes
 out as a text list for the List nodes. Run Process is killed, with anything it started, when its timeout

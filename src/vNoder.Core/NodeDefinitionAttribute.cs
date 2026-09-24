@@ -31,6 +31,14 @@ public sealed class NodeDefinitionAttribute(string path) : Attribute
     /// </summary>
     public string[] FormerPaths { get; init; } = [];
 
+    /// <summary>
+    /// Whether the node still runs when a node it takes data from failed or was skipped, reading that
+    /// input as empty. Off by default: a skip or failure stops everything downstream of it, which is
+    /// what makes gating the head of a branch stop the whole branch. Turn it on for nodes whose job is
+    /// to bring branches back together or to show what arrived: Select, Coalesce, Is Empty, Output.
+    /// </summary>
+    public bool Merges { get; init; }
+
     public static NodeDefinitionAttribute? For(Type nodeType) =>
         nodeType.GetCustomAttribute<NodeDefinitionAttribute>(inherit: false);
 }

@@ -52,6 +52,29 @@ public abstract class NodeBase : INotifyPropertyChanged
     /// <summary>Message from the last failed evaluation, or null. Set by <see cref="GraphExecutor"/>.</summary>
     public string? LastError { get; internal set; }
 
+    /// <summary>
+    /// Whether the last pass skipped this node: its Run If was wired and not true, or a node it takes
+    /// data from failed or was skipped. Set by <see cref="GraphExecutor"/>.
+    /// </summary>
+    public bool IsSkipped { get; internal set; }
+
+    /// <summary>Name of the input <see cref="AddRunGate"/> declares.</summary>
+    public const string RunIfPortName = "Run If";
+
+    /// <summary>Name of the output <see cref="AddRunGate"/> declares.</summary>
+    public const string DonePortName = "Done";
+
+    /// <summary>The Run If input, for nodes that declared one.</summary>
+    internal InputPort? RunIfPort { get; private set; }
+
+    /// <summary>The Done output, for nodes that declared one.</summary>
+    internal OutputPort? DonePort { get; private set; }
+
+    /// <summary>Declared on the attribute; see <see cref="NodeDefinitionAttribute.Merges"/>.</summary>
+    internal bool Merges => _merges ??= NodeDefinitionAttribute.For(GetType())?.Merges ?? false;
+
+    private bool? _merges;
+
     protected InputPort AddInput(string name, Type valueType)
     {
         var port = new InputPort(this, name, valueType, _inputs.Count);
@@ -69,6 +92,23 @@ public abstract class NodeBase : INotifyPropertyChanged
     }
 
     protected OutputPort AddOutput<T>(string name) => AddOutput(name, typeof(T));
+
+    /// <summary>
+    /// Declares the Run If input and Done output that sequence a node with side effects. Call it last
+    /// in the constructor, so the two ports sit below the node's own.
+    /// </summary>
+    /// <remarks>
+    /// The node itself does nothing with them; <see cref="GraphExecutor"/> does. An unwired Run If
+    /// means "run", so a graph that never wires it behaves as if the ports were not there. Wired, the
+    /// node runs only when the value is <c>true</c>, and the wire orders the two nodes like any other.
+    /// Done is <c>true</c> once the node has evaluated without error: "it happened", which is not the
+    /// same as a node's own Success (File Copy skipping an existing file still ran).
+    /// </remarks>
+    protected void AddRunGate()
+    {
+        RunIfPort = AddInput<bool>(RunIfPortName);
+        DonePort = AddOutput<bool>(DonePortName);
+    }
 
     /// <summary>
     /// Reads <see cref="InputPort.Value"/> on this node's inputs and writes

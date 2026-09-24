@@ -24,6 +24,8 @@ public abstract class FileTransferNode : NodeBase
         _destinationIn = AddInput<string>("Destination");
         _successOut = AddOutput<bool>("Success");
         _pathOut = AddOutput<string>(resultName);
+
+        AddRunGate();
     }
 
     /// <summary>Inline source path, used when the Source input is not wired.</summary>

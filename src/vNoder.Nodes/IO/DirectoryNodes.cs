@@ -28,6 +28,8 @@ public sealed class FileSearchNode : NodeBase
         _recursiveIn = AddInput<bool>("Recursive");
         _filesOut = AddOutput<string[]>("Files");
         _countOut = AddOutput<double>("Count");
+
+        AddRunGate();
     }
 
     public string Directory
@@ -99,6 +101,8 @@ public sealed class DirectorySizeNode : NodeBase
         _bytesOut = AddOutput<double>("Bytes");
         _filesOut = AddOutput<double>("Files");
         _textOut = AddOutput<string>("Size");
+
+        AddRunGate();
     }
 
     public string Directory

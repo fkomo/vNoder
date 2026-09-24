@@ -16,6 +16,8 @@ public sealed class FileReadNode : NodeBase
         _pathIn = AddInput<string>("Path");
         _bytesOut = AddOutput<byte[]>("Bytes");
         _textOut = AddOutput<string>("Text");
+
+        AddRunGate();
     }
 
     /// <summary>Inline path, used when the Path input is not wired.</summary>

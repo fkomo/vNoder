@@ -1,0 +1,136 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 1,
+    "offsetX": 40,
+    "offsetY": 70
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "20397802-4c1b-49db-b265-eb239f64f82e",
+      "type": "IO/File Read",
+      "x": 0,
+      "y": 0,
+      "state": {
+        "Path": "C:\\vnoder-sample\\this-file-does-not-exist.txt"
+      }
+    },
+    {
+      "id": "553f881b-c30e-4f80-b032-723dae8372cc",
+      "type": "Text/To Upper",
+      "x": 250,
+      "y": 0
+    },
+    {
+      "id": "b2e55de2-28c2-4fca-9aef-2af6f77f9c28",
+      "type": "Output/Length",
+      "x": 500,
+      "y": 0
+    },
+    {
+      "id": "de1b54b7-1fba-4596-89fc-8f4c35c520a2",
+      "type": "Output/Output",
+      "x": 750,
+      "y": 0,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "26912f73-5497-4eb8-9ff7-407bca51892b",
+      "type": "Input/Static Text",
+      "x": 250,
+      "y": 300,
+      "state": {
+        "Text": "Fallback: the file could not be read."
+      }
+    },
+    {
+      "id": "07f441f1-3b3c-4b53-a149-4887b6bc5b05",
+      "type": "Logic/Coalesce",
+      "x": 750,
+      "y": 300,
+      "state": {
+        "WhitespaceIsEmpty": false
+      }
+    },
+    {
+      "id": "35c3740b-6113-4260-8026-38559ec45337",
+      "type": "Output/Output",
+      "x": 1000,
+      "y": 300,
+      "state": {
+        "Wrap": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "20397802-4c1b-49db-b265-eb239f64f82e",
+      "fromPort": "Text",
+      "toNode": "553f881b-c30e-4f80-b032-723dae8372cc",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "553f881b-c30e-4f80-b032-723dae8372cc",
+      "fromPort": "Text",
+      "toNode": "b2e55de2-28c2-4fca-9aef-2af6f77f9c28",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "553f881b-c30e-4f80-b032-723dae8372cc",
+      "fromPort": "Text",
+      "toNode": "de1b54b7-1fba-4596-89fc-8f4c35c520a2",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "553f881b-c30e-4f80-b032-723dae8372cc",
+      "fromPort": "Text",
+      "toNode": "07f441f1-3b3c-4b53-a149-4887b6bc5b05",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "26912f73-5497-4eb8-9ff7-407bca51892b",
+      "fromPort": "Text",
+      "toNode": "07f441f1-3b3c-4b53-a149-4887b6bc5b05",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "07f441f1-3b3c-4b53-a149-4887b6bc5b05",
+      "fromPort": "Result",
+      "toNode": "35c3740b-6113-4260-8026-38559ec45337",
+      "toPort": "Value"
+    }
+  ],
+  "groups": [
+    {
+      "id": "d8381b43-80ad-48dc-9677-3dc12eb6c9dd",
+      "name": "Fails (red); To Upper and Length are skipped (dimmed), not run on stale data",
+      "isCollapsed": false,
+      "nodeIds": [
+        "20397802-4c1b-49db-b265-eb239f64f82e",
+        "553f881b-c30e-4f80-b032-723dae8372cc",
+        "b2e55de2-28c2-4fca-9aef-2af6f77f9c28"
+      ]
+    },
+    {
+      "id": "d52ae694-4a2f-4705-bb47-afbcd9ce34d6",
+      "name": "Output merges: shows empty",
+      "isCollapsed": false,
+      "nodeIds": [
+        "de1b54b7-1fba-4596-89fc-8f4c35c520a2"
+      ]
+    },
+    {
+      "id": "7d4f5a3f-1e32-4411-a3f6-353edc937936",
+      "name": "Coalesce merges: falls back to B",
+      "isCollapsed": false,
+      "nodeIds": [
+        "26912f73-5497-4eb8-9ff7-407bca51892b",
+        "07f441f1-3b3c-4b53-a149-4887b6bc5b05",
+        "35c3740b-6113-4260-8026-38559ec45337"
+      ]
+    }
+  ]
+}

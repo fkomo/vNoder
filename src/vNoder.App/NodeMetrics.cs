@@ -42,6 +42,7 @@ public static class NodeMetrics
     // Group box metrics.
     public const double GroupHeaderHeight = 26;
     public const double GroupPadding = 18;
+    /// <summary>The narrowest a collapsed group gets; a longer title widens it (NodeGroupViewModel).</summary>
     public const double GroupCollapsedWidth = 220;
 
     /// <summary>Vertical centre of the port row at <paramref name="index"/>, in node-local space.</summary>

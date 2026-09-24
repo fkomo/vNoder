@@ -70,6 +70,8 @@ public sealed class RunProcessNode : NodeBase
         _errorOut = AddOutput<string>("Errors");
         _exitCodeOut = AddOutput<double>("Exit Code");
         _successOut = AddOutput<bool>("Success");
+
+        AddRunGate();
     }
 
     /// <summary>The program: a path, or a name found on PATH such as <c>git</c> or <c>cmd</c>.</summary>

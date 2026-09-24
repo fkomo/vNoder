@@ -106,6 +106,9 @@ public sealed partial class NodeViewModel : ObservableObject
     public string? Error => Model.LastError;
     public bool HasError => Model.LastError is not null;
 
+    /// <summary>The last pass skipped this node (Run If, or a failed or skipped input); drawn dimmed.</summary>
+    public bool IsSkipped => Model.IsSkipped;
+
     /// <summary>
     /// Rendered height, reported by the view. Node bodies vary with their inline editor, so this
     /// cannot be derived from <see cref="NodeMetrics"/> the way port anchors can; groups need it to
@@ -273,6 +276,7 @@ public sealed partial class NodeViewModel : ObservableObject
         Model.RaiseBindingsChanged();
         OnPropertyChanged(nameof(Error));
         OnPropertyChanged(nameof(HasError));
+        OnPropertyChanged(nameof(IsSkipped));
     }
 
     public void RefreshPortConnections()

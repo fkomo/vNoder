@@ -20,6 +20,8 @@ public sealed class ImageLoadNode : NodeBase
         _formatOut = AddOutput<string>("Format");
         _widthOut = AddOutput<double>("Width");
         _heightOut = AddOutput<double>("Height");
+
+        AddRunGate();
     }
 
     /// <summary>Inline path, used when the Path input is not wired.</summary>
@@ -84,6 +86,8 @@ public sealed class ImageSaveNode : NodeBase
         _pathIn = AddInput<string>("Path");
         _successOut = AddOutput<bool>("Success");
         _pathOut = AddOutput<string>("Saved As");
+
+        AddRunGate();
     }
 
     /// <summary>Inline path, used when the Path input is not wired. The extension may be left off.</summary>

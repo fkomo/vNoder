@@ -84,6 +84,10 @@ public sealed class RunFeedback
         node.IsRunning = false;
         _running.Remove(node);
 
+        // A skipped node did not run, so it does not flash; its dimmed style already says it was skipped.
+        if (phase == NodeRunPhase.Skipped)
+            return;
+
         // After a quiet spell (a slow node), the next flash is due now, not in the past: otherwise the
         // backlog would be released as one burst.
         var now = _clock.Elapsed;
