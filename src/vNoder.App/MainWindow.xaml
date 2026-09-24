@@ -185,6 +185,24 @@
             </StackPanel>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type n:FileTransferNode}">
+            <StackPanel>
+                <TextBlock Text="Source" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Source}"
+                         Text="{Binding Source, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Destination (file or folder)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Destination}"
+                         Text="{Binding Destination, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="If the file exists" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding IfExists}"
+                          ItemsSource="{Binding IfExists, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type n:FileWriteNode}">
             <StackPanel>
                 <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
@@ -682,6 +700,732 @@
         </DataTemplate>
 
         <p:NodeEditorTemplateSelector x:Key="NodeEditorSelector" Empty="{StaticResource NoEditorTemplate}" />
+
+        <!-- ===== Logic and conversion ======================================================== -->
+
+        <DataTemplate DataType="{x:Type n:SelectNode}">
+            <StackPanel>
+                <CheckBox Content="Condition" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding Condition}" Foreground="{StaticResource TextMuted}"
+                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                      ConverterParameter=Condition}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:IsEmptyNode}">
+            <StackPanel>
+                <CheckBox Content="Whitespace counts as empty" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding WhitespaceIsEmpty}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CoalesceNode}">
+            <StackPanel>
+                <CheckBox Content="Skip whitespace-only text" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding WhitespaceIsEmpty}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ToNumberNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Fallback" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Fallback}"
+                                 Text="{Binding Fallback, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Culture" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding Culture, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ToTextNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Bytes as" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Bytes}"
+                                  ItemsSource="{Binding Bytes, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="List separator" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding ListSeparator, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ToBooleanNode}">
+            <StackPanel>
+                <CheckBox Content="Fallback when unrecognised" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding Fallback}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== JSON ======================================================================== -->
+
+        <DataTemplate DataType="{x:Type n:JsonGetNode}">
+            <StackPanel>
+                <TextBlock Text="Path (e.g. data.items[0].name)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:JsonSetNode}">
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="Value is JSON (nests objects)" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding ValueIsJson}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:JsonFormatNode}">
+            <StackPanel>
+                <TextBlock Text="Style" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Style}"
+                          ItemsSource="{Binding Style, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- The RegexNode template serves Regex Match; Replace and Extract All add a field. -->
+        <DataTemplate DataType="{x:Type n:RegexNode}">
+            <StackPanel>
+                <TextBlock Text="Pattern" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Pattern}"
+                         Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <CheckBox Content="Multiline (^ $ per line)" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding Multiline}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RegexReplaceNode}">
+            <StackPanel>
+                <TextBlock Text="Pattern" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Pattern}"
+                         Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Replacement ($1, ${name})" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Replacement}"
+                         Text="{Binding Replacement, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <CheckBox Content="Multiline (^ $ per line)" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding Multiline}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RegexExtractAllNode}">
+            <StackPanel>
+                <TextBlock Text="Pattern" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Pattern}"
+                         Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Group (0: whole match)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         Text="{Binding Group, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <CheckBox Content="Multiline (^ $ per line)" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding Multiline}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== Text ======================================================================== -->
+
+        <DataTemplate DataType="{x:Type n:ContainsNode}">
+            <StackPanel>
+                <TextBlock Text="Find" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Find}"
+                         Text="{Binding Find, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Mode" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Mode}"
+                          ItemsSource="{Binding Mode, Converter={StaticResource EnumValues}}" />
+                <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:LinesNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <CheckBox Content="Trim lines" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding Trim}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <CheckBox Content="Remove empty" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding RemoveEmpty}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:TrimNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Side" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Side}"
+                                  ItemsSource="{Binding Side, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Characters (empty: spaces)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding Characters, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:PadNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Width" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Width}"
+                                 Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Character" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding Character, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Pad at" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Side}"
+                          ItemsSource="{Binding Side, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== List ======================================================================== -->
+
+        <DataTemplate DataType="{x:Type n:ListItemAtNode}">
+            <StackPanel>
+                <TextBlock Text="Index (negative: from the end)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Index}"
+                         Text="{Binding Index, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ListSortNode}">
+            <StackPanel>
+                <TextBlock Text="Order" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Mode}"
+                          ItemsSource="{Binding Mode, Converter={StaticResource EnumValues}}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <CheckBox Content="Descending" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding Descending}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ListDistinctNode}">
+            <StackPanel>
+                <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ListFilterNode}">
+            <StackPanel>
+                <TextBlock Text="Find" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Find}"
+                         Text="{Binding Find, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Mode" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Mode}"
+                          ItemsSource="{Binding Mode, Converter={StaticResource EnumValues}}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <CheckBox Content="Invert (keep the rest)" Margin="0,6,0,0" FontSize="10"
+                                  IsChecked="{Binding Invert}" Foreground="{StaticResource TextMuted}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ListSliceNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Start" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Start}"
+                                 Text="{Binding Start, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Length (-1: the rest)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Length}"
+                                 Text="{Binding Length, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== Date ======================================================================== -->
+
+        <DataTemplate DataType="{x:Type n:ParseDateNode}">
+            <StackPanel>
+                <TextBlock Text="Format (empty: automatic)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Format}"
+                         Text="{Binding Format, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Culture (empty: invariant)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         Text="{Binding Culture, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:AddToDateNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Amount" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Amount}"
+                                 Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Unit" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Unit}"
+                                  ItemsSource="{Binding Unit, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:DateDifferenceNode}">
+            <StackPanel>
+                <TextBlock Text="Unit" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Unit}"
+                          ItemsSource="{Binding Unit, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:FromUnixNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Timestamp" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Timestamp}"
+                                 Text="{Binding Timestamp, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Unit" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Unit}"
+                                  ItemsSource="{Binding Unit, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                </Grid>
+                <CheckBox Content="UTC (otherwise local time)" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding Utc}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== IO, Path and System ========================================================= -->
+
+        <DataTemplate DataType="{x:Type n:PathExistsNode}">
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:FileInfoNode}">
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CreateDirectoryNode}">
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:PathPartsNode}">
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:PathCombineNode}">
+            <StackPanel>
+                <TextBlock Text="A" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=A}"
+                         Text="{Binding A, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="B" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=B}"
+                         Text="{Binding B, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="C" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=C}"
+                         Text="{Binding C, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ChangeExtensionNode}">
+            <StackPanel>
+                <TextBlock Text="New extension (empty: remove)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Extension}"
+                         Text="{Binding Extension, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:EnvironmentVariableNode}">
+            <StackPanel>
+                <TextBlock Text="Name" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Name}"
+                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RunProcessNode}">
+            <StackPanel>
+                <TextBlock Text="Program" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Program}"
+                         Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Arguments" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Arguments}"
+                         Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Working directory" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding WorkingDirectory, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Timeout (s)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding TimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== Encoding and Crypto ========================================================= -->
+
+        <DataTemplate DataType="{x:Type n:HexEncodeNode}">
+            <StackPanel>
+                <TextBlock Text="Separator" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         Text="{Binding Separator, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="Uppercase" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding Uppercase}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CompressNode}">
+            <StackPanel>
+                <TextBlock Text="Format" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Format}"
+                          ItemsSource="{Binding Format, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:DecompressNode}">
+            <StackPanel>
+                <TextBlock Text="Format" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Format}"
+                          ItemsSource="{Binding Format, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Inline secrets are node state, so they are saved in the file; wire them in to avoid that. -->
+        <DataTemplate DataType="{x:Type n:HmacNode}">
+            <StackPanel>
+                <TextBlock Text="Algorithm" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Algorithm}"
+                          ItemsSource="{Binding Algorithm, Converter={StaticResource EnumValues}}" />
+                <TextBlock Text="Key (saved in the file)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Key}"
+                         Text="{Binding Key, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:AesEncryptNode}">
+            <StackPanel>
+                <TextBlock Text="Password (saved in the file)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Key}"
+                         Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:AesDecryptNode}">
+            <StackPanel>
+                <TextBlock Text="Password (saved in the file)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Key}"
+                         Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- ===== Image transforms ============================================================ -->
+
+        <DataTemplate DataType="{x:Type n:ResizeImageNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Width (0: auto)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Width}"
+                                 Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Height (0: auto)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Height}"
+                                 Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Fit" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Fit}"
+                          ItemsSource="{Binding Fit, Converter={StaticResource EnumValues}}" />
+                <CheckBox Content="Only shrink" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding OnlyShrink}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CropImageNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="X" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=X}"
+                                 Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Y" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Y}"
+                                 Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Width (0: to edge)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Width}"
+                                 Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Height (0: to edge)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Height}"
+                                 Text="{Binding Height, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:RotateFlipImageNode}">
+            <StackPanel>
+                <TextBlock Text="Operation" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Operation}"
+                          ItemsSource="{Binding Operation, Converter={StaticResource EnumValues}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Resizable: the template box fills whatever the node is sized to. -->
+        <DataTemplate DataType="{x:Type n:TemplateNode}">
+            <DockPanel MinHeight="48">
+                <TextBlock DockPanel.Dock="Top" Text="Template: {A} {B} {C} {D}" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}" MinHeight="23"
+                         AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Template}"
+                         Text="{Binding Template, UpdateSourceTrigger=PropertyChanged}" />
+            </DockPanel>
+        </DataTemplate>
 
         <!-- ===== Node shell ============================================================= -->
 

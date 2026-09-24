@@ -64,33 +64,66 @@ internal static class ImageConversion
     {
         quality = Math.Clamp(quality, 1, 100);
 
-        Image image;
+        using var image = Load(source);
+        cancellationToken.ThrowIfCancellationRequested();
+        FlattenIfOpaque(image, target);
+
+        using var output = new MemoryStream();
+        image.Save(output, Encoder(target, quality));
+        return output.ToArray();
+    }
+
+    /// <summary>
+    /// Decodes <paramref name="source"/>, lets <paramref name="apply"/> edit it, and encodes the result
+    /// in the format it came in, with that format's own settings (JPEG quality, lossless WebP) carried
+    /// over from the source. When <paramref name="apply"/> returns false nothing changed, and the
+    /// original bytes are returned untouched rather than re-encoded.
+    /// </summary>
+    public static (byte[] Bytes, int Width, int Height) Transform(
+        byte[] source, Func<Image, bool> apply, CancellationToken cancellationToken)
+    {
+        using var image = Load(source);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!apply(image))
+            return (source, image.Width, image.Height);
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var format = image.Metadata.DecodedImageFormat
+                     ?? throw new InvalidOperationException("The image's format could not be determined.");
+
+        if (ForExtension("." + format.FileExtensions.First()) is { } known)
+            FlattenIfOpaque(image, known);
+
+        using var output = new MemoryStream();
+        image.Save(output, image.Configuration.ImageFormatsManager.GetEncoder(format));
+        return (output.ToArray(), image.Width, image.Height);
+    }
+
+    private static Image Load(byte[] source)
+    {
         try
         {
-            image = Image.Load(source);
+            return Image.Load(source);
         }
         catch (Exception exception) when (exception is UnknownImageFormatException or InvalidImageContentException or NotSupportedException)
         {
             var format = ImageData.Sniff(source);
             throw new InvalidOperationException(format == "ICO"
-                ? "ICO images cannot be converted; ImageSharp does not read ICO."
+                ? "ICO images cannot be edited or converted; ImageSharp does not read ICO."
                 : $"The image could not be decoded{(format is null ? string.Empty : $" as {format}")}: {exception.Message}");
         }
+    }
 
-        using (image)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // These formats have no alpha channel. Left alone, transparent pixels would come out
-            // black (their colour channels are usually zero), so composite onto white first, which is
-            // what a transparent image looks like on a page.
-            if (target is ImageFileFormat.JPEG or ImageFileFormat.BMP or ImageFileFormat.PBM)
-                image.Mutate(x => x.BackgroundColor(Color.White));
-
-            using var output = new MemoryStream();
-            image.Save(output, Encoder(target, quality));
-            return output.ToArray();
-        }
+    /// <summary>
+    /// These formats have no alpha channel. Left alone, transparent pixels would come out black (their
+    /// colour channels are usually zero), so composite onto white first, which is what a transparent
+    /// image looks like on a page.
+    /// </summary>
+    private static void FlattenIfOpaque(Image image, ImageFileFormat target)
+    {
+        if (target is ImageFileFormat.JPEG or ImageFileFormat.BMP or ImageFileFormat.PBM)
+            image.Mutate(x => x.BackgroundColor(Color.White));
     }
 
     private static IImageEncoder Encoder(ImageFileFormat format, int quality) => format switch

@@ -96,6 +96,11 @@ namespace vNoder.App
 
         private void WorkspaceHost_MouseWheel(object sender, MouseWheelEventArgs e)
         {
+            // Only over empty canvas: over a node the wheel is left alone, so it scrolls a text area
+            // there instead of zooming out from under the cursor.
+            if (!IsBackdrop(e.OriginalSource))
+                return;
+
             var cursor = e.GetPosition(WorkspaceHost);
             var anchor = Workspace.ScreenToGraph(cursor);
 
@@ -156,9 +161,10 @@ namespace vNoder.App
                 return;
             }
 
-            // Right-drag pans only from empty canvas; over a node the right button opens its menu.
-            var pans = e.ChangedButton == MouseButton.Middle
-                       || (e.ChangedButton == MouseButton.Right && IsBackdrop(e.OriginalSource));
+            // Panning starts only from empty canvas: over a node the right button opens its menu, and
+            // the middle button does nothing (beyond scrolling a text area, above).
+            var pans = e.ChangedButton is MouseButton.Middle or MouseButton.Right
+                       && IsBackdrop(e.OriginalSource);
 
             if (!pans)
                 return;

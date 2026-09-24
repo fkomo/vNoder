@@ -39,8 +39,8 @@ counts iterations and elapsed time.
 | | |
 |---|---|
 | Add a node | Double-click empty canvas |
-| Pan | Right-drag empty canvas, or middle-drag anywhere |
-| Zoom | Mouse wheel (zooms about the cursor) |
+| Pan | Right- or middle-drag empty canvas |
+| Zoom | Mouse wheel over empty canvas (zooms about the cursor) |
 | Select | Click, Ctrl+click to toggle, or drag a box on empty canvas |
 | Move | Drag a node header — moves the whole selection |
 | Resize | Drag the corner grip (on nodes that have one) |
@@ -68,14 +68,20 @@ a collapsed group stay drawn, stubbed to its edge, so you can still see it is co
 |---|---|
 | Input | Static Number, Static Text |
 | Generators | Random Number, Random String, Random Bytes, Random Boolean, GUID (v4 / v7), Date Time |
-| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Format Date Time |
+| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Lines, Trim, Pad, Contains (starts / ends with, equals, regex), Template, Regex Match, Regex Replace, Regex Extract All |
+| List | Count, Item At, First, Last, Sort (text, natural, numeric), Distinct, Reverse, Filter, Slice |
+| Convert | To Number, To Text, To Boolean |
+| JSON | Get (by path, e.g. `data.items[0].name`), Set, Format (indent / minify / validate) |
+| Date | Parse, Format, Add, Difference, To Unix, From Unix |
 | Math | Add, Subtract, Multiply, Divide, Modulo, Power, Min, Max, Abs, Negate, Sign, Floor, Ceiling, Round, Clamp, Sqrt, Exp, Ln, Log10, Sin, Cos, Tan, Asin, Acos, Atan, Constant (π, τ, e) |
-| Logic | And, Or, Xor, Nand, Boolean, Equals, Compare |
-| Encoding | Base64 Encode / Decode, URL Encode / Decode, QR Code |
-| Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512), BCrypt Hash, BCrypt Verify, PBKDF2 |
-| IO | File Read, File Write, Path Delete (files and directories), File Search, Directory Size, Image Load, Image Save |
+| Logic | And, Or, Xor, Nand, Not, Boolean, Equals, Compare, Select (if / else), Is Empty, Coalesce |
+| Encoding | Base64 Encode / Decode, URL Encode / Decode, Hex Encode / Decode, HTML Escape / Unescape, Compress / Decompress (GZip, Deflate, ZLib, Brotli), JWT Decode, QR Code |
+| Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512, CRC32), HMAC, AES Encrypt / Decrypt, BCrypt Hash, BCrypt Verify, PBKDF2 |
+| IO | File Read, File Write, File Copy, File Move, Path Delete (files and directories), Path Exists, File Info, Create Directory, File Search, Directory Size, Image Load, Image Save |
+| Path | Path Parts, Combine, Change Extension |
+| System | Environment Variable, Run Process |
 | Network | HTTP Request (GET, POST, PUT, PATCH, DELETE) |
-| Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM) |
+| Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM), Resize (fit, fill, stretch, pad; thumbnails), Crop, Rotate Flip (and EXIF auto-orient) |
 | Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text) |
 
 Ports carry one of `number`, `text`, `boolean`, `bytes`, `text list`, `date/time`, or `any`, and wire
@@ -86,9 +92,22 @@ Evaluation order comes from the wiring: nodes are sorted by data dependency, and
 between it and another has no guaranteed order relative to it. A node that fails is reported on the
 node itself and does not stop the rest of the pass.
 
-Nodes with side effects — File Write, Path Delete, Image Save and HTTP Request — act on every pass, so in a
-continuous run they fire on every tick. An HTTP error status (404, 500) is a result, reported on the
-node's Status and Success outputs along with the body, not a failure.
+Nodes with side effects — File Write, File Copy, File Move, Path Delete, Create Directory, Image Save,
+HTTP Request and Run Process — act on every pass, so in a continuous run they fire on every tick. An
+HTTP error status (404, 500) is a result, reported on the node's Status and Success outputs along with
+the body, not a failure. The same goes for a value that does not parse (To Number, Parse, JSON Get on a
+missing path): the node reports it on a Success or Found output rather than failing, so it can drive a
+Select.
+
+Select picks a value; it does not skip work. Every node runs on every pass, so both branches feeding a
+Select are evaluated, side effects included.
+
+JSON travels as text, so HTTP Request and File Read wire straight into JSON Get, and a JSON array comes
+out as a text list for the List nodes. Run Process is killed, with anything it started, when its timeout
+passes or a continuous run is stopped.
+
+Inline values are saved in the graph file, including the HMAC key and AES password fields. To keep a
+secret out of the file, wire it in instead, from Environment Variable for example.
 
 ## Files
 
@@ -97,13 +116,17 @@ any groups, and the current zoom and pan. Node types are stored by name (`"type"
 file stays readable. A file that references something this build does not have still opens — the parts
 that could not be restored are reported and the rest loads.
 
-File Write and Image Save create any missing folders in the path. Path Delete removes a file or an
+File Write, File Copy, File Move and Image Save create any missing folders in the path. The
+destination of File Copy and File Move may be a file path or an existing folder to put the file in, and
+like Image Save they can overwrite, skip or number an existing file. Path Delete removes a file or an
 empty directory; a directory with contents is deleted only with Recursive ticked, links (junctions,
 symbolic links) are removed without touching what they point at, and a drive root is always refused.
 
 Image Save writes in the format its file extension names, converting when the image is in a
 different one (a PNG saved as `photo.jpg` becomes a JPEG); leave the extension off to keep the format.
 Converting a transparent image to JPEG, BMP or PBM, which have no transparency, puts it on white.
+Resize, Crop and Rotate Flip keep the image's format (and a JPEG's quality); follow them with Convert
+to change it.
 
 ## Project layout
 

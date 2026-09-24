@@ -54,11 +54,16 @@ public sealed class CategoryBrushConverter : IValueConverter
         ["Logic"] = PortBrushConverter.Frozen("#FF4B6430"),
         ["Crypto"] = PortBrushConverter.Frozen("#FF7C4460"),
         ["IO"] = PortBrushConverter.Frozen("#FF7D5F2B"),
-        ["Control"] = PortBrushConverter.Frozen("#FF954A36"),
         ["Output"] = PortBrushConverter.Frozen("#FF3C4758"),
         ["Encoding"] = PortBrushConverter.Frozen("#FF2F5F6E"),
         ["Network"] = PortBrushConverter.Frozen("#FF2E4F86"),
         ["Image"] = PortBrushConverter.Frozen("#FF7A3F8C"),
+        ["Convert"] = PortBrushConverter.Frozen("#FF4A5A78"),
+        ["JSON"] = PortBrushConverter.Frozen("#FF7A6A28"),
+        ["List"] = PortBrushConverter.Frozen("#FF23766A"),
+        ["Date"] = PortBrushConverter.Frozen("#FF94502E"),
+        ["Path"] = PortBrushConverter.Frozen("#FF6E5530"),
+        ["System"] = PortBrushConverter.Frozen("#FF803A3A"),
     };
 
     private static readonly SolidColorBrush Fallback = PortBrushConverter.Frozen("#FF414250");

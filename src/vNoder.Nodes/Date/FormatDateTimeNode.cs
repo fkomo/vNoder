@@ -3,7 +3,10 @@ using vNoder.Core;
 
 namespace vNoder.Nodes;
 
-[NodeDefinition("Text/Format Date Time", Description = "Formats a date and time with a .NET format string, e.g. yyyy-MM-dd HH:mm:ss.")]
+[NodeDefinition(
+    "Date/Format",
+    Description = "Formats a date and time as text with a .NET format string, e.g. yyyy-MM-dd HH:mm:ss.",
+    FormerPaths = ["Text/Format Date Time"])]
 public sealed class FormatDateTimeNode : NodeBase
 {
     private string _format = "yyyy-MM-dd HH:mm:ss";
@@ -42,7 +45,7 @@ public sealed class FormatDateTimeNode : NodeBase
 
         try
         {
-            _out.Value = value.ToString(string.IsNullOrEmpty(format) ? null : format, ResolveCulture());
+            _out.Value = value.ToString(string.IsNullOrEmpty(format) ? null : format, NodeValues.Culture(Culture));
         }
         catch (FormatException)
         {
@@ -50,22 +53,5 @@ public sealed class FormatDateTimeNode : NodeBase
         }
 
         return Task.CompletedTask;
-    }
-
-    private CultureInfo ResolveCulture()
-    {
-        if (string.IsNullOrWhiteSpace(Culture))
-            return CultureInfo.InvariantCulture;
-
-        try
-        {
-            // Predefined only: under ICU any well-formed name is otherwise accepted as a made-up
-            // culture with invariant formatting, which would hide a typo.
-            return CultureInfo.GetCultureInfo(Culture.Trim(), predefinedOnly: true);
-        }
-        catch (CultureNotFoundException)
-        {
-            throw new InvalidOperationException($"Unknown culture '{Culture}'.");
-        }
     }
 }

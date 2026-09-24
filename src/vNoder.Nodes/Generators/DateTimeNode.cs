@@ -58,15 +58,8 @@ public sealed class DateTimeNode : NodeBase
         };
 
         // Clamped to what DateTime can represent, so a wild offset saturates instead of throwing.
-        // Compared as doubles but clamped as longs: the limits themselves do not survive a round trip
-        // through double (MaxValue.Ticks rounds up past itself), which is what made AddSeconds throw.
         var offset = _offsetIn.ValueOr(OffsetSeconds);
-        var ticks = value.Ticks + ((double.IsNaN(offset) ? 0 : offset) * TimeSpan.TicksPerSecond);
-        value = new DateTime(
-            ticks >= DateTime.MaxValue.Ticks ? DateTime.MaxValue.Ticks
-            : ticks <= DateTime.MinValue.Ticks ? DateTime.MinValue.Ticks
-            : (long)ticks,
-            value.Kind);
+        value = DateMath.AddTicks(value, (double.IsNaN(offset) ? 0 : offset) * TimeSpan.TicksPerSecond);
 
         _valueOut.Value = value;
         // ToUniversalTime saturates at the limits, where DateTimeOffset would throw.

@@ -1,0 +1,201 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 0.8928571428571426,
+    "offsetX": -294.5871291364042,
+    "offsetY": 134.93179766512935
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "62c8c817-9f54-44a3-9557-8b355eac88e4",
+      "type": "JSON/Format",
+      "x": 1404,
+      "y": 694,
+      "state": {
+        "Style": 0
+      }
+    },
+    {
+      "id": "a669db55-f664-42c9-b1e3-f616f78a63a1",
+      "type": "Network/HTTP Request",
+      "x": 901,
+      "y": 722,
+      "w": 375,
+      "h": 309,
+      "state": {
+        "Body": "",
+        "ContentType": "application/json",
+        "Headers": "",
+        "Method": 0,
+        "TimeoutSeconds": 30,
+        "Url": "https://accounts.google.com/.well-known/openid-configuration"
+      }
+    },
+    {
+      "id": "448f25cf-0ed2-4097-a356-b01932d3dab6",
+      "type": "JSON/Get",
+      "x": 1517,
+      "y": 1062,
+      "state": {
+        "Path": "scopes_supported"
+      }
+    },
+    {
+      "id": "fbd9504e-f1cb-4d17-8755-711dc92687bf",
+      "type": "Output/Output",
+      "x": 1696,
+      "y": 34,
+      "w": 537,
+      "h": 871,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "fb0dad6d-dd46-4db0-9c22-5b11ba625bd0",
+      "type": "Output/Output",
+      "x": 1837.92,
+      "y": 1082.3200000000002,
+      "w": 233,
+      "h": 135,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "6d874528-6312-4564-8e1c-8d39d42fccbc",
+      "type": "Text/Join",
+      "x": 2156.2799999999997,
+      "y": 1095.48,
+      "state": {
+        "Separator": "-"
+      }
+    },
+    {
+      "id": "9693187c-a3f1-45fd-a56e-0e5c29534960",
+      "type": "Output/Output",
+      "x": 2439.3199999999997,
+      "y": 1168.6,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "7eb4e671-8bf2-47b1-8c19-87808ab3adc8",
+      "type": "IO/File Write",
+      "x": 2492.6575846327733,
+      "y": 254.31638661505525,
+      "state": {
+        "AppendIfExists": false,
+        "Path": ""
+      }
+    },
+    {
+      "id": "a6044246-b46a-4f5b-8181-b4e8fd4f73c2",
+      "type": "Input/Static Text",
+      "x": 2287.6975846327737,
+      "y": 371.9163866150552,
+      "w": 160,
+      "h": 24,
+      "state": {
+        "Text": ".\\tmp\\oidc.json"
+      }
+    },
+    {
+      "id": "f8f9ca24-afca-49ad-b90b-409b2e22589e",
+      "type": "IO/File Info",
+      "x": 2755.857584632773,
+      "y": 499.59638661505534,
+      "state": {
+        "Path": ""
+      }
+    },
+    {
+      "id": "cc5fadd0-fbf4-40aa-a9ad-21075c4ea7cb",
+      "type": "Output/Output",
+      "x": 2737.937584632774,
+      "y": 280.0763866150552,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "1a939ddb-d41c-4508-b954-9121b6f142d3",
+      "type": "Output/Output",
+      "x": 2983.2175846327737,
+      "y": 528.7163866150553,
+      "state": {
+        "Wrap": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "a669db55-f664-42c9-b1e3-f616f78a63a1",
+      "fromPort": "Body",
+      "toNode": "62c8c817-9f54-44a3-9557-8b355eac88e4",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "62c8c817-9f54-44a3-9557-8b355eac88e4",
+      "fromPort": "JSON",
+      "toNode": "fbd9504e-f1cb-4d17-8755-711dc92687bf",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "a669db55-f664-42c9-b1e3-f616f78a63a1",
+      "fromPort": "Body",
+      "toNode": "448f25cf-0ed2-4097-a356-b01932d3dab6",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "448f25cf-0ed2-4097-a356-b01932d3dab6",
+      "fromPort": "Value",
+      "toNode": "fb0dad6d-dd46-4db0-9c22-5b11ba625bd0",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "fb0dad6d-dd46-4db0-9c22-5b11ba625bd0",
+      "fromPort": "Value",
+      "toNode": "6d874528-6312-4564-8e1c-8d39d42fccbc",
+      "toPort": "Parts"
+    },
+    {
+      "fromNode": "6d874528-6312-4564-8e1c-8d39d42fccbc",
+      "fromPort": "Text",
+      "toNode": "9693187c-a3f1-45fd-a56e-0e5c29534960",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "fbd9504e-f1cb-4d17-8755-711dc92687bf",
+      "fromPort": "Value",
+      "toNode": "7eb4e671-8bf2-47b1-8c19-87808ab3adc8",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "a6044246-b46a-4f5b-8181-b4e8fd4f73c2",
+      "fromPort": "Text",
+      "toNode": "7eb4e671-8bf2-47b1-8c19-87808ab3adc8",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "a6044246-b46a-4f5b-8181-b4e8fd4f73c2",
+      "fromPort": "Text",
+      "toNode": "f8f9ca24-afca-49ad-b90b-409b2e22589e",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "7eb4e671-8bf2-47b1-8c19-87808ab3adc8",
+      "fromPort": "Success",
+      "toNode": "cc5fadd0-fbf4-40aa-a9ad-21075c4ea7cb",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f8f9ca24-afca-49ad-b90b-409b2e22589e",
+      "fromPort": "Exists",
+      "toNode": "1a939ddb-d41c-4508-b954-9121b6f142d3",
+      "toPort": "Value"
+    }
+  ]
+}

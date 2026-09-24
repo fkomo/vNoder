@@ -91,12 +91,24 @@ Conventions that go with it:
 - An **enum property** renders as a combo box with
   `ItemsSource="{Binding X, Converter={StaticResource EnumValues}}"` — no `ObjectDataProvider`
   resource per enum — and persists through the generic state capture like any other property.
+  **Enums are saved by number**, not name (`GraphFile` has no string-enum converter), so a new member
+  goes at the end and existing ones are never reordered or removed — `HashAlgorithmKind.CRC32` was
+  appended for exactly this reason. The first member is the default, so choose it deliberately or set
+  the field's initial value.
 - A **family of nodes** can share inline state on an abstract base (`TrigNode.Degrees`) and one
   template declared for that base: `NodeEditorTemplateSelector` walks base types. The same goes for
   port boilerplate: `UnaryMathNode` / `BinaryMathNode` declare the ports, and each operator is still
   its own attributed class. The registry only lists attributed types, so bases never appear in the
   catalogue.
-- A text-or-bytes `any` input goes through `NodeValues.AsBytes` (text as UTF-8).
+- A text-or-bytes `any` input goes through `NodeValues.AsBytes` (text as UTF-8). Any value shown or
+  spliced as text goes through `NodeValues.ToText`, the one formatter shared by Output, To Text,
+  Template and Pad, so a number or date reads the same everywhere.
+- **A value that does not parse is a result, not an error.** To Number, To Boolean, Date Parse, JSON
+  Get (missing path), List Item At (out of range), Path Exists and File Info report it on a `Success` /
+  `Found` / `Exists` output and fall back, so a continuous run is not stuck in an error state and the
+  flag can drive a `Select`. Throw for input that has no sane reading (malformed JSON, an invalid
+  regex, a missing file to copy). JSON Format is the exception that proves it: validity is its answer,
+  so it reports invalid JSON on `Valid` / `Error` instead of throwing.
 - CPU-heavy work (password hashing) and blocking I/O with no async API (directory walks) run in
   `Task.Run` with the context's cancellation token, so a slow node neither blocks the UI nor outlives
   a stopped continuous run.
@@ -136,7 +148,8 @@ Conventions that go with it:
   to evaluation, where `ValueOr` falls back instead of failing. Without the second half, `OutputNode`'s
   pass-through port could only ever feed another `any` input, which made it useless.
 - **Port types** are `double`, `string`, `bool`, `byte[]`, `string[]` (a text list, produced by
-  `SplitNode` and `FileSearchNode`, consumed by `JoinNode`), `DateTime` ("date/time", from
+  Split, Lines, File Search, Regex Extract All and JSON Get on an array, consumed by Join and the List
+  nodes), `DateTime` ("date/time", from
   `DateTimeNode` to `FormatDateTimeNode`) and `object` for "any". Adding a type means touching four
   places: `Graph.FriendlyTypeName`, `PortTypeNames.For`, `PortBrushConverter` for its wire colour, and
   usually `OutputNode.Format` / `LengthNode` so it can be displayed and measured — plus
@@ -149,16 +162,45 @@ Conventions that go with it:
   is a *result* (Status, Success, Body), not a throw — an API's error body is what you want to read.
   Only no response at all throws. It uses one static `HttpClient` with per-request timeouts. Like
   file writes and deletes, it fires every tick in a continuous run.
-- `DateTimeNode` clamps its offset in **ticks**, comparing as doubles but never converting a limit back
-  from one: `DateTime.MaxValue.Ticks` rounds up past itself as a `double`, which is how `AddSeconds`
-  with a large offset threw. `FormatDateTimeNode` resolves cultures with `predefinedOnly: true`, since
-  under ICU any well-formed name is otherwise accepted as an invariant-formatting culture.
+- **Date arithmetic goes through `DateMath.AddTicks`**, which saturates at DateTime's range. Only the
+  offset is a `double`, rounded to whole ticks and added as a `long`: a date's own tick count (~6e17)
+  is past double's exact range, so summing as doubles silently lost milliseconds (From Unix read
+  `.123` as `.122`), and `DateTime.MaxValue.Ticks` rounds up past itself as a `double`, which is how
+  `AddSeconds` with a large offset once threw. Cultures resolve through `NodeValues.Culture` with
+  `predefinedOnly: true`, since under ICU any well-formed name is otherwise accepted as an
+  invariant-formatting culture.
+- `FormatDateTimeNode` moved from `Text/Format Date Time` to `Date/Format`, with the old path in
+  `FormerPaths`. The Date nodes read an unwired date input as "now", as Format always has.
+- **Select picks a value; it does not skip work.** The executor evaluates every node on every pass, so
+  both branches feeding a Select run, side effects included. Real branching needs the execution-flow
+  work in `TODO.md`.
+- Regex nodes (and the Regex mode of Contains / List Filter) use a 2 s match timeout, so a
+  catastrophically backtracking pattern fails the node instead of hanging a continuous run. An empty
+  pattern is a no-op, like an empty Find in Replace All.
+- `Template` fills `{A}`–`{D}` only and leaves every other brace alone, so JSON needs no escaping.
+  `{{` is the one escape; there is deliberately no `}}`, since JSON closes nested objects with `}}`.
+- JSON travels as **text**; there is no JSON port type. JSON Get turns an array into a `string[]` (so
+  the List nodes apply) and an object into its JSON text. JSON Set writes non-ASCII as-is
+  (`UnsafeRelaxedJsonEscaping`), not as `\u` escapes.
+- `RunProcessNode` reads stdout and stderr concurrently (reading one to the end first deadlocks once
+  the other's pipe fills), treats a program that exits without reading its stdin as normal, and kills
+  the whole process tree on timeout or cancellation. It fires every tick in a continuous run.
+- Inline secrets (HMAC `Key`, AES `Password`) are ordinary public string properties, so they **are**
+  saved in the `.vnoder` file; the editor labels say so, and wiring the Key input keeps them out.
+  `AesEnvelope` is this app's own layout (version, salt, nonce, tag, ciphertext) over standard
+  AES-256-GCM and PBKDF2-SHA256 (600k iterations); text is a password, 16/24/32 bytes is a raw key.
 - Images travel as **encoded bytes** (`byte[]`), never pixels: Nodes cannot reference WPF, so
   `ImageData` (in `vNoder.Nodes/Imaging`) is everything the nodes know about an image without decoding
   it — accepting bytes or Base64 / `data:` text (`FromValue`), the format from the signature
   (`Sniff`), the size from the headers (`Dimensions`, for all seven formats), and the file extensions.
   Decoding to pixels happens only in the view (`BytesToImageConverter`). `ImageNode` (Output/Image) is
   the universal viewer; `ImageLoadNode` / `ImageSaveNode` read and write files.
+- Resize, Crop and Rotate Flip derive from `TransformImageNode` and go through
+  `ImageConversion.Transform`, which re-encodes in the **source** format with the encoder ImageSharp
+  picks for it, so a JPEG keeps its quality and a lossless WebP stays lossless. `Apply` returning
+  false (Only Shrink on a small image, a crop covering everything) passes the original bytes through
+  untouched rather than re-encoding. Parameters are read in `Capture()` on the evaluation thread;
+  `Apply` runs on the thread pool.
 - **Conversion is `ImageConversion` (ImageSharp)**, the one place Nodes decodes pixels; `ImageData`
   stays header-only and falls back to ImageSharp only to *detect* and *size* formats it has no
   signature for (TGA, QOI, PBM). TGA is detected heuristically, so ~0.06% of random byte buffers pass
@@ -189,7 +231,11 @@ Conventions that go with it:
   cleanly. So links inside the tree are unlinked, never entered, and a path that is itself a link has
   just the link removed, without needing `Recursive`. Test link handling with a real junction
   (`mklink /J`, no admin needed) and a sentinel file in its target.
-- File Write and Image Save create missing parent folders (`FilePaths.EnsureDirectory`).
+- File Write, File Copy, File Move and Image Save create missing parent folders
+  (`FilePaths.EnsureDirectory`), and share `ExistingFileMode` and `FilePaths.NextFreeName`. Copy and
+  Move are one `FileTransferNode` base differing only in the final call, with one editor template
+  declared for the base. Both refuse Overwrite onto the source itself, which would otherwise truncate
+  it.
 - Path fields are **single-line** `NodeFieldTextBox`es, as in Image Load; a path does not need a
   multi-line, wrapping, resizable box.
 - Text nodes **clamp rather than throw** on out-of-range arguments (`SubstringNode`) and treat a
@@ -216,6 +262,7 @@ Two things follow from this that are easy to get wrong:
   either order. In particular `FileWriteNode.Success` (bool) cannot feed `FileReadNode.Path`
   (string), so a write and a read in one graph are unordered — read may run first. Sequencing side
   effects needs a new mechanism (an execution-flow port type, or a pulse chain), not a bug fix.
+  `TODO.md` sketches the options, along with per-item loops.
 - **Continuous mode is graph-level configuration, not a node.** `Graph.IntervalMilliseconds` drives
   it (edited in the toolbar box beside the Continuous button, `Ctrl+Shift+R` to toggle), so every graph can
   run continuously with nothing to wire up. The loop is `PeriodicTimer` on a background task, and a
@@ -357,14 +404,16 @@ Do not replace it with per-operation commands.
   to nothing, which reads as wires simply not being drawn. Anything else drawn in scene space and
   meant to stay legible needs the same treatment.
 - Text areas inside nodes hide their scrollbars but stay scrollable: the **middle button drags to
-  scroll** whichever text area is under the cursor, and only pans the workspace when it is not.
+  scroll** whichever text area is under the cursor.
 - Gestures live in `MainWindow.xaml.cs` because they are hit-testing over visuals, not bindings:
   wheel zooms about the cursor, right/middle-drag pans, header-drag moves, output-port drag wires up,
   clicking a connected input detaches it, double-click on empty canvas opens the search popup.
 - Delete is a `Window.KeyDown` handler, not a `KeyBinding`, so that it deletes the selected node only
   when focus is not in an inline editor.
-- Right-drag pans **only from empty canvas**; over a node or group header the right button opens a
-  context menu instead. Middle-drag always pans.
+- **Pan and zoom start only from empty canvas** (`IsBackdrop`: the grid backdrop or the host itself).
+  Over a node or group header the right button opens a context menu, the middle button does nothing
+  (or scrolls a text area), and the wheel is left unhandled so a scrollable editor under the cursor
+  gets it. Wires and a group box's body are not hit-testable, so they count as empty canvas.
 - Context menus are built in code-behind rather than in XAML. A menu is outside the visual tree, so
   binding it to workspace commands from inside a node's `DataTemplate` needs `PlacementTarget`
   gymnastics; constructing it where both the node and the workspace are in scope is plainer.
@@ -405,7 +454,7 @@ otherwise an **output**, since outputs are where a wire starts.
   accumulating, which is what makes repeated application safe.
 - `Ctrl+C` / `Ctrl+V` copy and paste the selection; pasted nodes land offset and become the selection.
 - **Resizing is opt-in**, declared on the node's own attribute: `[NodeDefinition("...",
-  Resizable = true)]` — today `Output`, `Static Text`, `Image`, `QR Code` and `HTTP Request`. Most
+  Resizable = true)]` — today `Output`, `Static Text`, `Template`, `Image`, `QR Code` and `HTTP Request`. Most
   nodes are a fixed list of ports and gain nothing from a grip; turn it on for nodes with a body worth
   enlarging. A node that is **not** resizable drops any saved size when its view-model is created
   (`NodeViewModel` resets `Model.Size`), so a file saved while a type was still resizable — the file
@@ -515,4 +564,4 @@ leave MSBuild convinced the XAML is unchanged, so you measure a stale build. `to
 Anything about feel rather than geometry — drag inertia, focus order, whether a gesture is
 comfortable — still has to be checked by hand with `dotnet run --project src/vNoder.App`.
 
-Commit history starts from the first working POC; `src/`, `README.md` and this file are tracked.
+Commit history starts from the first working POC; `src/`, `README.md`, `TODO.md` and this file are tracked.

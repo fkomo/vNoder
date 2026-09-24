@@ -35,7 +35,7 @@ public sealed class OutputNode : NodeBase
     /// </summary>
     public object? Value { get; private set; }
 
-    public string DisplayText => Format(Value);
+    public string DisplayText => NodeValues.ToText(Value);
 
     public override Task EvaluateAsync(NodeEvaluationContext context)
     {
@@ -43,21 +43,4 @@ public sealed class OutputNode : NodeBase
         _out.Value = _in.Value;
         return Task.CompletedTask;
     }
-
-    /// <summary>
-    /// The value and nothing else: no glyphs, no byte counts, no placeholder. Anything annotating the
-    /// value would have to be selected around when copying it out, and <c>LengthNode</c> already
-    /// reports sizes.
-    /// </summary>
-    private static string Format(object? value) => value switch
-    {
-        null => string.Empty,
-        bool flag => flag ? "true" : "false",
-        double number => number.ToString("0.######", System.Globalization.CultureInfo.InvariantCulture),
-        byte[] bytes => Convert.ToHexString(bytes).ToLowerInvariant(),
-        string[] parts => string.Join(Environment.NewLine, parts),
-        DateTime moment => moment.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
-        string text => text,
-        var other => other.ToString() ?? string.Empty,
-    };
 }

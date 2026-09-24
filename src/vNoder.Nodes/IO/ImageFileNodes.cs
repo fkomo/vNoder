@@ -143,7 +143,7 @@ public sealed class ImageSaveNode : NodeBase
                     return;
 
                 case ExistingFileMode.AddNumber:
-                    path = NextFreeName(path);
+                    path = FilePaths.NextFreeName(path);
                     break;
             }
         }
@@ -160,20 +160,6 @@ public sealed class ImageSaveNode : NodeBase
         _successOut.Value = true;
         _pathOut.Value = path;
     }
-
-    private static string NextFreeName(string path)
-    {
-        var directory = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
-        var stem = System.IO.Path.GetFileNameWithoutExtension(path);
-        var extension = System.IO.Path.GetExtension(path);
-
-        for (var n = 2; ; n++)
-        {
-            var candidate = System.IO.Path.Combine(directory, $"{stem} ({n}){extension}");
-            if (!File.Exists(candidate))
-                return candidate;
-        }
-    }
 }
 
 internal static class FilePaths
@@ -187,6 +173,21 @@ internal static class FilePaths
         var directory = System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(filePath));
         if (!string.IsNullOrEmpty(directory))
             Directory.CreateDirectory(directory);
+    }
+
+    /// <summary>The first of "name (2).ext", "name (3).ext", … that does not exist yet.</summary>
+    public static string NextFreeName(string path)
+    {
+        var directory = System.IO.Path.GetDirectoryName(path) ?? string.Empty;
+        var stem = System.IO.Path.GetFileNameWithoutExtension(path);
+        var extension = System.IO.Path.GetExtension(path);
+
+        for (var n = 2; ; n++)
+        {
+            var candidate = System.IO.Path.Combine(directory, $"{stem} ({n}){extension}");
+            if (!File.Exists(candidate))
+                return candidate;
+        }
     }
 }
 
