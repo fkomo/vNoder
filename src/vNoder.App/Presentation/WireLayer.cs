@@ -56,7 +56,7 @@ public sealed class WireLayer : FrameworkElement
 
     private readonly VisualCollection _visuals;
     private readonly Dictionary<LinkViewModel, WireVisual> _byLink = [];
-    private readonly Dictionary<Brush, Pen> _pens = [];
+    private readonly Dictionary<(Brush, bool), Pen> _pens = [];
 
     public WireLayer()
     {
@@ -164,7 +164,7 @@ public sealed class WireLayer : FrameworkElement
     private void OnLinkPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (sender is LinkViewModel link
-            && e.PropertyName is nameof(LinkViewModel.Geometry) or nameof(LinkViewModel.IsVisible)
+            && e.PropertyName is nameof(LinkViewModel.Geometry) or nameof(LinkViewModel.IsVisible) or "Appearance"
             && _byLink.TryGetValue(link, out var visual))
         {
             Draw(visual, CullRect(), force: true);
@@ -230,13 +230,19 @@ public sealed class WireLayer : FrameworkElement
 
     private Pen PenFor(LinkViewModel link)
     {
-        var brush = PortBrushConverter.For(link.Source.ValueType);
-        if (_pens.TryGetValue(brush, out var pen))
+        var brush = PortBrushConverter.For(link.ValueType);
+        var key = (brush, link.IsIterating);
+        if (_pens.TryGetValue(key, out var pen))
             return pen;
 
         pen = new Pen(brush, ScaleToStrokeThicknessConverter.For(Scale));
+
+        // A per-item wire is dashed: the list it carries is taken apart, one item per run.
+        if (link.IsIterating)
+            pen.DashStyle = new DashStyle([3, 1.5], 0);
+
         pen.Freeze();
-        _pens[brush] = pen;
+        _pens[key] = pen;
         return pen;
     }
 

@@ -86,10 +86,11 @@ public static class GraphRestore
                 continue;
             }
 
-            if (!graph.TryConnect(output, input, out _, out _, out var error))
+            if (graph.Attach(output, input, entry.Each == true, out _, out var error) is null)
                 warnings.Add($"Link {output} to {input} was rejected: {error}");
         }
 
+        SettleLinks(graph, warnings);
         RestoreGroups(graph, document, byDocumentId, warnings);
 
         return new GraphRestoreResult(warnings);
@@ -146,9 +147,10 @@ public static class GraphRestore
             var input = target.Inputs.FirstOrDefault(p => p.Name == entry.ToPort);
 
             if (output is not null && input is not null)
-                graph.TryConnect(output, input, out _, out _, out _);
+                graph.Attach(output, input, entry.Each == true, out _, out _);
         }
 
+        graph.Settle();
         return added;
     }
 
@@ -251,24 +253,42 @@ public static class GraphRestore
                     continue;
                 }
 
-                if (!graph.TryConnect(output, input, out link, out _, out var error))
+                link = graph.Attach(output, input, entry.Each == true, out _, out var error);
+                if (link is null)
                 {
                     warnings.Add($"Link {output} to {input} was rejected: {error}");
                     continue;
                 }
 
-                present[key] = link!;
+                present[key] = link;
             }
 
-            linkRank.TryAdd(link!, linkRank.Count);
+            link.Iterate = entry.Each == true;
+            linkRank.TryAdd(link, linkRank.Count);
         }
 
+        SettleLinks(graph, warnings);
         graph.Reorder(nodeRank, linkRank);
 
         graph.ClearGroups();
         RestoreGroups(graph, document, byDocumentId, warnings);
 
         return new GraphRestoreResult(warnings);
+    }
+
+    /// <summary>
+    /// Checks every restored link's types, now that all of them are in place: whether a link fits can
+    /// depend on links upstream of it, which a document lists in no particular order.
+    /// </summary>
+    private static void SettleLinks(Graph graph, List<string> warnings)
+    {
+        foreach (var link in graph.Settle())
+        {
+            warnings.Add(
+                $"Link {link.Source} to {link.Target} was rejected: "
+                + $"{Graph.FriendlyTypeName(link.Source.EffectiveType)} output cannot feed a "
+                + $"{Graph.FriendlyTypeName(link.Target.ValueType)} input.");
+        }
     }
 
     private static void RestoreGroups(

@@ -58,6 +58,18 @@ public abstract class NodeBase : INotifyPropertyChanged
     /// </summary>
     public bool IsSkipped { get; internal set; }
 
+    /// <summary>
+    /// Whether this node runs once per list item: true when any input's link iterates
+    /// (<see cref="Link.Iterate"/>). Its outputs then carry lists.
+    /// </summary>
+    public bool RunsPerItem => _inputs.Any(input => input.Link is { Iterate: true });
+
+    /// <summary>
+    /// How many items the last pass ran this node for, or null when it did not run per item. Set by
+    /// <see cref="GraphExecutor"/>.
+    /// </summary>
+    public int? ItemCount { get; internal set; }
+
     /// <summary>Name of the input <see cref="AddRunGate"/> declares.</summary>
     public const string RunIfPortName = "Run If";
 

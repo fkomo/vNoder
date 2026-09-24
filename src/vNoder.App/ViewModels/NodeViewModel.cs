@@ -110,6 +110,14 @@ public sealed partial class NodeViewModel : ObservableObject
     public bool IsSkipped => Model.IsSkipped;
 
     /// <summary>
+    /// Header badge for a node that runs once per list item: "×" plus the item count of the last run,
+    /// or just "×" before it has run that way. Null for an ordinary node.
+    /// </summary>
+    public string? ItemBadge => Model.RunsPerItem
+        ? Model.ItemCount is { } count ? $"×{count}" : "×"
+        : null;
+
+    /// <summary>
     /// Rendered height, reported by the view. Node bodies vary with their inline editor, so this
     /// cannot be derived from <see cref="NodeMetrics"/> the way port anchors can; groups need it to
     /// size their box.
@@ -277,6 +285,19 @@ public sealed partial class NodeViewModel : ObservableObject
         OnPropertyChanged(nameof(Error));
         OnPropertyChanged(nameof(HasError));
         OnPropertyChanged(nameof(IsSkipped));
+        OnPropertyChanged(nameof(ItemBadge));
+    }
+
+    /// <summary>
+    /// Re-reads what the ports carry. A node's outputs become lists when one of its links starts
+    /// iterating, which no wire touching the node itself may have announced.
+    /// </summary>
+    public void RefreshPortTypes()
+    {
+        foreach (var port in Inputs.Concat(Outputs))
+            port.RaiseTypeChanged();
+
+        OnPropertyChanged(nameof(ItemBadge));
     }
 
     public void RefreshPortConnections()

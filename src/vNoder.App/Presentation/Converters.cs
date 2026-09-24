@@ -27,7 +27,7 @@ public sealed class PortBrushConverter : IValueConverter
         _ when type == typeof(string) => Text,
         _ when type == typeof(bool) => Boolean,
         _ when type == typeof(byte[]) => Bytes,
-        _ when type == typeof(string[]) => List,
+        _ when type is not null && PortTypeCompatibility.IsList(type) => List,
         _ when type == typeof(DateTime) => DateTimeBrush,
         _ => Any,
     };

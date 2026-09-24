@@ -51,6 +51,15 @@ public sealed class OutputPort : Port
 
     public IReadOnlyList<Link> Links => _links;
 
+    /// <summary>
+    /// What this output actually carries: its declared type, or a list of it while the node runs per
+    /// item. Done stays a single flag, since it reports on the node, not on an item.
+    /// </summary>
+    public Type EffectiveType =>
+        Owner.RunsPerItem && !ReferenceEquals(this, Owner.DonePort)
+            ? PortTypeCompatibility.ListOf(ValueType)
+            : ValueType;
+
     /// <summary>Value written by the owning node during evaluation.</summary>
     public object? Value { get; set; }
 

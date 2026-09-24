@@ -138,17 +138,8 @@ Conventions that go with it:
 
 ## Node catalogue notes
 
-- Display nodes (`OutputNode`, `LengthNode`) render into a **read-only `TextBox`**, not a `TextBlock`,
-  so the value can be selected and copied. WPF `TextBlock` has no text selection.
-- `OutputNode` shows its value **in full and nothing but the value** — no truncation, no byte counts,
-  no glyphs, no placeholder when empty; it is meant to be read and copied verbatim, and `LengthNode`
-  is where sizes come from. A vertical scrollbar when the value is taller than the node (nothing horizontal), anchored top-left,
-  clipped to the node, with an inline Wrap
-  toggle. It also passes its input straight through an `any`
-  output, so a display can sit mid-chain rather than only at the end. `Resizable = true`: enlarging is how
-  you read a long value.
-- `LengthNode` is the same kind of terminal display but reports a size, and also exposes the count as
-  a number so it can feed arithmetic.
+What an individual node does and why is documented on its class. What follows applies across nodes.
+
 - **"Any" (`object`) is permissive in both directions.** An `any` input accepts every output, and an
   `any` output feeds every input — its real type is only known at run time, so the check is deferred
   to evaluation, where `ValueOr` falls back instead of failing. Without the second half, `OutputNode`'s
@@ -156,105 +147,36 @@ Conventions that go with it:
 - **Port types** are `double`, `string`, `bool`, `byte[]`, `string[]` (a text list, produced by
   Split, Lines, File Search, Regex Extract All and JSON Get on an array, consumed by Join and the List
   nodes), `DateTime` ("date/time", from
-  `DateTimeNode` to `FormatDateTimeNode`) and `object` for "any". Adding a type means touching four
-  places: `Graph.FriendlyTypeName`, `PortTypeNames.For`, `PortBrushConverter` for its wire colour, and
-  usually `OutputNode.Format` / `LengthNode` so it can be displayed and measured — plus
+  `DateTimeNode` to `FormatDateTimeNode`) and `object` for "any". A node running per item also
+  carries **any array but `byte[]`** as a list (`double[]`, `bool[]`, `string[][]`, `object[]`; see
+  **Per-item evaluation**): `PortTypeCompatibility.IsList` is the rule, and `byte[]` is one value, never
+  a list of numbers. Names come from `PortTypeCompatibility.Describe` (`Graph.FriendlyTypeName` and
+  `PortTypeNames.For` both delegate to it; lists read "number list"), and every list is teal. Adding a
+  type means touching: `PortTypeCompatibility.Describe`, `PortBrushConverter` for its wire colour, and
+  usually `NodeValues.ToText` / `LengthNode` so it can be displayed and measured — plus
   `EqualsNode.AreEqual` / `Text` and `CompareNode` if the type has a natural order (dates compare as
   dates, and display as ISO 8601).
+- There is **no JSON or image port type**. JSON travels as text; images travel as encoded bytes
+  (`byte[]`), never pixels, because Nodes cannot reference WPF. `ImageData` reads format and size
+  from headers, `ImageConversion` (ImageSharp) is the one place Nodes decodes pixels, and the view
+  decodes for display (`BytesToImageConverter`).
 - A new **category** gets its header colour in `CategoryBrushConverter`; one without an entry falls back
   to grey.
-- `HttpRequestNode` is one node with a method selector, not one per verb, so switching verb needs no
-  rewiring; the verbs are in its description so catalogue search still finds "post". An error status
-  is a *result* (Status, Success, Body), not a throw — an API's error body is what you want to read.
-  Only no response at all throws. It uses one static `HttpClient` with per-request timeouts. Like
-  file writes and deletes, it fires every tick in a continuous run.
-- **Date arithmetic goes through `DateMath.AddTicks`**, which saturates at DateTime's range. Only the
-  offset is a `double`, rounded to whole ticks and added as a `long`: a date's own tick count (~6e17)
-  is past double's exact range, so summing as doubles silently lost milliseconds (From Unix read
-  `.123` as `.122`), and `DateTime.MaxValue.Ticks` rounds up past itself as a `double`, which is how
-  `AddSeconds` with a large offset once threw. Cultures resolve through `NodeValues.Culture` with
-  `predefinedOnly: true`, since under ICU any well-formed name is otherwise accepted as an
-  invariant-formatting culture.
-- `FormatDateTimeNode` moved from `Text/Format Date Time` to `Date/Format`, with the old path in
-  `FormerPaths`. The Date nodes read an unwired date input as "now", as Format always has.
 - **Select picks a value; it does not skip work by itself.** Skipping a branch is Run If's job (see
   **Execution model**); Select, Coalesce, Is Empty and Output are declared `Merges = true`, so they
   still run when one side is skipped and read it as empty.
-- Regex nodes (and the Regex mode of Contains / List Filter) use a 2 s match timeout, so a
-  catastrophically backtracking pattern fails the node instead of hanging a continuous run. An empty
-  pattern is a no-op, like an empty Find in Replace All.
-- `Template` fills `{A}`–`{D}` only and leaves every other brace alone, so JSON needs no escaping.
-  `{{` is the one escape; there is deliberately no `}}`, since JSON closes nested objects with `}}`.
-- JSON travels as **text**; there is no JSON port type. JSON Get turns an array into a `string[]` (so
-  the List nodes apply) and an object into its JSON text. JSON Set writes non-ASCII as-is
-  (`UnsafeRelaxedJsonEscaping`), not as `\u` escapes.
-- `RunProcessNode` reads stdout and stderr concurrently (reading one to the end first deadlocks once
-  the other's pipe fills), treats a program that exits without reading its stdin as normal, and kills
-  the whole process tree on timeout or cancellation. It fires every tick in a continuous run.
-- Inline secrets (HMAC `Key`, AES `Password`) are ordinary public string properties, so they **are**
-  saved in the `.vnoder` file; the editor labels say so, and wiring the Key input keeps them out.
-  `AesEnvelope` is this app's own layout (version, salt, nonce, tag, ciphertext) over standard
-  AES-256-GCM and PBKDF2-SHA256 (600k iterations); text is a password, 16/24/32 bytes is a raw key.
-- Images travel as **encoded bytes** (`byte[]`), never pixels: Nodes cannot reference WPF, so
-  `ImageData` (in `vNoder.Nodes/Imaging`) is everything the nodes know about an image without decoding
-  it — accepting bytes or Base64 / `data:` text (`FromValue`), the format from the signature
-  (`Sniff`), the size from the headers (`Dimensions`, for all seven formats), and the file extensions.
-  Decoding to pixels happens only in the view (`BytesToImageConverter`). `ImageNode` (Output/Image) is
-  the universal viewer; `ImageLoadNode` / `ImageSaveNode` read and write files.
-- Resize, Crop and Rotate Flip derive from `TransformImageNode` and go through
-  `ImageConversion.Transform`, which re-encodes in the **source** format with the encoder ImageSharp
-  picks for it, so a JPEG keeps its quality and a lossless WebP stays lossless. `Apply` returning
-  false (Only Shrink on a small image, a crop covering everything) passes the original bytes through
-  untouched rather than re-encoding. Parameters are read in `Capture()` on the evaluation thread;
-  `Apply` runs on the thread pool.
-- **Conversion is `ImageConversion` (ImageSharp)**, the one place Nodes decodes pixels; `ImageData`
-  stays header-only and falls back to ImageSharp only to *detect* and *size* formats it has no
-  signature for (TGA, QOI, PBM). TGA is detected heuristically, so ~0.06% of random byte buffers pass
-  as one; decoding then fails cleanly. ImageSharp 3.1 cannot read or write **ICO**, so an ICO passes
-  through the nodes but cannot be converted.
-- Converting to a format without alpha (JPEG, BMP, PBM) **composites onto white** first; otherwise
-  transparent pixels come out black. WebP at quality 100 is lossless.
-- **Image Save writes the format its extension names**: a matching extension writes the bytes as they
-  arrive (no re-encode), a different known one converts, no extension adds the right one, an unknown
-  one (or `.ico` from another format) is refused. The target is decided before the if-exists check,
-  but conversion runs after it, so `Skip` never pays for an encode. `AddNumber` makes a numbered
-  series, which is what a continuous run wants; `Skip` reports `Success = false`.
-- `ImageNode.Preview` is what the view shows: the image itself, or a PNG rendering for formats WPF
-  cannot be relied on to decode (TGA, QOI, PBM, and WebP, whose WIC codec is absent on N editions and
-  Server).
-- `ImageNode`'s computed `Bytes` / `ImageFormat` have private setters, so they are never persisted.
-- Dropping a wire on empty canvas lists **Output first**, then the other compatible nodes in registry
-  order (`RefreshSearchResults`), and pre-selects it, so drag-drop-Enter shows a value.
-- `QrCodeNode` keeps its last PNG in a computed `Png` property (non-public setter, so not persisted)
-  for the inline preview, shown through `BytesToImageConverter` with nearest-neighbour scaling.
-- `PathDeleteNode` (formerly `FileDeleteNode`, "IO/File Delete") is destructive and unconditional — in
-  a continuous run it fires every tick. Its `Deleted` output reports whether *this* pass removed
-  something, since `File.Delete` is silent about a file that was not there and "nothing to do" should
-  not read as success. A non-empty directory needs `Recursive`; a drive root is always refused.
-- **Path Delete walks the tree itself** rather than calling `Directory.Delete(path, true)`. Neither
-  follows a junction into its target, but .NET's recursive delete fails with "access denied" on
-  reaching one and leaves the tree half-deleted; `Directory.Delete(link, false)` removes a junction
-  cleanly. So links inside the tree are unlinked, never entered, and a path that is itself a link has
-  just the link removed, without needing `Recursive`. Test link handling with a real junction
-  (`mklink /J`, no admin needed) and a sentinel file in its target.
-- File Write, File Copy, File Move and Image Save create missing parent folders
-  (`FilePaths.EnsureDirectory`), and share `ExistingFileMode` and `FilePaths.NextFreeName`. Copy and
-  Move are one `FileTransferNode` base differing only in the final call, with one editor template
-  declared for the base. Both refuse Overwrite onto the source itself, which would otherwise truncate
-  it.
-- Path fields are **single-line** `NodeFieldTextBox`es, as in Image Load; a path does not need a
-  multi-line, wrapping, resizable box.
+- Nodes with side effects (file writes and deletes, HTTP Request, Run Process, Image Save) **fire on
+  every tick** of a continuous run.
 - Text nodes **clamp rather than throw** on out-of-range arguments (`SubstringNode`) and treat a
   degenerate argument as a no-op (`ReplaceAllNode` with an empty Find, `SplitNode` with an empty
-  separator). A graph running continuously would otherwise sit in an error state for as long as a
-  bound is mid-edit.
-- `EqualsNode` and `CompareNode` take `any` on both sides and compare by kind: numbers numerically,
-  buffers by content, everything else as the text it prints as. That matters — `10` sorts before `2`
-  as text but not as a number.
-- `HashNode` replaced `Sha256Node`; the algorithm is an enum property, so it renders as a combo box
-  and persists through the generic state capture with no serializer work. Its definition path changed
-  from `Crypto/SHA-256` to `Crypto/Hash`, so files saved before the change report an unknown node
-  type for it.
+  separator, an empty regex pattern). A graph running continuously would otherwise sit in an error
+  state for as long as a bound is mid-edit.
+- Display nodes (`OutputNode`, `LengthNode`) render into a **read-only `TextBox`**, not a `TextBlock`,
+  so the value can be selected and copied. WPF `TextBlock` has no text selection.
+- Path fields are **single-line** `NodeFieldTextBox`es, as in Image Load; a path does not need a
+  multi-line, wrapping, resizable box.
+- Dropping a wire on empty canvas lists **Output first**, then the other compatible nodes in registry
+  order (`RefreshSearchResults`), and pre-selects it, so drag-drop-Enter shows a value.
 
 ## Execution model
 
@@ -310,6 +232,41 @@ colour — a thicker border would move the port dots off their anchors (`NodeMet
 Evaluation runs off the UI thread. Nodes must not raise `PropertyChanged` from inside
 `EvaluateAsync`: assign quietly, and let `WorkspaceViewModel` call `NodeBase.RaiseBindingsChanged()`
 on the dispatcher once the pass completes. `OutputNode` is the worked example.
+
+### Per-item evaluation
+
+Wiring a list into an input that takes one item runs the node once per item (the Grasshopper model,
+Option C in `TODO.md`). It is all in Core; **node code never knows** — `EvaluateAsync` sees one item on
+each per-item input, so every existing node supports it for free. Keep it that way.
+
+- The state is one flag, **`Link.Iterate`**, saved as `"each": true` on the link (omitted when false).
+  `NodeBase.RunsPerItem` is "any input link iterates", and `OutputPort.EffectiveType` is then the list
+  of the declared type (Done excepted: it stays one flag). `ValueType` stays the declared type; the
+  view, `Graph.Fit` and wire colours use the effective one.
+- **`Graph.Settle()` keeps links consistent** and must run after anything that can change what a node
+  carries: connect, disconnect, remove, toggle. It walks in topological order: a link that no longer
+  fits whole but fits per item starts iterating, an iterating link whose source is no longer a list
+  goes back to whole, and one that fits neither way is removed (and returned, so the view can forget
+  it; the workspace says so in the status bar). That walk is what makes iteration propagate down a
+  chain. The workspace does it in `SettleLinks()`.
+- **Whole wins when both fit.** A list into an `any` input (Hash, Output, Length, Equals) stays whole
+  until the user ticks "For each item" on the input's right-click menu (`Graph.SetIterate`). Only a
+  list into an input that cannot take it whole iterates on its own. Run If never iterates.
+- **Restore connects with `Graph.Attach`, then settles once.** Whether a link fits can depend on links
+  upstream of it that are not restored yet (a document lists links in creation order, not
+  topologically), so `TryConnect`'s type check would reject valid links. `Into`, `Append` and
+  `Reconcile` all attach unchecked and warn about whatever `Settle` removes.
+- The executor (`EvaluatePerItemAsync`) pairs several per-item inputs **by index** and fails on a
+  length mismatch; non-list values count as one item, null as none. An item that throws fails the
+  whole node, prefixed "Item i of n". Results are **typed arrays** (`string[]` for text, so Join and
+  the List nodes take them), an `any` output narrowed to its items' common type; a value-type list
+  with a missing item stays `object[]` rather than inventing a zero. `NodeBase.ItemCount` feeds the
+  header's `×N` badge.
+- A per-item node whose output is already a list gives a list of lists (`string[][]`), and a list
+  input (Join) fed with one iterates again, peeling one level. That is all the nesting there is.
+- Per-item wires are dashed (`WireLayer` pens are keyed by brush *and* dash), and a per-item input
+  shows a teal ×. `LinkViewModel.RefreshAppearance()` raises `"Appearance"` only when colour or dash
+  changed, so a settle redraws only the wires that did.
 
 ## Persistence
 
@@ -565,6 +522,11 @@ Until then, engine behaviour is checked with a **throwaway console harness** in 
 `net10.0` exe with `ProjectReference`s to Core and Nodes that builds graphs, runs
 `GraphExecutor.RunOnceAsync`, and asserts on outputs. It is fast to write and exercises the real
 model. Prefer it to reasoning about whether a graph change is correct.
+
+The `.vnoder` files in `samples/` (described in `samples/README.md`) are real saved graphs covering
+Run If / Done, skipping and merges. Loading them through `GraphFile` + `GraphRestore.Into` and
+checking for zero warnings is a cheap regression check after changing ports, node paths or the file
+format — and if a change renames something they use, update the samples too.
 
 The canvas cannot be driven by synthetic input from here — the session has run inside a VM console
 where clicks never reach the window, and Windows blocks foreground activation. Two techniques work

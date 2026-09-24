@@ -40,6 +40,7 @@ public sealed class FormatDateTimeNode : NodeBase
     public override Task EvaluateAsync(NodeEvaluationContext context)
     {
         // Unwired, format the current time: the node is useful on its own as a clock.
+        // An unwired date reads as now, as in every Date node.
         var value = _valueIn.IsConnected ? _valueIn.ValueOr(DateTime.Now) : DateTime.Now;
         var format = _formatIn.ValueOr(Format);
 

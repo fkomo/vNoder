@@ -21,15 +21,23 @@ internal static class NodeValues
     /// <summary>
     /// A value as the text it displays as: the value and nothing else, with no glyphs, byte counts or
     /// placeholder, since Output shows exactly this and it is meant to be copied out verbatim. Bytes
-    /// are lower-case hex, a list is one item per line, and a date is ISO 8601.
+    /// are lower-case hex, a list is one item per line, and a date is ISO 8601. A list inside a list
+    /// (what a per-item run of Split produces) is one line per inner list, as <c>[a, b, c]</c>.
     /// </summary>
     public static string ToText(object? value) => value switch
+    {
+        string[] parts => string.Join(Environment.NewLine, parts),
+        Array list and not byte[] => string.Join(Environment.NewLine, list.Cast<object?>().Select(ItemText)),
+        _ => ItemText(value),
+    };
+
+    private static string ItemText(object? value) => value switch
     {
         null => string.Empty,
         bool flag => flag ? "true" : "false",
         double number => number.ToString("0.######", CultureInfo.InvariantCulture),
         byte[] bytes => Convert.ToHexString(bytes).ToLowerInvariant(),
-        string[] parts => string.Join(Environment.NewLine, parts),
+        Array list => $"[{string.Join(", ", list.Cast<object?>().Select(ItemText))}]",
         DateTime moment => moment.ToString("o", CultureInfo.InvariantCulture),
         string text => text,
         var other => other.ToString() ?? string.Empty,
@@ -44,7 +52,7 @@ internal static class NodeValues
         null => true,
         string text => whitespaceIsEmpty ? string.IsNullOrWhiteSpace(text) : text.Length == 0,
         byte[] bytes => bytes.Length == 0,
-        string[] parts => parts.Length == 0,
+        Array list => list.Length == 0,
         _ => false,
     };
 

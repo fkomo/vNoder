@@ -41,7 +41,10 @@ public sealed class HmacNode : NodeBase
         set => Set(ref _algorithm, value);
     }
 
-    /// <summary>Inline secret (as UTF-8), used when the Key input is not wired.</summary>
+    /// <summary>
+    /// Inline secret (as UTF-8), used when the Key input is not wired. Saved in the .vnoder file like
+    /// any inline state, as the editor label says; wiring the Key input keeps it out of the file.
+    /// </summary>
     public string Key
     {
         get => _key;
@@ -86,7 +89,10 @@ public sealed class AesEncryptNode : NodeBase
         _base64Out = AddOutput<string>("Base64");
     }
 
-    /// <summary>Inline password, used when the Key input is not wired.</summary>
+    /// <summary>
+    /// Inline password, used when the Key input is not wired. Saved in the .vnoder file like any
+    /// inline state, as the editor label says; wiring the Key input keeps it out of the file.
+    /// </summary>
     public string Password
     {
         get => _password;

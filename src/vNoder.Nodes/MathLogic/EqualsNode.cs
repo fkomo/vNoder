@@ -5,7 +5,8 @@ namespace vNoder.Nodes;
 
 /// <summary>
 /// Value equality across whatever two ports carry. Deliberately not string-only: comparing two
-/// numbers or two buffers is the same question.
+/// numbers or two buffers is the same question. Numbers compare numerically, buffers by content, and
+/// everything else as the text it prints as, as in <see cref="CompareNode"/>.
 /// </summary>
 [NodeDefinition("Logic/Equals", Description = "True when both inputs hold the same value.")]
 public sealed class EqualsNode : NodeBase
@@ -45,6 +46,8 @@ public sealed class EqualsNode : NodeBase
         (DateTime a, DateTime b) => a == b,
         (byte[] a, byte[] b) => a.AsSpan().SequenceEqual(b),
         (string[] a, string[] b) => a.SequenceEqual(b, Comparer(ignoreCase)),
+        (Array a, Array b) => a.Length == b.Length
+            && a.Cast<object?>().Zip(b.Cast<object?>()).All(pair => AreEqual(pair.First, pair.Second, ignoreCase)),
         _ => string.Equals(Text(left), Text(right), ignoreCase
             ? StringComparison.OrdinalIgnoreCase
             : StringComparison.Ordinal),
@@ -60,6 +63,7 @@ public sealed class EqualsNode : NodeBase
         double number => number.ToString("0.######", CultureInfo.InvariantCulture),
         byte[] bytes => Convert.ToHexString(bytes),
         string[] parts => string.Join('\u001f', parts),
+        Array list and not byte[] => string.Join('\u001f', list.Cast<object?>().Select(Text)),
         DateTime moment => moment.ToString("o", CultureInfo.InvariantCulture),
         _ => value.ToString() ?? string.Empty,
     };

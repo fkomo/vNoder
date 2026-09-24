@@ -13,5 +13,14 @@ public sealed class Link
     public OutputPort Source { get; }
     public InputPort Target { get; }
 
-    public override string ToString() => $"{Source} -> {Target}";
+    /// <summary>
+    /// Runs the target once per item of the list this link carries, instead of passing the list
+    /// whole. A node with any such input runs per item, and its outputs become lists; see
+    /// <see cref="GraphExecutor"/>. Set automatically when only an item fits the input, and by hand
+    /// on an input that would also take the whole list ("any"); <see cref="Graph.Settle"/> keeps it
+    /// consistent as the graph changes.
+    /// </summary>
+    public bool Iterate { get; internal set; }
+
+    public override string ToString() => $"{Source} -> {Target}{(Iterate ? " (each)" : string.Empty)}";
 }

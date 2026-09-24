@@ -6,6 +6,11 @@ namespace vNoder.Nodes;
 /// Terminal display node. Multiple instances are allowed anywhere in the graph; each shows whatever
 /// reaches it, formatted by type.
 /// </summary>
+/// <remarks>
+/// Shows the value in full and nothing but the value: no truncation, byte counts, glyphs or
+/// placeholder when empty, since it is meant to be read and copied verbatim. Sizes are
+/// <see cref="LengthNode"/>'s job; a long value is read by resizing the node or ticking Wrap.
+/// </remarks>
 [NodeDefinition("Output/Output", Merges = true, Description = "Shows the value wired into it.", Resizable = true)]
 public sealed class OutputNode : NodeBase
 {

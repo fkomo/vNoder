@@ -45,6 +45,7 @@ counts iterations and elapsed time.
 | Move | Drag a node header — moves the whole selection |
 | Resize | Drag the corner grip (on nodes that have one) |
 | Disconnect | Click a connected input port |
+| Run per item / whole list | Right-click a wired input, **For each item of …** |
 | Delete | `Delete` |
 | Group selection | `G`, or right-click a node |
 | Collapse a group | Double-click its header |
@@ -85,7 +86,7 @@ a collapsed group stay drawn, stubbed to its edge, so you can still see it is co
 | Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text) |
 
 Ports carry one of `number`, `text`, `boolean`, `bytes`, `text list`, `date/time`, or `any`, and wire
-colour follows the type. Most node parameters can be either typed in place or driven by a wire — connect one
+colour follows the type (every kind of list is teal). Most node parameters can be either typed in place or driven by a wire — connect one
 and the inline field greys out.
 
 Evaluation order comes from the wiring: nodes are sorted by data dependency, and a node with no path
@@ -111,7 +112,28 @@ the first node of a branch stops the whole branch. Select, Coalesce, Is Empty an
 exception: they bring branches together, so they still run and read the skipped side as empty. That is
 how to build an if / else: gate each branch, and join them with Select or Coalesce.
 
-Dropping a Done wire on empty canvas connects the new node's Run If. The graphs in [`samples/`](samples/README.md) show each of these in action.
+Dropping a Done wire on empty canvas connects the new node's Run If.
+
+### Doing something per item
+
+Wiring a list into an input that takes a single value runs the node **once per item**. Its outputs become
+lists, one entry per item, and nodes further down follow on their own for as long as they take single
+values. Lines → To Upper upper-cases each line; File Search → File Read → Hash hashes every file found.
+
+- A per-item wire is **dashed**, its input carries a teal **×**, and the node's header shows **×N**, the
+  number of items in the last run.
+- An input that would also take the whole list — an `any` input like Hash's Data or Output's Value —
+  takes it whole until you say otherwise: right-click it and tick **For each item of …**. Unticking goes
+  back to the whole list, where the input's type allows it.
+- Inputs that are not per item get the same value every time: Template with a list on A and a fixed
+  template fills it once per item.
+- Two per-item inputs on one node are **paired by position**: a list of names on A and a list of emails
+  on B gives name 1 with email 1, and so on. Lists of different lengths fail the node rather than guess.
+- If any item fails, the whole node fails, with the item's number in the message.
+- A per-item node whose output is already a list (Split per line) gives a **list of lists**; Join on it
+  runs per item again, joining each inner list. Output shows an inner list as `[a, b, c]`.
+- Run If always gates the node as a whole, never per item, and Done is a single true once every item
+  has run. The graphs in [`samples/`](samples/README.md) show each of these in action.
 
 Nodes with side effects — File Write, File Copy, File Move, Path Delete, Create Directory, Image Save,
 HTTP Request and Run Process — act on every pass, so in a continuous run they fire on every tick. An

@@ -277,6 +277,9 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         Nodes.Remove(node);
         _linksByNode.Remove(node.Model.Id);
 
+        // What ran per item because of this node's list may no longer.
+        SettleLinks();
+
         // Graph.Remove already dropped it from its group and pruned groups left empty.
         SyncGroups();
 
@@ -568,8 +571,79 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         source.Node.RefreshPortConnections();
         target.Node.RefreshPortConnections();
-        StatusText = $"Connected {source.Node.Title}.{source.Name} to {target.Node.Title}.{target.Name}.";
+
+        var how = link!.Iterate ? ", once per item" : string.Empty;
+        StatusText = $"Connected {source.Node.Title}.{source.Name} to {target.Node.Title}.{target.Name}{how}."
+                     + SettleLinks();
         return true;
+    }
+
+    /// <summary>Whether a wire from <paramref name="source"/> could be dropped on <paramref name="target"/>.</summary>
+    public bool CanConnect(PortViewModel source, PortViewModel target) =>
+        source.AsOutput is { } output
+        && target.AsInput is { } input
+        && Graph.Fit(output, input) != LinkFit.None;
+
+    /// <summary>
+    /// Whether the wire into <paramref name="input"/> could be switched to or from running per item,
+    /// and if not, why. Null when there is no wire.
+    /// </summary>
+    public bool? CanToggleIterate(PortViewModel input, out string? reason)
+    {
+        reason = null;
+        if (input.AsInput?.Link is not { } link)
+            return null;
+
+        return Graph.CanSetIterate(link, !link.Iterate, out reason);
+    }
+
+    /// <summary>
+    /// Switches the wire into <paramref name="input"/> between passing its list whole and running the
+    /// node once per item. The chain below follows: see <see cref="Graph.Settle"/>.
+    /// </summary>
+    public void ToggleIterate(PortViewModel input)
+    {
+        if (input.AsInput?.Link is not { } link)
+            return;
+
+        var iterate = !link.Iterate;
+        using var change = BeginChange(iterate ? "For each item" : "Whole list");
+
+        if (!Graph.SetIterate(link, iterate, out var reason))
+        {
+            StatusText = reason ?? "Cannot change that wire.";
+            return;
+        }
+
+        StatusText = (iterate
+            ? $"{input.Node.Title} runs once per item of {input.Name}."
+            : $"{input.Node.Title} takes {input.Name} as a whole list.") + SettleLinks();
+    }
+
+    /// <summary>
+    /// Brings every link in line with what its source now carries, after a change that may have made a
+    /// node start or stop running per item, and refreshes port types and wire styles to match.
+    /// Returns a note for the status bar about any link that had to go, or an empty string.
+    /// </summary>
+    private string SettleLinks()
+    {
+        var removed = Graph.Settle();
+        foreach (var link in removed)
+            ForgetLink(link);
+
+        foreach (var node in Nodes)
+            node.RefreshPortTypes();
+
+        foreach (var link in Links)
+            link.RefreshAppearance();
+
+        return removed.Count switch
+        {
+            0 => string.Empty,
+            1 => $" Removed {removed[0].Source.Owner.Title}.{removed[0].Source.Name} to "
+                 + $"{removed[0].Target.Owner.Title}.{removed[0].Target.Name}, which no longer fits.",
+            _ => $" Removed {removed.Count} links that no longer fit.",
+        };
     }
 
     /// <summary>Clicking a connected input detaches it: the POC way to undo a wire.</summary>
@@ -582,7 +656,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         Graph.Disconnect(link);
         ForgetLink(link);
-        StatusText = "Disconnected.";
+        StatusText = "Disconnected." + SettleLinks();
     }
 
     private void Track(LinkViewModel link, NodeViewModel node)
@@ -621,8 +695,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         var wanted = hovered switch
         {
             null => null,
-            { IsInput: true } input when wiringSource is not null
-                && PortTypeCompatibility.CanConnect(wiringSource.ValueType, input.ValueType) => input,
+            { IsInput: true } input when wiringSource is not null && CanConnect(wiringSource, input) => input,
             { IsInput: false } output when wiringSource is null => output,
             _ => null,
         };
@@ -852,8 +925,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         var target = (linkSource.Name == NodeBase.DonePortName
                          ? node.Inputs.FirstOrDefault(input => input.Name == NodeBase.RunIfPortName)
                          : null)
-                     ?? node.Inputs.FirstOrDefault(
-                         input => PortTypeCompatibility.CanConnect(linkSource.ValueType, input.ValueType));
+                     ?? node.Inputs.FirstOrDefault(input => CanConnect(linkSource, input));
 
         if (target is not null)
             TryConnect(linkSource, target);
@@ -1019,6 +1091,9 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         foreach (var node in Nodes)
             node.RefreshPortConnections();
+
+        foreach (var link in Links)
+            link.RefreshAppearance();
 
         // Groups first: a collapsed group moves the anchors of every wire touching it.
         SyncGroups();

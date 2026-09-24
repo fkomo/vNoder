@@ -13,6 +13,8 @@ public sealed class LinkViewModel : ObservableObject
         Model = model;
         Source = source;
         Target = target;
+        IsIterating = model.Iterate;
+        ValueType = source.ValueType;
         Refresh();
     }
 
@@ -21,6 +23,29 @@ public sealed class LinkViewModel : ObservableObject
     public PortViewModel Target { get; }
 
     public Geometry Geometry { get; private set; } = System.Windows.Media.Geometry.Empty;
+
+    /// <summary>Drawn dashed: the target runs once per item of the list this wire carries.</summary>
+    public bool IsIterating { get; private set; }
+
+    /// <summary>What the wire carries, which sets its colour.</summary>
+    public Type ValueType { get; private set; } = typeof(object);
+
+    /// <summary>
+    /// Re-reads the two things that decide how the wire looks, raising <c>Appearance</c> only when
+    /// one changed, so the layer redraws just the wires that did.
+    /// </summary>
+    public void RefreshAppearance()
+    {
+        var iterating = Model.Iterate;
+        var type = Source.ValueType;
+
+        if (iterating == IsIterating && type == ValueType)
+            return;
+
+        IsIterating = iterating;
+        ValueType = type;
+        OnPropertyChanged("Appearance");
+    }
 
     /// <summary>
     /// Hidden only when both ends are inside the <em>same</em> collapsed group. A wire that crosses a

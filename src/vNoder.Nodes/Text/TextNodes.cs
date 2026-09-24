@@ -30,7 +30,7 @@ internal static class TextMatch
                 regex = new Regex(
                     find,
                     RegexOptions.CultureInvariant | (ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None),
-                    TimeSpan.FromSeconds(2));
+                    TimeSpan.FromSeconds(2)); // the same backtracking guard as RegexNode.MatchTimeout
             }
             catch (ArgumentException exception)
             {

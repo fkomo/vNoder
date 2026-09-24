@@ -2,6 +2,28 @@
 
 ## Doing something per item in a list
 
+### Status: Option C implemented, on trial
+
+Implemented as implicit per-item evaluation with an explicit toggle for `any` inputs (see README
+"Doing something per item" and CLAUDE.md "Per-item evaluation"). Decisions taken: a list into a
+single-value input iterates automatically, into an `any` input only when ticked; several per-item
+inputs pair by index and fail on a length mismatch; any failed item fails the node; nested lists are
+arrays of arrays, one level peeled per iteration; Run If never iterates; items run sequentially; one
+flash per node plus a `×N` badge.
+
+Open follow-ups, if it stays:
+
+- **Skip failed items** as an option, instead of failing the node: keep a null in the item's place so
+  indexes still line up, and report the count.
+- **Other pairings** for several per-item inputs: longest list (repeat the shorter one's last item),
+  or cross product (every combination, e.g. resize each image to each of three sizes).
+- **The List nodes and Join take text lists only**, so a number or boolean list (per-item Add, To
+  Number's Success) can reach Output, Length and further per-item nodes, but not Sort or Filter.
+- **Parallel items** for pure chains, with a limit.
+- A per-item Output (ticked by hand) shows only the last item it saw.
+
+The analysis below is what led here.
+
 ### The problem
 
 Nodes produce lists (File Search, Lines, Split, Regex Extract All, JSON Get on an array), and the List

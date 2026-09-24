@@ -606,6 +606,24 @@ namespace vNoder.App
             var selected = Workspace.SelectedNodes.Count;
             var menu = new ContextMenu();
 
+            // On a wired input: run the node once per item of the list on that wire, or take it whole.
+            if (FindPortAt(e.GetPosition(WorkspaceHost)) is { IsInput: true } port
+                && Workspace.CanToggleIterate(port, out var reason) is { } canToggle)
+            {
+                var eachItem = new MenuItem
+                {
+                    Header = $"For each item of {port.Name}",
+                    IsCheckable = true,
+                    IsChecked = port.IsIterating,
+                    IsEnabled = canToggle,
+                    ToolTip = reason,
+                };
+                ToolTipService.SetShowOnDisabled(eachItem, true);
+                eachItem.Click += (_, _) => Workspace.ToggleIterate(port);
+                menu.Items.Add(eachItem);
+                menu.Items.Add(new Separator());
+            }
+
             var groupItem = new MenuItem
             {
                 Header = selected >= 2 ? $"Group {selected} selected nodes" : "Group selected nodes",

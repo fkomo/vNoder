@@ -146,6 +146,113 @@ public sealed class GraphExecutor(Graph graph)
         }
     }
 
+    /// <summary>
+    /// Runs a node once per item of its iterating inputs (<see cref="Link.Iterate"/>) and gathers
+    /// each output into a list, one entry per item. The node's own code is unaware of it: it sees one
+    /// item on each iterating input, and its other inputs unchanged every time.
+    /// </summary>
+    /// <remarks>
+    /// Several iterating inputs are paired by index, and must be the same length; a mismatch fails the
+    /// node rather than guessing which items were meant to go together. An item that fails fails the
+    /// whole node, as any failure does, with the item's position in the message. A value that is not
+    /// a list counts as a list of one, and nothing as an empty list, which runs the node no times.
+    /// </remarks>
+    private static async Task EvaluatePerItemAsync(NodeBase node, NodeEvaluationContext context)
+    {
+        var iterating = node.Inputs.Where(input => input.Link is { Iterate: true }).ToList();
+        var lists = iterating.Select(input => Items(input.Value)).ToList();
+
+        var count = lists[0].Count;
+        for (var i = 1; i < lists.Count; i++)
+        {
+            if (lists[i].Count != count)
+            {
+                throw new InvalidOperationException(
+                    $"Lists differ in length: {iterating[0].Name} has {count} items, "
+                    + $"{iterating[i].Name} has {lists[i].Count}.");
+            }
+        }
+
+        var outputs = node.Outputs.Where(output => !ReferenceEquals(output, node.DonePort)).ToList();
+        var gathered = outputs.Select(_ => new object?[count]).ToList();
+        var whole = iterating.Select(input => input.Value).ToList();
+
+        try
+        {
+            for (var item = 0; item < count; item++)
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+
+                for (var i = 0; i < iterating.Count; i++)
+                    iterating[i].Value = lists[i][item];
+
+                foreach (var output in outputs)
+                    output.Value = null;
+
+                try
+                {
+                    await node.EvaluateAsync(context).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    throw new InvalidOperationException($"Item {item + 1} of {count}: {exception.Message}", exception);
+                }
+
+                for (var o = 0; o < outputs.Count; o++)
+                    gathered[o][item] = outputs[o].Value;
+            }
+        }
+        finally
+        {
+            // The inputs show what arrived, the whole list, not whichever item was last.
+            for (var i = 0; i < iterating.Count; i++)
+                iterating[i].Value = whole[i];
+        }
+
+        for (var o = 0; o < outputs.Count; o++)
+            outputs[o].Value = ToList(outputs[o].ValueType, gathered[o]);
+
+        node.ItemCount = count;
+    }
+
+    private static IReadOnlyList<object?> Items(object? value) => value switch
+    {
+        null => [],
+        Array list when PortTypeCompatibility.IsListValue(list) => [.. list.Cast<object?>()],
+        _ => [value],
+    };
+
+    /// <summary>
+    /// The gathered values as a typed list, so a node that reads a list input sees the type it asked
+    /// for: text items become a <c>string[]</c>, which Join and the List nodes take. An "any" output
+    /// is narrowed to its items' common type when they share one. A value-type list with a missing
+    /// item cannot hold it, so it stays a list of "any" rather than inventing a zero.
+    /// </summary>
+    private static Array ToList(Type declared, object?[] values)
+    {
+        var element = declared;
+
+        if (element == PortTypeCompatibility.Any)
+        {
+            var types = values.Where(v => v is not null).Select(v => v!.GetType()).Distinct().ToList();
+            element = types.Count == 1 ? types[0] : PortTypeCompatibility.Any;
+        }
+
+        if (element == PortTypeCompatibility.Any || (element.IsValueType && values.Any(v => v is null)))
+            return values;
+
+        var list = Array.CreateInstance(element, values.Length);
+        for (var i = 0; i < values.Length; i++)
+        {
+            if (values[i] is { } value && element.IsInstanceOfType(value))
+                list.SetValue(value, i);
+            else if (values[i] is not null)
+                return values;
+        }
+
+        return list;
+    }
+
     private static void ClearOutputs(NodeBase node)
     {
         foreach (var output in node.Outputs)
@@ -198,6 +305,7 @@ public sealed class GraphExecutor(Graph graph)
                 ClearOutputs(node);
                 node.LastError = null;
                 node.IsSkipped = true;
+                node.ItemCount = null;
                 blocked.Add(node);
                 skipped.Add(node);
                 observer?.Invoke(node, NodeRunPhase.Skipped);
@@ -205,11 +313,16 @@ public sealed class GraphExecutor(Graph graph)
             }
 
             node.IsSkipped = false;
+            node.ItemCount = null;
             observer?.Invoke(node, NodeRunPhase.Started);
 
             try
             {
-                await node.EvaluateAsync(context).ConfigureAwait(false);
+                if (node.RunsPerItem)
+                    await EvaluatePerItemAsync(node, context).ConfigureAwait(false);
+                else
+                    await node.EvaluateAsync(context).ConfigureAwait(false);
+
                 if (node.DonePort is { } done)
                     done.Value = true;
 

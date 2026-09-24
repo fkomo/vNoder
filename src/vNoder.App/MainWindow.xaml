@@ -62,6 +62,10 @@
                          MouseLeftButtonDown="InputPortDot_MouseLeftButtonDown" />
                 <TextBlock Text="{Binding Name}" Margin="7,0,0,0" VerticalAlignment="Center"
                            FontSize="11" Foreground="{StaticResource TextSecondary}" />
+                <!-- The wire into this input runs the node once per item of its list. -->
+                <TextBlock Text="&#x00D7;" Margin="4,0,0,0" VerticalAlignment="Center"
+                           FontSize="12" FontWeight="Bold" Foreground="#FF5FD4C4"
+                           Visibility="{Binding IsIterating, Converter={StaticResource BoolToVisibility}}" />
             </StackPanel>
         </DataTemplate>
 
@@ -1500,8 +1504,26 @@
                         <Border Height="26" CornerRadius="5,5,0,0" Cursor="SizeAll"
                                 Background="{Binding Category, Converter={StaticResource CategoryBrush}}"
                                 MouseLeftButtonDown="NodeHeader_MouseLeftButtonDown">
-                            <TextBlock Text="{Binding Title}" Margin="9,0" VerticalAlignment="Center"
-                                       FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" />
+                            <DockPanel>
+                                <!-- "×N": this node runs once per list item, N times in the last run. -->
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding ItemBadge}" Margin="0,0,9,0"
+                                           VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimary}" Opacity="0.85"
+                                           ToolTip="Runs once per item of a list input; the number is how many items the last run had.">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ItemBadge}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding Title}" Margin="9,0" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis"
+                                           FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" />
+                            </DockPanel>
                         </Border>
                         <ItemsControl ItemsSource="{Binding Rows}" Margin="0,6,0,0"
                                       ItemTemplate="{StaticResource PortRowTemplate}" />

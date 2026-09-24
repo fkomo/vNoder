@@ -166,6 +166,10 @@ public sealed class ImageSaveNode : NodeBase
     }
 }
 
+/// <summary>
+/// Shared by every node that writes a file (File Write, File Copy / Move, Image Save), so they create
+/// missing folders and number a series the same way.
+/// </summary>
 internal static class FilePaths
 {
     /// <summary>

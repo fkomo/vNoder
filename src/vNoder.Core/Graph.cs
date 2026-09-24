@@ -99,6 +99,12 @@ public sealed class Graph
     /// input takes at most one link, an existing link into <paramref name="target"/> is replaced and
     /// reported through <paramref name="replaced"/>.
     /// </summary>
+    /// <remarks>
+    /// A list may also feed an input that takes one of its items: the link then iterates
+    /// (<see cref="Link.Iterate"/>), and the target runs once per item. Iterating is chosen only when
+    /// the whole list does not fit, so a list into an "any" input stays whole until the user says
+    /// otherwise. Call <see cref="Settle"/> afterwards: the target's outputs may have become lists.
+    /// </remarks>
     public bool TryConnect(
         OutputPort source,
         InputPort target,
@@ -108,24 +114,39 @@ public sealed class Graph
     {
         link = null;
         replaced = null;
+
+        var fit = Fit(source, target);
+        if (fit == LinkFit.None)
+        {
+            error = $"{FriendlyTypeName(source.EffectiveType)} output cannot feed a {FriendlyTypeName(target.ValueType)} input.";
+            return false;
+        }
+
+        link = Attach(source, target, fit == LinkFit.Each, out replaced, out error);
+        return link is not null;
+    }
+
+    /// <summary>
+    /// Connects without checking types, only that the link is not to itself and closes no cycle. For
+    /// restoring a saved document, whose links arrive in no particular order: whether a link fits can
+    /// depend on links upstream of it that are not restored yet, so types are checked once at the
+    /// end, by <see cref="Settle"/>.
+    /// </summary>
+    internal Link? Attach(OutputPort source, InputPort target, bool iterate, out Link? replaced, out string? error)
+    {
+        replaced = null;
         error = null;
 
         if (source.Owner == target.Owner)
         {
             error = "A node cannot be wired to itself.";
-            return false;
-        }
-
-        if (!PortTypeCompatibility.CanConnect(source.ValueType, target.ValueType))
-        {
-            error = $"{FriendlyTypeName(source.ValueType)} output cannot feed a {FriendlyTypeName(target.ValueType)} input.";
-            return false;
+            return null;
         }
 
         if (CreatesCycle(source.Owner, target.Owner))
         {
             error = "That connection would create a cycle.";
-            return false;
+            return null;
         }
 
         if (target.Link is { } existing)
@@ -134,12 +155,105 @@ public sealed class Graph
             replaced = existing;
         }
 
-        link = new Link(source, target);
+        var link = new Link(source, target) { Iterate = iterate };
         source.Add(link);
         target.Link = link;
         _links.Add(link);
+        return link;
+    }
+
+    /// <summary>How an output could feed an input: whole, once per item, or not at all.</summary>
+    public LinkFit Fit(OutputPort source, InputPort target)
+    {
+        var from = source.EffectiveType;
+
+        if (PortTypeCompatibility.CanConnect(from, target.ValueType))
+            return LinkFit.Whole;
+
+        return CanIterateInto(from, target) ? LinkFit.Each : LinkFit.None;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="link"/> could be switched to <paramref name="iterate"/>, and if not, why.
+    /// </summary>
+    public bool CanSetIterate(Link link, bool iterate, out string? reason)
+    {
+        var from = link.Source.EffectiveType;
+        var target = link.Target;
+        reason = null;
+
+        if (iterate)
+        {
+            if (ReferenceEquals(target, target.Owner.RunIfPort))
+                reason = "Run If gates the whole node; it cannot run per item.";
+            else if (!PortTypeCompatibility.CanIterate(from, target.ValueType))
+                reason = $"A {FriendlyTypeName(from)} output is not a list of {FriendlyTypeName(target.ValueType)}.";
+        }
+        else if (!PortTypeCompatibility.CanConnect(from, target.ValueType))
+        {
+            reason = $"A {FriendlyTypeName(from)} output cannot feed a {FriendlyTypeName(target.ValueType)} input whole.";
+        }
+
+        return reason is null;
+    }
+
+    /// <summary>
+    /// Switches a link between passing its list whole and running its target per item. Call
+    /// <see cref="Settle"/> afterwards, since the target's outputs change type.
+    /// </summary>
+    public bool SetIterate(Link link, bool iterate, out string? reason)
+    {
+        if (!CanSetIterate(link, iterate, out reason))
+            return false;
+
+        link.Iterate = iterate;
         return true;
     }
+
+    /// <summary>
+    /// Makes every link consistent with what its source now carries, working downstream so each
+    /// node's outputs are final before the links leaving it are checked. A link a list no longer
+    /// fits whole starts iterating; an iterating link whose source is no longer a list goes back to
+    /// whole; a link that fits neither way is removed, and returned.
+    /// </summary>
+    /// <remarks>
+    /// This is what makes per-item evaluation propagate: iterate one link, and the chain below it
+    /// runs per item too, as far as its inputs take single values. Idempotent, so running it over a
+    /// graph restored from a settled document changes nothing.
+    /// </remarks>
+    public IReadOnlyList<Link> Settle()
+    {
+        var removed = new List<Link>();
+
+        foreach (var node in TopologicalOrder())
+        foreach (var input in node.Inputs)
+        {
+            if (input.Link is not { } link)
+                continue;
+
+            var from = link.Source.EffectiveType;
+            var whole = PortTypeCompatibility.CanConnect(from, input.ValueType);
+            var each = CanIterateInto(from, input);
+
+            if (link.Iterate ? each : whole)
+                continue;
+
+            if (link.Iterate ? whole : each)
+            {
+                link.Iterate = !link.Iterate;
+                continue;
+            }
+
+            Disconnect(link);
+            removed.Add(link);
+        }
+
+        return removed;
+    }
+
+    private static bool CanIterateInto(Type from, InputPort target) =>
+        !ReferenceEquals(target, target.Owner.RunIfPort)
+        && PortTypeCompatibility.CanIterate(from, target.ValueType);
 
     public void Disconnect(Link link)
     {
@@ -215,15 +329,18 @@ public sealed class Graph
         return ordered;
     }
 
-    internal static string FriendlyTypeName(Type type) => type switch
-    {
-        _ when type == typeof(double) => "number",
-        _ when type == typeof(string) => "text",
-        _ when type == typeof(bool) => "boolean",
-        _ when type == typeof(byte[]) => "bytes",
-        _ when type == typeof(string[]) => "text list",
-        _ when type == typeof(DateTime) => "date/time",
-        _ when type == typeof(object) => "any",
-        _ => type.Name,
-    };
+    internal static string FriendlyTypeName(Type type) => PortTypeCompatibility.Describe(type);
+}
+
+/// <summary>How an output could feed an input; see <see cref="Graph.Fit"/>.</summary>
+public enum LinkFit
+{
+    /// <summary>The types do not fit either way.</summary>
+    None,
+
+    /// <summary>The value is passed as it is.</summary>
+    Whole,
+
+    /// <summary>The value is a list, and the input takes one of its items: the target runs per item.</summary>
+    Each,
 }

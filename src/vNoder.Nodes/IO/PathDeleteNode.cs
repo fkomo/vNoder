@@ -15,7 +15,8 @@ namespace vNoder.Nodes;
 /// target left alone, and a path that is itself a link has just the link removed (no Recursive needed,
 /// since nothing behind it is touched). The walk is done here rather than by
 /// <c>Directory.Delete(path, true)</c>, which does not follow junctions either but fails with "access
-/// denied" on reaching one, leaving the tree half there.
+/// denied" on reaching one, leaving the tree half there. To test it, use a real junction
+/// (<c>mklink /J</c>, no admin needed) with a sentinel file in its target.
 /// </para>
 /// </remarks>
 [NodeDefinition(

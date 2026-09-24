@@ -31,6 +31,7 @@ public sealed class NodeDefinition
     public IReadOnlyList<string> FormerPaths { get; }
 
     private IReadOnlyList<Type>? _inputTypes;
+    private IReadOnlyList<Type>? _iterableInputTypes;
 
     /// <summary>
     /// The port types this node accepts. Ports are declared in the constructor, so this is discovered
@@ -40,26 +41,36 @@ public sealed class NodeDefinition
     {
         get
         {
-            if (_inputTypes is not null)
-                return _inputTypes;
+            if (_inputTypes is null)
+                DiscoverInputs();
 
-            try
-            {
-                _inputTypes = [.. CreateInstance().Inputs.Select(p => p.ValueType)];
-            }
-            catch (Exception)
-            {
-                // A node that cannot be constructed cannot accept anything either.
-                _inputTypes = [];
-            }
-
-            return _inputTypes;
+            return _inputTypes!;
         }
     }
 
-    /// <summary>True when an output of <paramref name="outputType"/> could feed one of this node's inputs.</summary>
+    /// <summary>
+    /// True when an output of <paramref name="outputType"/> could feed one of this node's inputs,
+    /// whole or once per item (every input but Run If can run per item).
+    /// </summary>
     public bool AcceptsInput(Type outputType) =>
-        InputTypes.Any(input => PortTypeCompatibility.CanConnect(outputType, input));
+        InputTypes.Any(input => PortTypeCompatibility.CanConnect(outputType, input))
+        || _iterableInputTypes!.Any(input => PortTypeCompatibility.CanIterate(outputType, input));
+
+    private void DiscoverInputs()
+    {
+        try
+        {
+            var node = CreateInstance();
+            _inputTypes = [.. node.Inputs.Select(p => p.ValueType)];
+            _iterableInputTypes = [.. node.Inputs.Where(p => p.Name != NodeBase.RunIfPortName).Select(p => p.ValueType)];
+        }
+        catch (Exception)
+        {
+            // A node that cannot be constructed cannot accept anything either.
+            _inputTypes = [];
+            _iterableInputTypes = [];
+        }
+    }
 
     public NodeBase CreateInstance() =>
         (NodeBase)(Activator.CreateInstance(NodeType)

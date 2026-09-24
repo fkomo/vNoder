@@ -18,8 +18,15 @@ public sealed class PortViewModel : ObservableObject
     public bool IsInput { get; }
 
     public string Name => Model.Name;
-    public Type ValueType => Model.ValueType;
-    public string TypeLabel => PortTypeNames.For(Model.ValueType);
+    /// <summary>What the port carries: an output of a node running per item carries a list.</summary>
+    public Type ValueType => Model is OutputPort output ? output.EffectiveType : Model.ValueType;
+
+    public string TypeLabel => IsIterating
+        ? $"{PortTypeNames.For(ValueType)}, once per item of the list wired in"
+        : PortTypeNames.For(ValueType);
+
+    /// <summary>An input whose link runs the node once per item (<see cref="Link.Iterate"/>).</summary>
+    public bool IsIterating => Model is InputPort { Link.Iterate: true };
 
     public InputPort? AsInput => Model as InputPort;
     public OutputPort? AsOutput => Model as OutputPort;
@@ -69,21 +76,22 @@ public sealed class PortViewModel : ObservableObject
         OnPropertyChanged(nameof(IsHighlighted));
     }
 
-    public void RaiseConnectionChanged() => OnPropertyChanged(nameof(IsConnected));
+    public void RaiseConnectionChanged()
+    {
+        OnPropertyChanged(nameof(IsConnected));
+        RaiseTypeChanged();
+    }
+
+    public void RaiseTypeChanged()
+    {
+        OnPropertyChanged(nameof(ValueType));
+        OnPropertyChanged(nameof(TypeLabel));
+        OnPropertyChanged(nameof(IsIterating));
+    }
 }
 
 /// <summary>Short human labels for port types, used in tooltips.</summary>
 public static class PortTypeNames
 {
-    public static string For(Type type) => type switch
-    {
-        _ when type == typeof(double) => "number",
-        _ when type == typeof(string) => "text",
-        _ when type == typeof(bool) => "boolean",
-        _ when type == typeof(byte[]) => "bytes",
-        _ when type == typeof(string[]) => "text list",
-        _ when type == typeof(DateTime) => "date/time",
-        _ when type == typeof(object) => "any",
-        _ => type.Name,
-    };
+    public static string For(Type type) => PortTypeCompatibility.Describe(type);
 }

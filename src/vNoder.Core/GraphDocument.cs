@@ -67,6 +67,9 @@ public sealed class LinkDocument
     public string FromPort { get; set; } = string.Empty;
     public Guid ToNode { get; set; }
     public string ToPort { get; set; } = string.Empty;
+
+    /// <summary>True when the link runs its target per item (<see cref="Link.Iterate"/>); omitted otherwise.</summary>
+    public bool? Each { get; set; }
 }
 
 /// <summary>

@@ -24,7 +24,10 @@ public abstract class TransformImageNode : NodeBase
         _heightOut = AddOutput<double>("Height");
     }
 
-    /// <summary>Called on the thread pool. Returns false when the image needs no change.</summary>
+    /// <summary>
+    /// Called on the thread pool. Returns false when the image needs no change (Only Shrink on a small
+    /// image, a crop covering everything), and the original bytes then pass through without re-encoding.
+    /// </summary>
     protected abstract bool Apply(Image image);
 
     /// <summary>Reads the wired or inline parameters on the evaluation thread, before <see cref="Apply"/>.</summary>

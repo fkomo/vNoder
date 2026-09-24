@@ -80,6 +80,7 @@ public abstract class FileTransferNode : NodeBase
                     destination = FilePaths.NextFreeName(destination);
                     break;
 
+                // Overwriting the source with itself would truncate it.
                 case ExistingFileMode.Overwrite when string.Equals(source, destination, StringComparison.OrdinalIgnoreCase):
                     throw new InvalidOperationException("Source and destination are the same file.");
             }

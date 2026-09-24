@@ -49,6 +49,7 @@ public static class GraphFile
                 FromPort = link.Source.Name,
                 ToNode = link.Target.Owner.Id,
                 ToPort = link.Target.Name,
+                Each = link.Iterate ? true : null,
             });
         }
 
@@ -101,6 +102,7 @@ public static class GraphFile
                 FromPort = link.Source.Name,
                 ToNode = link.Target.Owner.Id,
                 ToPort = link.Target.Name,
+                Each = link.Iterate ? true : null,
             });
         }
 
