@@ -66,6 +66,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     public NodeRealizer Realizer { get; }
     public ObservableCollection<LinkViewModel> Links { get; } = [];
     public ObservableCollection<NodeGroupViewModel> Groups { get; } = [];
+    public ObservableCollection<NoteViewModel> Notes { get; } = [];
 
     // ---- View transform -------------------------------------------------------------------
 
@@ -337,7 +338,10 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     {
         foreach (var node in Nodes)
         {
-            node.IsSelected = keep.Contains(node) || (node.IsVisible && rect.IntersectsWith(node.Bounds));
+            node.IsSelected = keep.Contains(node)
+                              || (node.IsVisible
+                                  && (NotesVisible || node.Model is not NoteNode)
+                                  && rect.IntersectsWith(node.Bounds));
         }
 
         RaiseSelectionChanged();
@@ -510,6 +514,9 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         }
 
         RefreshLinkVisibility();
+
+        // Notes may be attached to a group, and the group view-models were just replaced.
+        SyncNotes();
     }
 
     private void OnGroupVisibilityChanged(object? sender, EventArgs e)
@@ -546,6 +553,113 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         foreach (var link in Links)
             link.RaiseVisibilityChanged();
     }
+
+    // ---- Notes ----------------------------------------------------------------------------
+
+    /// <summary>
+    /// Whether notes are drawn. A view preference for the session, not part of the document, so
+    /// hiding them to see the graph unobstructed is not an edit.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NotesButtonText))]
+    private bool _notesVisible = true;
+
+    public string NotesButtonText => NotesVisible ? "Hide Notes" : "Show Notes";
+
+    partial void OnNotesVisibleChanged(bool value)
+    {
+        foreach (var note in Notes)
+            note.IsShown = value;
+
+        // Note nodes hide too, and a hidden node must not stay selected, or Delete would remove it unseen.
+        if (!value)
+        {
+            foreach (var node in Nodes.Where(n => n.Model is NoteNode))
+                node.IsSelected = false;
+
+            RaiseSelectionChanged();
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleNotes()
+    {
+        NotesVisible = !NotesVisible;
+
+        StatusText = NotesVisible
+            ? $"Showing {Notes.Count} note(s)."
+            : $"Hid {Notes.Count} note(s). Press N to show them again.";
+    }
+
+    public void AddNote(NodeViewModel node) => AddNote(node.Model.Id, node.Title);
+
+    public void AddNote(NodeGroupViewModel group) => AddNote(group.Model.Id, $"“{group.Name}”");
+
+    private void AddNote(Guid targetId, string targetName)
+    {
+        using var change = BeginChange("Add note");
+
+        var note = new GraphNote
+        {
+            TargetId = targetId,
+            OffsetY = NodeMetrics.NoteNewOffsetY,
+        };
+
+        if (!Graph.AddNote(note))
+            return;
+
+        // A note added while notes are hidden would vanish on arrival.
+        NotesVisible = true;
+        SyncNotes();
+
+        if (Notes.FirstOrDefault(n => ReferenceEquals(n.Model, note)) is { } added)
+            added.FocusOnLoad = true;
+
+        StatusText = $"Added a note to {targetName}. Press N to hide or show notes.";
+    }
+
+    public void DeleteNote(NoteViewModel note)
+    {
+        using var change = BeginChange("Delete note");
+
+        Graph.RemoveNote(note.Model);
+        SyncNotes();
+        StatusText = "Deleted note.";
+    }
+
+    /// <summary>
+    /// Rebuilds the note view-models from <see cref="Graph"/>. Cheap; notes are few. Runs after
+    /// <see cref="SyncGroups"/>, since a note may be attached to a group view-model it replaces.
+    /// </summary>
+    private void SyncNotes()
+    {
+        foreach (var note in Notes)
+        {
+            note.Edited -= OnNoteEdited;
+            note.Detach();
+        }
+
+        Notes.Clear();
+
+        var nodes = Nodes.ToDictionary(n => n.Model.Id);
+        var groups = Groups.ToDictionary(g => g.Model.Id);
+
+        foreach (var model in Graph.Notes)
+        {
+            NoteViewModel? note = nodes.TryGetValue(model.TargetId, out var node) ? new NoteViewModel(model, node)
+                : groups.TryGetValue(model.TargetId, out var group) ? new NoteViewModel(model, group)
+                : null;
+
+            if (note is null)
+                continue;
+
+            note.IsShown = NotesVisible;
+            note.Edited += OnNoteEdited;
+            Notes.Add(note);
+        }
+    }
+
+    private void OnNoteEdited(object? sender, EventArgs e) => NoteEdit("Edit note");
 
     // ---- Wiring ---------------------------------------------------------------------------
 

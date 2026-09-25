@@ -125,6 +125,17 @@
       "state": {
         "Wrap": false
       }
+    },
+    {
+      "id": "9a266bef-9a73-472c-9a65-b2f23ae74073",
+      "type": "Output/Note",
+      "x": -178,
+      "y": -677,
+      "w": 600,
+      "h": 187,
+      "state": {
+        "Text": "02 \u2014 DOWNLOAD ONCE, THEN USE THE CACHE   (needs internet)\n\nAn if / else built from two gated branches:\n\u2022 Path Exists checks for the cache file.\n\u2022 Not cached: Not \u2192 HTTP Request\u0027s Run If downloads https://example.com, and File Write saves it.\n\u2022 Cached: Exists \u2192 File Read\u0027s Run If reads the saved copy.\n\u2022 Coalesce joins the branches, taking whichever one ran, and Regex Extract All pulls out the page title.\n\nFirst run: File Read is skipped (dimmed) and its Output shows false. Run again: now HTTP Request and File Write are skipped, and the page comes from the cache.\n\nDelete %TEMP%\\vnoder-sample-02-cache.html to start over."
+      }
     }
   ],
   "links": [
@@ -252,6 +263,24 @@
         "ed9622af-8c9f-448a-9f8a-2e92e3fdd326",
         "5541fa73-2f24-4548-9050-882b3358c6ac"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "06020377-c086-4974-abca-d91ceb761cad",
+      "target": "60814d33-ce7c-49eb-b9f5-246b7446469e",
+      "x": 0,
+      "y": 225,
+      "w": 220,
+      "text": "Exists opens the Cached branch; Not Exists opens the download."
+    },
+    {
+      "id": "31cad63c-64b4-4cfa-8be2-2fe2e6ce5226",
+      "target": "75ecb2c5-f320-4a8a-b38d-b7c3045fc14e",
+      "x": 0,
+      "y": 268,
+      "w": 220,
+      "text": "Takes the request\u0027s Body, so it is skipped whenever the request is \u2014 no second Run If needed."
     }
   ]
 }

@@ -75,6 +75,28 @@
       "state": {
         "Wrap": false
       }
+    },
+    {
+      "id": "8526ae31-d121-4e15-90d4-92544b4be661",
+      "type": "Output/Note",
+      "x": -62,
+      "y": -431,
+      "w": 560,
+      "h": 292,
+      "state": {
+        "Text": "HOW THE SAMPLES WORK\n\nPress Run Once (Ctrl\u002BR). Nodes flash in the order they run: green when they succeed, red when they fail. Skipped nodes do not flash; they are dimmed until the next run.\n\nSamples 01\u201304 show Run If and Done, the ports on nodes that touch the outside world (files, HTTP, processes):\n\u2022 One node\u0027s Done into another\u0027s Run If means \u0022after that\u0022.\n\u2022 Any boolean into Run If is a condition: the node runs only when it is true.\n\u2022 A node that is not run is skipped, and so is everything that takes data from it, or from a node that failed.\n\u2022 Select, Coalesce, Is Empty and Output merge branches: they still run, and read a skipped input as empty.\n\nThe samples write their files to your temp folder (%TEMP%), building the path with Environment Variable \u2192 Combine, so they work on any machine.\n\nNotes like this one are Note nodes (double-click the canvas, search \u0022Note\u0022). A note about one node or group is linked to it: right-click it \u2192 Add note. N hides every note."
+      }
+    },
+    {
+      "id": "b3c4df44-03e8-4d0e-aa71-63906efea3e9",
+      "type": "Output/Note",
+      "x": 631,
+      "y": -251,
+      "w": 520,
+      "h": 112,
+      "state": {
+        "Text": "01 \u2014 WRITE, THEN READ\n\nFile Write saves the current time to a file, and File Read reads it back. Without a wire between them the two could run in either order, and the read could see the previous file.\n\nFile Write\u0027s Done \u2192 File Read\u0027s Run If makes the read run second. Run it a few times: Output always shows the time just written."
+      }
     }
   ],
   "links": [
@@ -149,6 +171,22 @@
         "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
         "711979fc-25df-438a-a75b-27fccf8a1ea8"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "928aefaa-b9f4-4879-8218-ec3d1105ffe3",
+      "target": "04c6c4e4-4ebf-4ccf-b340-01ae578a22b0",
+      "x": 20,
+      "y": -120,
+      "text": "Without the Done \u2192 Run If wire, this could run before the write and read the previous file."
+    },
+    {
+      "id": "2f79493d-d424-42c2-b77e-4684c52585f8",
+      "target": "c9598fb4-ffe0-4a51-b4a9-8a8aa79d4f99",
+      "x": 0,
+      "y": -90,
+      "text": "Change the template to write something else."
     }
   ]
 }

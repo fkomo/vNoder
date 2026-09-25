@@ -55,6 +55,10 @@ public sealed partial class NodeGroupViewModel : ObservableObject
     [ObservableProperty]
     private bool _isHovered;
 
+    /// <summary>The cursor is over one of this group's linked notes; the group lights up in return.</summary>
+    [ObservableProperty]
+    private bool _isNoteHovered;
+
     /// <summary>Raised when collapsing changes member visibility, so wires can be re-evaluated.</summary>
     public event EventHandler? VisibilityChanged;
 

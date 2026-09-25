@@ -32,6 +32,8 @@ namespace vNoder.App
             Wiring,
             Marquee,
             Resizing,
+            DraggingNote,
+            ResizingNote,
         }
 
         private Gesture _gesture;
@@ -43,6 +45,10 @@ namespace vNoder.App
         /// <summary>Where each dragged node started, so a multi-node drag stays rigid.</summary>
         private IReadOnlyList<(NodeViewModel Node, double X, double Y)> _dragOrigins = [];
         private Point _dragStartGraph;
+
+        private NoteViewModel? _dragNote;
+        private Point _dragNoteOrigin;
+        private Size _resizeNoteStart;
 
         private NodeViewModel? _resizeNode;
         private double _resizeStartWidth;
@@ -411,6 +417,18 @@ namespace vNoder.App
                     break;
                 }
 
+                case Gesture.DraggingNote when _dragNote is not null:
+                    _dragNote.MoveTo(
+                        _dragNoteOrigin.X + (graph.X - _dragStartGraph.X),
+                        _dragNoteOrigin.Y + (graph.Y - _dragStartGraph.Y));
+                    break;
+
+                case Gesture.ResizingNote when _dragNote is not null:
+                    _dragNote.Resize(
+                        _resizeNoteStart.Width + (graph.X - _dragStartGraph.X),
+                        _resizeNoteStart.Height + (graph.Y - _dragStartGraph.Y));
+                    break;
+
                 case Gesture.Resizing when _resizeNode is not null:
                     _resizeNode.Width = Math.Max(
                         NodeMetrics.MinWidth,
@@ -460,6 +478,7 @@ namespace vNoder.App
             _gesture = Gesture.None;
             EndGestureChange();
             _dragOrigins = [];
+            _dragNote = null;
             _textScroller = null;
             _resizeNode = null;
             _wireSource = null;
@@ -494,7 +513,7 @@ namespace vNoder.App
             if (!ReferenceEquals(e.OriginalSource, WorkspaceHost))
                 return;
 
-            if (_gesture is Gesture.DraggingNodes or Gesture.Resizing)
+            if (_gesture is Gesture.DraggingNodes or Gesture.Resizing or Gesture.DraggingNote or Gesture.ResizingNote)
                 _gesture = Gesture.None;
 
             EndGestureChange();
@@ -639,6 +658,14 @@ namespace vNoder.App
                 menu.Items.Add(ungroupItem);
             }
 
+            // A Note node is a note already.
+            if (node.Model is not Nodes.NoteNode)
+            {
+                var noteItem = new MenuItem { Header = "Add note" };
+                noteItem.Click += (_, _) => Workspace.AddNote(node);
+                menu.Items.Add(noteItem);
+            }
+
             menu.Items.Add(new Separator());
 
             var copyItem = new MenuItem
@@ -697,6 +724,10 @@ namespace vNoder.App
             selectItem.Click += (_, _) => Workspace.SelectNodes(group.Members);
             menu.Items.Add(selectItem);
 
+            var noteItem = new MenuItem { Header = "Add note" };
+            noteItem.Click += (_, _) => Workspace.AddNote(group);
+            menu.Items.Add(noteItem);
+
             menu.Items.Add(new Separator());
 
             var ungroupItem = new MenuItem { Header = "Ungroup" };
@@ -706,6 +737,96 @@ namespace vNoder.App
             menu.PlacementTarget = element;
             menu.IsOpen = true;
             e.Handled = true;
+        }
+
+        // ---- Notes ----------------------------------------------------------------------------
+
+        private void NoteHandle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement { DataContext: NoteViewModel note })
+                return;
+
+            _gesture = Gesture.DraggingNote;
+            _dragNote = note;
+            _dragNoteOrigin = new Point(note.Model.OffsetX, note.Model.OffsetY);
+            _gestureChange = Workspace.BeginChange("Move note");
+            _dragStartGraph = Workspace.ScreenToGraph(e.GetPosition(WorkspaceHost));
+            WorkspaceHost.CaptureMouse();
+            e.Handled = true;
+        }
+
+        private void NoteGrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement { DataContext: NoteViewModel note })
+                return;
+
+            _gesture = Gesture.ResizingNote;
+            _dragNote = note;
+
+            // An unresized note is as tall as its text; start from that, so the first drag does not jump.
+            _resizeNoteStart = new Size(note.Width, double.IsNaN(note.Height) ? note.MeasuredHeight : note.Height);
+            _gestureChange = Workspace.BeginChange("Resize note");
+            _dragStartGraph = Workspace.ScreenToGraph(e.GetPosition(WorkspaceHost));
+            WorkspaceHost.CaptureMouse();
+            e.Handled = true;
+        }
+
+        /// <summary>
+        /// Tracks the cursor over nodes and linked notes, so each lights up the other. <c>IsMouseOver</c>
+        /// is read-only and cannot be bound back to a view-model, hence the events.
+        /// </summary>
+        private void Hoverable_MouseEnter(object sender, MouseEventArgs e) => SetHovered(sender, true);
+
+        private void Hoverable_MouseLeave(object sender, MouseEventArgs e) => SetHovered(sender, false);
+
+        private static void SetHovered(object sender, bool hovered)
+        {
+            switch ((sender as FrameworkElement)?.DataContext)
+            {
+                case NodeViewModel node:
+                    node.IsHovered = hovered;
+                    break;
+                case NoteViewModel note:
+                    note.IsHovered = hovered;
+                    break;
+            }
+        }
+
+        private void Note_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // The note's height follows its text, and its leader has to meet the bottom edge.
+            if (sender is FrameworkElement { DataContext: NoteViewModel note })
+                note.SetMeasuredHeight(e.NewSize.Height);
+        }
+
+        private void Note_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement { DataContext: NoteViewModel note } element)
+                return;
+
+            var menu = new ContextMenu();
+
+            var deleteItem = new MenuItem { Header = "Delete note" };
+            deleteItem.Click += (_, _) => Workspace.DeleteNote(note);
+            menu.Items.Add(deleteItem);
+
+            var hideItem = new MenuItem { Header = "Hide all notes", InputGestureText = "N" };
+            hideItem.Click += (_, _) => Workspace.ToggleNotesCommand.Execute(null);
+            menu.Items.Add(hideItem);
+
+            menu.PlacementTarget = element;
+            menu.IsOpen = true;
+            e.Handled = true;
+        }
+
+        /// <summary>A note just added gets the caret, so it can be typed into straight away.</summary>
+        private void NoteText_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is TextBox { DataContext: NoteViewModel { FocusOnLoad: true } note } textBox)
+            {
+                note.FocusOnLoad = false;
+                textBox.Focus();
+            }
         }
 
         // ---- Add-node search ----------------------------------------------------------------
@@ -803,6 +924,11 @@ namespace vNoder.App
 
                 case Key.G when Workspace.CanGroupSelection:
                     PromptAndGroupSelection();
+                    e.Handled = true;
+                    break;
+
+                case Key.N when Keyboard.Modifiers == ModifierKeys.None:
+                    Workspace.ToggleNotesCommand.Execute(null);
                     e.Handled = true;
                     break;
             }

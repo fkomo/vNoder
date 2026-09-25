@@ -103,6 +103,14 @@ public sealed partial class NodeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isVisible = true;
 
+    /// <summary>The cursor is over the node. Set by the view, so the node's linked notes can light up.</summary>
+    [ObservableProperty]
+    private bool _isHovered;
+
+    /// <summary>The cursor is over one of this node's linked notes; the node lights up in return.</summary>
+    [ObservableProperty]
+    private bool _isNoteHovered;
+
     public string? Error => Model.LastError;
     public bool HasError => Model.LastError is not null;
 

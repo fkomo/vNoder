@@ -558,6 +558,17 @@
         "To": "you@example.com",
         "User": ""
       }
+    },
+    {
+      "id": "0b3ceb91-871c-46bf-9866-96e7d0bbf5e9",
+      "type": "Output/Note",
+      "x": 12,
+      "y": -209,
+      "w": 640,
+      "h": 187,
+      "state": {
+        "Text": "05 \u2014 SITE MONITOR   (needs internet)\n\nPress Continuous (Ctrl\u002BShift\u002BR); it runs every 5 s.\n\nPings example.com, checks port 443, its TLS certificate (expiry, days left, a \u0022renew soon\u0022 check) and DNS, fetches the page and reads its title. Log, Plot, History, Counter and Previous Value fill up as the run goes on.\n\nSamples 05\u201310 are showcases: each is a set of small, real tasks, one per named group. Collapse the ones you are not reading (double-click a header). Between them the samples use every node type. Values are not saved in the file, so the Outputs start empty.\n\nDelete %TEMP%\\vnoder-showcase* to clean up after 05 and 10."
+      }
     }
   ],
   "links": [
@@ -1094,6 +1105,24 @@
         "2b841eb2-cc15-47ea-9b9a-9cdd9c815d1c",
         "f906e905-dc0f-4cc2-827c-8e2bdb73c138"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "751a19ce-b8f1-4668-81eb-6460bc021237",
+      "target": "d734410e-e8a6-429f-a458-8f2997c4c8c0",
+      "x": 776,
+      "y": 0,
+      "w": 260,
+      "text": "When the page changes (Hash \u2192 Changed \u2192 Run If) this saves a snapshot to %TEMP%\\vnoder-showcase and shows a notification. On the first run that is \u0022snapshot saved\u0022; afterwards only on a change."
+    },
+    {
+      "id": "94ed0459-923e-47bc-ad23-f529150e6614",
+      "target": "14570973-567c-4cc1-ac33-74ffe33b5592",
+      "x": 776,
+      "y": 0,
+      "w": 260,
+      "text": "Wired but switched off: fill in the SMTP fields and tick its Boolean."
     }
   ]
 }

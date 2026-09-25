@@ -597,6 +597,17 @@
       "state": {
         "Wrap": true
       }
+    },
+    {
+      "id": "0b0d3234-5d11-44c7-8874-7d951260afaf",
+      "type": "Output/Note",
+      "x": 12,
+      "y": -149,
+      "w": 640,
+      "h": 127,
+      "state": {
+        "Text": "08 \u2014 SECURITY TOOLKIT\n\nA private CA and a certificate it issues, a CSR, a message signed and a tampered copy rejected, a JWT made and decoded, 2FA codes with the setup QR code read back, a webhook HMAC, AES, BCrypt and PBKDF2, and an API key from a GUID and a random string.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
+      }
     }
   ],
   "links": [

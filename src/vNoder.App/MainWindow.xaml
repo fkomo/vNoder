@@ -2801,6 +2801,10 @@
                 <DataTrigger Binding="{Binding IsSelected}" Value="True">
                     <Setter Property="BorderBrush" Value="{StaticResource NodeBorderSelected}" />
                 </DataTrigger>
+                <!-- One of its linked notes is hovered: the note's amber, so the pair reads together. -->
+                <DataTrigger Binding="{Binding IsNoteHovered}" Value="True">
+                    <Setter Property="BorderBrush" Value="#FFE8C872" />
+                </DataTrigger>
                 <DataTrigger Binding="{Binding HasError}" Value="True">
                     <Setter Property="BorderBrush" Value="{StaticResource NodeBorderError}" />
                 </DataTrigger>
@@ -2852,7 +2856,8 @@
         </Style>
 
         <DataTemplate x:Key="NodeTemplate">
-            <Grid SizeChanged="NodeShell_SizeChanged" MouseRightButtonUp="NodeShell_MouseRightButtonUp">
+            <Grid SizeChanged="NodeShell_SizeChanged" MouseRightButtonUp="NodeShell_MouseRightButtonUp"
+                  MouseEnter="Hoverable_MouseEnter" MouseLeave="Hoverable_MouseLeave">
                 <Border Style="{StaticResource NodeShell}" Width="{Binding Width}">
                     <StackPanel>
                         <Border Height="26" CornerRadius="5,5,0,0" Cursor="SizeAll"
@@ -2912,6 +2917,9 @@
                     <Setter Property="BorderBrush" Value="{StaticResource NodeBorderSelected}" />
                     <Setter Property="Background" Value="#2E6FB3FF" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding IsNoteHovered}" Value="True">
+                    <Setter Property="BorderBrush" Value="#FFE8C872" />
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
@@ -2925,6 +2933,11 @@
                 </DataTrigger>
                 <DataTrigger Binding="{Binding IsHovered}" Value="True">
                     <Setter Property="Background" Value="#FF4A4E64" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsNoteHovered}" Value="True">
+                    <Setter Property="Background" Value="#FF4A4E64" />
+                    <Setter Property="BorderBrush" Value="#FFE8C872" />
+                    <Setter Property="BorderThickness" Value="1" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -2958,6 +2971,162 @@
             </Grid>
         </DataTemplate>
 
+        <!-- ===== Notes ================================================================== -->
+
+        <!-- Amber, dotted and straight: nothing else on the canvas looks like it, so a leader is
+             never mistaken for a wire (wires are port-coloured Beziers, solid or dashed). -->
+        <SolidColorBrush x:Key="NoteAccent" Color="#FFE8C872" />
+
+        <DataTemplate x:Key="NoteLeaderTemplate">
+            <Path Data="{Binding Leader}" Stroke="{StaticResource NoteAccent}"
+                  StrokeThickness="{Binding DataContext.Scale,
+                                    RelativeSource={RelativeSource AncestorType=Window},
+                                    Converter={StaticResource ScaleToStroke}}"
+                  StrokeDashArray="0 2" StrokeDashCap="Round" StrokeStartLineCap="Round"
+                  StrokeEndLineCap="Round" IsHitTestVisible="False"
+                  Visibility="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}">
+                <Path.Style>
+                    <Style TargetType="Path">
+                        <Setter Property="Opacity" Value="0.7" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                <Setter Property="Opacity" Value="1" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Path.Style>
+            </Path>
+        </DataTemplate>
+
+        <Style x:Key="NoteShell" TargetType="Border">
+            <Setter Property="Background" Value="#14E8C872" />
+            <Setter Property="BorderBrush" Value="#33E8C872" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#26E8C872" />
+                    <Setter Property="BorderBrush" Value="#80E8C872" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource NoteAccent}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- A linked note: lit up with its target, as its target is with it. -->
+        <Style x:Key="LinkedNoteShell" TargetType="Border" BasedOn="{StaticResource NoteShell}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                    <Setter Property="Background" Value="#2EE8C872" />
+                    <Setter Property="BorderBrush" Value="#CCE8C872" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- A Note node: the same look, plus the selection highlight a node has. -->
+        <Style x:Key="NoteNodeShell" TargetType="Border" BasedOn="{StaticResource NoteShell}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource NodeBorderSelected}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="NoteHandle" TargetType="Border">
+            <Setter Property="Height" Value="10" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="SizeAll" />
+        </Style>
+
+        <Style x:Key="NoteText" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="4,0,4,5" />
+            <Setter Property="Foreground" Value="#FFEBDDB0" />
+            <Setter Property="CaretBrush" Value="{StaticResource TextPrimary}" />
+            <Setter Property="SelectionBrush" Value="{StaticResource NodeBorderSelected}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontStyle" Value="Italic" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <!-- Hidden, not disabled: a note sized smaller than its text scrolls it (middle-drag). -->
+            <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+        </Style>
+
+        <!-- The resize grip shows only while the cursor is over the note, which is otherwise just text. -->
+        <Style x:Key="NoteGrip" TargetType="Path">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Bottom" />
+            <Setter Property="Margin" Value="0,0,2,2" />
+            <Setter Property="Cursor" Value="SizeNWSE" />
+            <Setter Property="Fill" Value="{StaticResource NoteAccent}" />
+            <Setter Property="Data" Value="M 8,0 L 8,8 L 0,8 Z" />
+            <Setter Property="ToolTip" Value="Drag to resize" />
+            <Setter Property="Opacity" Value="0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}"
+                             Value="True">
+                    <Setter Property="Opacity" Value="0.6" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Mostly just text: a faint tint, and a slim top strip that is the drag handle. Height is NaN
+             (Auto) until the note is resized, so a new note grows with its text. -->
+        <DataTemplate x:Key="NoteTemplate">
+            <Grid SizeChanged="Note_SizeChanged" MouseRightButtonUp="Note_MouseRightButtonUp"
+                  MouseEnter="Hoverable_MouseEnter" MouseLeave="Hoverable_MouseLeave">
+                <Border Width="{Binding Width}" Height="{Binding Height}" CornerRadius="4" BorderThickness="1"
+                        Style="{StaticResource LinkedNoteShell}">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Top" Style="{StaticResource NoteHandle}"
+                                ToolTip="Drag to move; right-click to delete. N hides all notes."
+                                MouseLeftButtonDown="NoteHandle_MouseLeftButtonDown">
+                            <Rectangle Width="24" Height="2" RadiusX="1" RadiusY="1" VerticalAlignment="Center"
+                                       Fill="{StaticResource NoteAccent}" Opacity="0.5" />
+                        </Border>
+                        <TextBox Style="{StaticResource NoteText}" Loaded="NoteText_Loaded"
+                                 Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+                    </DockPanel>
+                </Border>
+                <Path Style="{StaticResource NoteGrip}" MouseLeftButtonDown="NoteGrip_MouseLeftButtonDown" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- The Note node: no header and no ports, drawn like a linked note, but a node in every other
+             way (it selects, moves, groups and copies like one). The editor keeps Tag="Editor" and a
+             MinHeight on its root, which the node resize grip relies on. -->
+        <DataTemplate x:Key="NoteNodeTemplate">
+            <!-- N hides these along with the linked notes. -->
+            <Grid SizeChanged="NodeShell_SizeChanged" MouseRightButtonUp="NodeShell_MouseRightButtonUp"
+                  Visibility="{Binding DataContext.NotesVisible,
+                               RelativeSource={RelativeSource AncestorType=Window},
+                               Converter={StaticResource BoolToVisibility}}">
+                <Border Width="{Binding Width}" CornerRadius="4" BorderThickness="1"
+                        Style="{StaticResource NoteNodeShell}">
+                    <StackPanel>
+                        <Border Style="{StaticResource NoteHandle}" ToolTip="Drag to move"
+                                MouseLeftButtonDown="NodeHeader_MouseLeftButtonDown">
+                            <Rectangle Width="24" Height="2" RadiusX="1" RadiusY="1" VerticalAlignment="Center"
+                                       Fill="{StaticResource NoteAccent}" Opacity="0.5" />
+                        </Border>
+                        <ContentControl Tag="Editor" Content="{Binding Model}" Height="{Binding ContentHeight}"
+                                        HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                            <ContentControl.ContentTemplate>
+                                <DataTemplate>
+                                    <TextBox Style="{StaticResource NoteText}" MinHeight="20"
+                                             Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+                                </DataTemplate>
+                            </ContentControl.ContentTemplate>
+                        </ContentControl>
+                    </StackPanel>
+                </Border>
+                <Path Style="{StaticResource NoteGrip}" MouseLeftButtonDown="ResizeGrip_MouseLeftButtonDown" />
+            </Grid>
+        </DataTemplate>
+
+        <p:NodeTemplateSelector x:Key="NodeTemplateSelector" Node="{StaticResource NodeTemplate}"
+                                Note="{StaticResource NoteNodeTemplate}" />
+
     </Window.Resources>
 
     <DockPanel>
@@ -2982,6 +3151,11 @@
                 <Button DockPanel.Dock="Left" Content="Redo" VerticalAlignment="Center"
                         ToolTip="{Binding RedoToolTip}" ToolTipService.ShowOnDisabled="True"
                         Style="{StaticResource ToolbarButton}" Command="{Binding RedoCommand}" />
+                <Border DockPanel.Dock="Left" Width="1" Margin="4,10,10,10"
+                        Background="{StaticResource ChromeBorder}" />
+                <Button DockPanel.Dock="Left" VerticalAlignment="Center" ToolTip="Show or hide all notes (N)"
+                        Style="{StaticResource ToolbarButton}" Content="{Binding NotesButtonText}"
+                        Command="{Binding ToggleNotesCommand}" />
                 <Border DockPanel.Dock="Left" Width="1" Margin="4,10,10,10"
                         Background="{StaticResource ChromeBorder}" />
                 <Button DockPanel.Dock="Left" Content="Run Once" VerticalAlignment="Center" ToolTip="Ctrl+R"
@@ -3094,8 +3268,34 @@
                           StrokeDashArray="4 3" IsHitTestVisible="False" />
                 </Canvas>
 
+                <!-- Note leaders run beneath the nodes, so one never crosses a node's body. -->
+                <ItemsControl ItemsSource="{Binding Notes}" ItemTemplate="{StaticResource NoteLeaderTemplate}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+
                 <!-- Virtualized: only nodes near the viewport have visuals. See NodeRealizer. -->
-                <ItemsControl ItemsSource="{Binding RealizedNodes}" ItemTemplate="{StaticResource NodeTemplate}">
+                <ItemsControl ItemsSource="{Binding RealizedNodes}" ItemTemplateSelector="{StaticResource NodeTemplateSelector}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left" Value="{Binding X}" />
+                            <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                            <Setter Property="Visibility"
+                                    Value="{Binding IsVisible, Converter={StaticResource BoolToVisibility}}" />
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                </ItemsControl>
+
+                <!-- Notes sit on top: they are annotations over the graph. Few, so not virtualized. -->
+                <ItemsControl ItemsSource="{Binding Notes}" ItemTemplate="{StaticResource NoteTemplate}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <Canvas />

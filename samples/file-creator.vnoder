@@ -89,6 +89,17 @@
         "Uppercase": false,
         "Version": 1
       }
+    },
+    {
+      "id": "0d39737e-69bf-4ab0-b5ed-1d0843b10939",
+      "type": "Output/Note",
+      "x": 208,
+      "y": -29,
+      "w": 560,
+      "h": 97,
+      "state": {
+        "Text": "FILE CREATOR\n\nWrites 1024 random characters to a new file named after a fresh GUID, in a tmp folder under the current directory (.\\tmp\\\u003Cguid\u003E.txt).\n\nPress Run Once (Ctrl\u002BR): the Outputs show the text and the path. Each run makes a new file."
+      }
     }
   ],
   "links": [
@@ -153,6 +164,16 @@
         "f245415d-a1a4-4924-83a5-71f5fa09c65b",
         "57052509-32d4-4518-b009-090041abad22"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "b1c111fb-c910-4e9b-afde-400f0000001b",
+      "target": "68576391-084d-484f-bbf7-c97bb9192216",
+      "x": 0,
+      "y": 390,
+      "w": 260,
+      "text": "Concat joins the folder, the GUID and the extension into the path File Write uses."
     }
   ]
 }

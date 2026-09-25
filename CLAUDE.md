@@ -88,7 +88,9 @@ list, factory switch, or any other second place to edit — that is the whole po
 **Every new node comes with a sample.** Use it in a graph in `samples/`, doing a small real job, not
 sitting alone on the canvas: add it to the existing sample it fits (05 site monitor, 06 data, 07 text,
 08 security, 09 numbers and dates, 10 files, images and the system), or add a new numbered sample
-when it opens a new area. Describe what it shows in `samples/README.md`. Between them the samples use
+when it opens a new area. Describe what it shows **in the sample itself**, with notes: each sample
+opens with a Note node explaining it, and linked notes on the nodes or groups worth pointing at (there
+is no samples README any more; the explanation lives next to what it explains). Between them the samples use
 every node type, and that is worth keeping: they are how a user sees what a node is for, and loading
 and running them is the cheapest regression check there is (see **Verifying changes**).
 
@@ -523,6 +525,45 @@ otherwise an **output**, since outputs are where a wire starts.
   in constructors, so a definition discovers them by instantiating its node once and caching the
   result (`NodeDefinition.InputTypes`).
 
+## Notes
+
+- **Notes are presentational, like groups.** `GraphNote` lives in Core only so it travels with the
+  document (a `notes` block, omitted when empty); the executor never looks at it. Each note is attached
+  to exactly one node or group by id (`TargetId`), and its position is an **offset from the target's
+  top-left corner**, not a canvas position, so a note follows its target with nothing to keep in sync.
+- `Graph` prunes a note whose target is gone (`PruneNotes`, from `Remove`, `RemoveGroup` and the
+  empty-group prune in `AddGroup`), so deleting a node or ungrouping takes its notes with it and undo
+  brings them back. `AddNote` refuses a note with no target. `CaptureSubset` carries notes on copied
+  nodes, and `Append` re-targets them to the pasted nodes with fresh ids; group notes are not copied,
+  since groups are not.
+- Restore attaches notes **after** groups (`RestoreNotes`), since a note may target a group, and
+  `Reconcile` rebuilds them wholesale the way it does groups. In the workspace `SyncNotes` runs at the
+  end of `SyncGroups` for the same reason: it must see the group view-models that were just recreated.
+- The leader is a straight dotted amber line between the nearest edges of the two boxes
+  (`NoteViewModel.BuildLeader`), deliberately unlike a wire (port-coloured Bezier, solid or dashed). The
+  leaders sit under the node layer and the note bodies above it; notes are few, so not virtualized.
+  The note reports its measured height (`Note_SizeChanged`), since the leader meets its edge.
+- **Visibility is a session view setting** (`WorkspaceViewModel.NotesVisible`, toggled by bare `N` in
+  `Window_KeyDown` and a toolbar button), not document state: hiding notes is not an edit and is not
+  saved. A note on a node hidden inside a collapsed group is hidden with it.
+- Typing in a note goes through `NoteEdit` like a node's inline field, and a note drag or resize is one
+  change scope (`Gesture.DraggingNote` / `ResizingNote`), so each undoes as a single step. A linked note
+  saves `w`/`h` only once resized; until then its height is Auto and follows the text.
+- **A note and its target light each other up.** Hovering or selecting a node, or hovering a group,
+  sets the note's `IsHighlighted` (brighter box and leader); hovering the note sets the target's
+  `IsNoteHovered` (amber border). Hover reaches the view-models through `MouseEnter`/`MouseLeave`
+  (`Hoverable_MouseEnter`), since `IsMouseOver` is read-only and cannot be bound back. `Detach` clears
+  a note's hover, so a note replaced while under the cursor does not leave its target lit. The
+  `IsHighlighted` trigger lives on `LinkedNoteShell`, not `NoteShell`, because `NoteNodeShell` is based
+  on `NoteShell` and its DataContext (a node) has no such property.
+- **A free-standing note is a node, `NoteNode` (`Output/Note`)**, not a target-less `GraphNote`: as a
+  node it gets selection, moving, grouping, copy/paste, undo and saving with no new code. It has no
+  ports and evaluates to nothing. `NodeTemplateSelector` gives it `NoteNodeTemplate` (no header, the
+  note look) instead of `NodeTemplate`; the template keeps `Tag="Editor"` and a `MinHeight` on the
+  editor root, which the node resize grip reads. `N` hides Note nodes too (their template binds
+  `NotesVisible`), and hiding deselects them and keeps them out of the marquee, so `Delete` cannot
+  remove a note the user cannot see. Linked notes cannot be added to a Note node.
+
 ## Dialogs
 
 Every dialog goes through `Views/AppDialog.xaml` (`Message`, `Confirm`, `Prompt`). **Do not use
@@ -557,7 +598,7 @@ Until then, engine behaviour is checked with a **throwaway console harness** in 
 `GraphExecutor.RunOnceAsync`, and asserts on outputs. It is fast to write and exercises the real
 model. Prefer it to reasoning about whether a graph change is correct.
 
-The `.vnoder` files in `samples/` (described in `samples/README.md`) are real saved graphs: 01–04
+The `.vnoder` files in `samples/` (each explained by the notes inside it) are real saved graphs: 01–04
 cover Run If / Done, skipping and merges, and 05–10 are self-contained showcases that together use
 every node type. Three cheap checks after changing ports, node paths, the file format or adding a
 node: load every sample through `GraphFile` + `GraphRestore.Into` and expect zero warnings; collect

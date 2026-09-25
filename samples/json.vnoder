@@ -128,6 +128,17 @@
       "state": {
         "Wrap": false
       }
+    },
+    {
+      "id": "fd675f06-986a-44aa-9e34-bcf02057580a",
+      "type": "Output/Note",
+      "x": 901,
+      "y": -174,
+      "w": 600,
+      "h": 112,
+      "state": {
+        "Text": "JSON   (needs internet)\n\nFetches Google\u0027s OpenID configuration, pretty-prints it (JSON Format), reads the scopes_supported array (JSON Get) and joins it with dashes. The scopes are written to .\\tmp\\oidc.json under the current directory, and once the write is done (Done \u2192 Run If) File Info reports the file\u0027s size.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs."
+      }
     }
   ],
   "links": [

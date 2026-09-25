@@ -26,6 +26,27 @@ public sealed class GraphDocument
 
     /// <summary>Presentational node groupings.</summary>
     public List<GroupDocument>? Groups { get; set; }
+
+    /// <summary>Notes attached to nodes or groups.</summary>
+    public List<NoteDocument>? Notes { get; set; }
+}
+
+public sealed class NoteDocument
+{
+    public Guid Id { get; set; }
+
+    /// <summary>The node or group the note is attached to.</summary>
+    public Guid Target { get; set; }
+
+    /// <summary>Offset from the target's top-left corner.</summary>
+    public double X { get; set; }
+    public double Y { get; set; }
+
+    /// <summary>Set only once the note has been resized; null means the view's default.</summary>
+    public double? W { get; set; }
+    public double? H { get; set; }
+
+    public string Text { get; set; } = string.Empty;
 }
 
 public sealed class GroupDocument

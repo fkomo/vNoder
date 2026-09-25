@@ -768,6 +768,17 @@
       "state": {
         "Wrap": true
       }
+    },
+    {
+      "id": "db4cbcfc-cded-4f6a-8147-3758b8505a72",
+      "type": "Output/Note",
+      "x": 12,
+      "y": -149,
+      "w": 640,
+      "h": 127,
+      "state": {
+        "Text": "06 \u2014 DATA WRANGLING\n\nA small sales CSV as a table, totals and revenue (price \u00D7 qty, run once per row), distinct regions as JSON, the same rows as semicolon CSV and TSV, settings merged from defaults, stamped and shown as YAML and pretty JSON, and an RSS feed read with XPath: batches, a random headline, a search, filters and slices, and a link taken apart.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
+      }
     }
   ],
   "links": [

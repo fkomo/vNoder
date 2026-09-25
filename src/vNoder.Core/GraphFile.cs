@@ -65,6 +65,12 @@ public static class GraphFile
             });
         }
 
+        foreach (var note in graph.Notes)
+        {
+            document.Notes ??= [];
+            document.Notes.Add(CaptureNote(note));
+        }
+
         return document;
     }
 
@@ -106,8 +112,27 @@ public static class GraphFile
             });
         }
 
+        // Notes on copied nodes travel with them; notes on groups do not, since groups are not copied.
+        var ids = included.Select(n => n.Id).ToHashSet();
+        foreach (var note in graph.Notes.Where(n => ids.Contains(n.TargetId)))
+        {
+            document.Notes ??= [];
+            document.Notes.Add(CaptureNote(note));
+        }
+
         return document;
     }
+
+    private static NoteDocument CaptureNote(GraphNote note) => new()
+    {
+        Id = note.Id,
+        Target = note.TargetId,
+        X = note.OffsetX,
+        Y = note.OffsetY,
+        W = note.Width > 0 ? note.Width : null,
+        H = note.Height > 0 ? note.Height : null,
+        Text = note.Text,
+    };
 
     public static string Serialize(GraphDocument document) =>
         JsonSerializer.Serialize(document, Options);

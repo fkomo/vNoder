@@ -49,6 +49,10 @@ counts iterations and elapsed time.
 | Delete | `Delete` |
 | Group selection | `G`, or right-click a node |
 | Collapse a group | Double-click its header |
+| Add a note to a node or group | Right-click it (a group by its header), **Add note** |
+| Add a free-standing note | Add a **Note** node (double-click the canvas, search "note") |
+| Move / resize / delete a note | Drag its top strip / its corner grip / right-click it |
+| Hide or show all notes | `N`, or the toolbar button |
 | Copy / paste | `Ctrl+C` / `Ctrl+V` |
 | Undo / redo | `Ctrl+Z` / `Ctrl+Y` (or `Ctrl+Shift+Z`), or the toolbar buttons |
 | Run once | `Ctrl+R` |
@@ -62,6 +66,13 @@ first. Undoing back to the last save clears the unsaved-changes marker.
 
 Groups are a purely visual convenience: a named box you can drag, collapse and rename. Wires crossing
 a collapsed group stay drawn, stubbed to its edge, so you can still see it is connected.
+
+Notes are free text on the canvas, drawn as a faint amber box. A linked note is attached to a node or a
+group by a dotted leader line: it moves with it, goes when it is deleted, and is copied and pasted along
+with its node. A **Note** node is linked to nothing, and otherwise behaves like any node (select, move,
+group, copy). Both can be resized from their corner. `N` hides every note at once (and shows them
+again); that is a view setting, not an edit, so it is not saved. A note on a node inside a collapsed
+group is hidden with the node.
 
 ## Nodes
 
@@ -85,7 +96,7 @@ a collapsed group stay drawn, stubbed to its edge, so you can still see it is co
 | System | Environment Variable, Run Process, Process List, Process Kill, Machine Info, Registry Read, Clipboard Get / Set, Notify (desktop notification) |
 | Network | HTTP Request (GET, POST, PUT, PATCH, DELETE), Download To File, URL Parse, URL Build, TLS Certificate (a server's certificate and expiry), DNS Lookup, Ping, TCP Port Check, IP Range (CIDR), Send Email (SMTP) |
 | Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM), Resize (fit, fill, stretch, pad; thumbnails), Crop, Rotate Flip (and EXIF auto-orient), Adjust (brightness, contrast, saturation, hue), Filter (grayscale, sepia, invert, blur, sharpen, pixelate), Draw Text (watermarks, captions), Solid Color, To Data URI |
-| Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text), Table, Plot (a value over time), Log (a timestamped trail) |
+| Output | Output, Note (free text, linked to nothing), Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text), Table, Plot (a value over time), Log (a timestamped trail) |
 
 Ports carry one of `number`, `text`, `boolean`, `bytes`, `date/time`, `any`, or a list of those (`text
 list`, `number list` …), and wire
@@ -136,7 +147,7 @@ values. Lines → To Upper upper-cases each line; File Search → File Read → 
 - A per-item node whose output is already a list (Split per line) gives a **list of lists**; Join on it
   runs per item again, joining each inner list. Output shows an inner list as `[a, b, c]`.
 - Run If always gates the node as a whole, never per item, and Done is a single true once every item
-  has run. The graphs in [`samples/`](samples/README.md) show each of these in action.
+  has run. The graphs in [`samples/`](samples/) show each of these in action.
 
 Nodes with side effects — File Write, File Copy, File Move, Path Delete, Create Directory, Image Save,
 Zip Create and Extract, HTTP Request, Download To File, Send Email, Run Process, Process Kill,
@@ -175,7 +186,7 @@ so a graph can be stepped through by hand. It is never saved in the file.
 ## Files
 
 Graphs save as JSON with a `.vnoder` extension, holding the nodes and their inline values, the wiring,
-any groups, and the current zoom and pan. Node types are stored by name (`"type": "Math/Add"`), so the
+any groups and notes, and the current zoom and pan. Node types are stored by name (`"type": "Math/Add"`), so the
 file stays readable. A file that references something this build does not have still opens — the parts
 that could not be restored are reported and the rest loads.
 

@@ -759,6 +759,17 @@
       "state": {
         "Wrap": true
       }
+    },
+    {
+      "id": "668fe0e8-9f8b-4ed9-aa87-c692d59040e0",
+      "type": "Output/Note",
+      "x": 12,
+      "y": -179,
+      "w": 640,
+      "h": 157,
+      "state": {
+        "Text": "10 \u2014 FILES, IMAGES AND THE SYSTEM   (writes to %TEMP%\\vnoder-showcase)\n\nA banner drawn and saved as PNG, grey PNG and a flipped WebP thumbnail, an HTML report with the image embedded, and a backup copied and moved. Also: drive space, machine and OS details, processes, an environment variable and a program\u0027s output.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header).\n\nDelete %TEMP%\\vnoder-showcase* to clean up after 05 and 10."
+      }
     }
   ],
   "links": [
@@ -1515,6 +1526,24 @@
         "2deaa37d-425b-466b-84bb-66db4bbcdfbb",
         "b0ec2492-0a00-418f-a8f3-8cdb2b8b6a50"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "41278e23-cc58-4a58-9f81-2606f070eb16",
+      "target": "3fd1afaa-8758-4f96-b4d7-c6c98f2acfef",
+      "x": 2006,
+      "y": 0,
+      "w": 260,
+      "text": "After a Delay the folder is zipped, hashed and unzipped into a cleaned folder, all sequenced with Done \u2192 Run If."
+    },
+    {
+      "id": "2cb46b05-a00c-46b5-9ec3-d71c5c870755",
+      "target": "8ad6ff7e-7084-47c8-a331-d40426e3c3dc",
+      "x": 1036,
+      "y": 0,
+      "w": 260,
+      "text": "Process Kill (Notepad) and Clipboard Set are wired but switched off by their Booleans."
     }
   ]
 }

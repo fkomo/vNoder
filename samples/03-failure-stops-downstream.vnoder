@@ -63,6 +63,17 @@
       "state": {
         "Wrap": false
       }
+    },
+    {
+      "id": "094e6ba4-b224-4e9b-8481-f72d70b84d97",
+      "type": "Output/Note",
+      "x": -18,
+      "y": -208,
+      "w": 600,
+      "h": 112,
+      "state": {
+        "Text": "03 \u2014 A FAILURE STOPS WHAT DEPENDS ON IT\n\nFile Read points at a file that does not exist, so it fails (red). To Upper and Length take data from it, so they are skipped instead of running on an empty or stale value.\n\nThe Output on the right merges, so it still runs and shows nothing. Coalesce also merges: its A input is skipped, so it falls back to the Static Text on B."
+      }
     }
   ],
   "links": [
@@ -131,6 +142,16 @@
         "07f441f1-3b3c-4b53-a149-4887b6bc5b05",
         "35c3740b-6113-4260-8026-38559ec45337"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "2d92ac6b-84b9-4a93-b2be-09df934b7fd0",
+      "target": "20397802-4c1b-49db-b265-eb239f64f82e",
+      "x": 0,
+      "y": 200,
+      "w": 210,
+      "text": "The path does not exist: this fails on purpose."
     }
   ]
 }

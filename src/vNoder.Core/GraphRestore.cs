@@ -92,6 +92,7 @@ public static class GraphRestore
 
         SettleLinks(graph, warnings);
         RestoreGroups(graph, document, byDocumentId, warnings);
+        RestoreNotes(graph, document, warnings);
 
         return new GraphRestoreResult(warnings);
     }
@@ -151,6 +152,14 @@ public static class GraphRestore
         }
 
         graph.Settle();
+
+        // Notes follow their nodes to the new ids; a note on anything else was not copied.
+        foreach (var entry in document.Notes ?? [])
+        {
+            if (byDocumentId.TryGetValue(entry.Target, out var target))
+                graph.AddNote(NoteFrom(entry, target.Id, freshId: true));
+        }
+
         return added;
     }
 
@@ -273,6 +282,9 @@ public static class GraphRestore
         graph.ClearGroups();
         RestoreGroups(graph, document, byDocumentId, warnings);
 
+        graph.ClearNotes();
+        RestoreNotes(graph, document, warnings);
+
         return new GraphRestoreResult(warnings);
     }
 
@@ -320,6 +332,30 @@ public static class GraphRestore
             });
         }
     }
+
+    /// <summary>Attaches the document's notes. Runs after nodes and groups, which are what notes attach to.</summary>
+    private static void RestoreNotes(
+        Graph graph,
+        GraphDocument document,
+        List<string> warnings)
+    {
+        foreach (var entry in document.Notes ?? [])
+        {
+            if (!graph.AddNote(NoteFrom(entry, entry.Target, freshId: false)))
+                warnings.Add("A note was dropped: the node or group it was attached to did not load.");
+        }
+    }
+
+    private static GraphNote NoteFrom(NoteDocument entry, Guid target, bool freshId) => new()
+    {
+        Id = freshId || entry.Id == Guid.Empty ? Guid.NewGuid() : entry.Id,
+        TargetId = target,
+        OffsetX = entry.X,
+        OffsetY = entry.Y,
+        Width = entry.W ?? 0,
+        Height = entry.H ?? 0,
+        Text = entry.Text,
+    };
 
     private static void RestoreState(NodeBase node, NodeDocument entry, List<string> warnings)
     {

@@ -6,12 +6,16 @@ public sealed class Graph
     private readonly List<NodeBase> _nodes = [];
     private readonly List<Link> _links = [];
     private readonly List<NodeGroup> _groups = [];
+    private readonly List<GraphNote> _notes = [];
 
     public IReadOnlyList<NodeBase> Nodes => _nodes;
     public IReadOnlyList<Link> Links => _links;
 
     /// <summary>Presentation-only groupings; ignored entirely by evaluation.</summary>
     public IReadOnlyList<NodeGroup> Groups => _groups;
+
+    /// <summary>Presentation-only notes, each attached to a node or group; ignored by evaluation.</summary>
+    public IReadOnlyList<GraphNote> Notes => _notes;
 
     /// <summary>
     /// Tick interval for continuous runs, in milliseconds. Graph-level configuration rather than a
@@ -28,6 +32,7 @@ public sealed class Graph
         _nodes.Clear();
         _links.Clear();
         _groups.Clear();
+        _notes.Clear();
     }
 
     public void AddGroup(NodeGroup group)
@@ -40,9 +45,40 @@ public sealed class Graph
 
         _groups.RemoveAll(g => g.NodeIds.Count == 0);
         _groups.Add(group);
+        PruneNotes();
     }
 
-    public void RemoveGroup(NodeGroup group) => _groups.Remove(group);
+    public void RemoveGroup(NodeGroup group)
+    {
+        _groups.Remove(group);
+        PruneNotes();
+    }
+
+    /// <summary>Attaches a note. Refused (false) when its target is neither a node nor a group here.</summary>
+    public bool AddNote(GraphNote note)
+    {
+        ArgumentNullException.ThrowIfNull(note);
+
+        if (!IsNoteTarget(note.TargetId))
+            return false;
+
+        if (!_notes.Contains(note))
+            _notes.Add(note);
+
+        return true;
+    }
+
+    public void RemoveNote(GraphNote note) => _notes.Remove(note);
+
+    /// <summary>Drops every note. Used when notes are restored wholesale from a snapshot.</summary>
+    internal void ClearNotes() => _notes.Clear();
+
+    /// <summary>Whether a note can be attached to <paramref name="id"/>: a node or a group in this graph.</summary>
+    public bool IsNoteTarget(Guid id) =>
+        _nodes.Any(n => n.Id == id) || _groups.Any(g => g.Id == id);
+
+    /// <summary>A note is about its target and means nothing without it, so it goes when the target does.</summary>
+    private void PruneNotes() => _notes.RemoveAll(n => !IsNoteTarget(n.TargetId));
 
     /// <summary>Drops every group. Used when groups are restored wholesale from a snapshot.</summary>
     internal void ClearGroups() => _groups.Clear();
@@ -90,6 +126,7 @@ public sealed class Graph
 
         // A group that has lost all its members is meaningless.
         _groups.RemoveAll(g => g.NodeIds.Count == 0);
+        PruneNotes();
 
         return removed;
     }

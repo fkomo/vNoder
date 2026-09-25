@@ -679,6 +679,17 @@
       "state": {
         "Wrap": true
       }
+    },
+    {
+      "id": "2d190613-a26f-4a93-974a-e2a91aab3c03",
+      "type": "Output/Note",
+      "x": 12,
+      "y": -149,
+      "w": 640,
+      "h": 127,
+      "state": {
+        "Text": "07 \u2014 TEXT TOOLS\n\nSlugs and code-style names from a Czech title, a diff of two versions of release notes, Markdown to HTML, similarity, a palindrome check, trimming and padding an invoice number, regex extraction and email redaction, and round trips through HTML, URL, Base64, Hex, Brotli and the Windows-1250 code page.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
+      }
     }
   ],
   "links": [

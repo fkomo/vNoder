@@ -167,6 +167,17 @@
       "state": {
         "Wrap": false
       }
+    },
+    {
+      "id": "f5e9fb1e-c949-4d37-ae9f-4cd7a610ce6d",
+      "type": "Output/Note",
+      "x": -18,
+      "y": -268,
+      "w": 640,
+      "h": 172,
+      "state": {
+        "Text": "04 \u2014 A CONDITION GATES A WRITE\n\nPress Continuous (Ctrl\u002BShift\u002BR); the interval is 1000 ms.\n\nThe top row works out whether the current second is even (seconds \u2192 To Number \u2192 Modulo 2 \u2192 Equals 0), and feeds that into File Write\u0027s Run If. File Write appends a line to %TEMP%\\vnoder-sample-04-log.txt only on even seconds. File Read reads the log back after the write (Done \u2192 Run If), and the Outputs show the last line and how many lines there are.\n\nLet it run: on odd seconds the write and everything after it dim out, and on even ones the count goes up. Stop it with Stop."
+      }
     }
   ],
   "links": [
@@ -324,6 +335,16 @@
         "83ea2537-0a43-487a-834f-c27a7619499b",
         "73373a2d-c444-4a47-9a40-a1b4a6920702"
       ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "91ae235a-0dee-4998-8fec-dc47d6cabe4e",
+      "target": "db487f97-6cff-4ce8-979c-19249ad2bbb3",
+      "x": 0,
+      "y": 280,
+      "w": 230,
+      "text": "Runs only while Equals says true: on odd seconds this and everything after it is skipped."
     }
   ]
 }

@@ -45,6 +45,13 @@ public static class NodeMetrics
     /// <summary>The narrowest a collapsed group gets; a longer title widens it (NodeGroupViewModel).</summary>
     public const double GroupCollapsedWidth = 220;
 
+    // Note metrics.
+    public const double NoteWidth = 200;
+    public const double NoteMinWidth = 100;
+    public const double NoteMinHeight = 30;
+    /// <summary>How far above its target a new note is placed, clear of the target's header.</summary>
+    public const double NoteNewOffsetY = -70;
+
     /// <summary>Vertical centre of the port row at <paramref name="index"/>, in node-local space.</summary>
     public static double PortCentreY(int index) =>
         BorderThickness + HeaderHeight + PortsTopPadding + (index * PortRowHeight) + (PortRowHeight / 2);
