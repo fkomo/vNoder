@@ -640,6 +640,12 @@ Two traps when doing this: a rendered check can pass for the wrong reason (thin 
 away at low zoom — compare against a baseline), and `mv`/`cp` that preserves an old timestamp will
 leave MSBuild convinced the XAML is unchanged, so you measure a stale build. `touch` the file.
 
+The README screenshots in `docs/screenshots/` were made the same way, not by hand: load a sample (or
+build a small graph through the workspace), Run Once and wait out the flash cascade (~1.8 s of
+pumping), clear selection, focus and hover, fit the graph to the workspace at no more than 100%, and
+render the window's **content** (not the window, whose frame renders white) at 144 DPI. Re-shoot them
+after a visible change to nodes, wires or chrome.
+
 Anything about feel rather than geometry — drag inertia, focus order, whether a gesture is
 comfortable — still has to be checked by hand with `dotnet run --project src/vNoder.App`.
 

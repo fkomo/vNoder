@@ -4,6 +4,8 @@ A node-based visual scripting editor for Windows, in the spirit of Unreal Bluepr
 Drop nodes on a canvas, wire them together through typed ports, edit their values in place, and run
 the graph once or continuously.
 
+![Sample 01: File Write's Done drives File Read's Run If, with groups, notes and the value that was read](docs/screenshots/write-then-read.png)
+
 ## Requirements
 
 - Windows (the UI is WPF)
@@ -76,6 +78,10 @@ group is hidden with the node.
 
 ## Nodes
 
+Nodes show what they make, in place: an image, a table, a plot.
+
+![A QR code rendered in its node, and a sine wave: Range run per item through Sin into Plot](docs/screenshots/qr-and-plot.png)
+
 | Category | Nodes |
 |---|---|
 | Input | Static Number, Static Text |
@@ -126,6 +132,8 @@ the first node of a branch stops the whole branch. Select, Coalesce, Is Empty an
 exception: they bring branches together, so they still run and read the skipped side as empty. That is
 how to build an if / else: gate each branch, and join them with Select or Coalesce.
 
+![Sample 03 after Run Once: File Read fails (red), To Upper and Length are skipped (dimmed), and the merging Output and Coalesce still run](docs/screenshots/failure-and-skip.png)
+
 Dropping a Done wire on empty canvas connects the new node's Run If.
 
 ### Doing something per item
@@ -133,6 +141,8 @@ Dropping a Done wire on empty canvas connects the new node's Run If.
 Wiring a list into an input that takes a single value runs the node **once per item**. Its outputs become
 lists, one entry per item, and nodes further down follow on their own for as long as they take single
 values. Lines → To Upper upper-cases each line; File Search → File Read → Hash hashes every file found.
+
+![Split's list runs To Upper once per item: the dashed wire, the × on the input and the ×3 badge show it](docs/screenshots/per-item.png)
 
 - A per-item wire is **dashed**, its input carries a teal **×**, and the node's header shows **×N**, the
   number of items in the last run.
