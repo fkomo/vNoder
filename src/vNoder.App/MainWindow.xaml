@@ -395,6 +395,53 @@
                       Foreground="{StaticResource TextMuted}" />
         </DataTemplate>
 
+        <!-- The syntax is on the formula box's tooltip: written out, it would be taller than the node. -->
+        <DataTemplate DataType="{x:Type n:ExpressionNode}">
+            <StackPanel>
+                <TextBlock Text="Formula" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}" FontFamily="Consolas" FontSize="12"
+                         TextWrapping="Wrap" ToolTip="{Binding Hint}"
+                         Text="{Binding Formula, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Grid.Column="0">
+                        <TextBlock Text="X" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired}, ConverterParameter=X}"
+                                 Text="{Binding X, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="0" Grid.Column="2">
+                        <TextBlock Text="Y" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired}, ConverterParameter=Y}"
+                                 Text="{Binding Y, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="0">
+                        <TextBlock Text="Z" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired}, ConverterParameter=Z}"
+                                 Text="{Binding Z, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Grid.Column="2">
+                        <TextBlock Text="W" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired}, ConverterParameter=W}"
+                                 Text="{Binding W, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <CheckBox Content="Degrees" FontSize="10" Margin="0,5,0,0" IsChecked="{Binding Degrees}"
+                          Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
         <DataTemplate DataType="{x:Type n:RoundNode}">
             <StackPanel>
                 <TextBlock Text="Decimal places" Style="{StaticResource NodeFieldLabel}" />

@@ -1258,14 +1258,75 @@
       }
     },
     {
-      "id": "ce8f8a57-0773-40e2-8b73-d8c824cfe721",
+      "id": "91e3afdb-2cb1-43da-b93d-f6452aa49ca6",
+      "type": "Generators/Range",
+      "x": 30,
+      "y": 2166,
+      "state": {
+        "Count": 120,
+        "Start": 0,
+        "Step": 0.1
+      }
+    },
+    {
+      "id": "fc808435-afff-4d5b-8096-4dbc660e1139",
+      "type": "Math/Expression",
+      "x": 290,
+      "y": 2166,
+      "state": {
+        "Degrees": false,
+        "Formula": "exp(-x / 4) * sin(3x)",
+        "W": 0,
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      }
+    },
+    {
+      "id": "35fe5aac-e443-47e2-a2de-64c6025b847b",
+      "type": "Output/Plot",
+      "x": 550,
+      "y": 2166,
+      "w": 320,
+      "h": 120,
+      "state": {
+        "Length": 100
+      }
+    },
+    {
+      "id": "e10c7ebb-8bc1-478c-8e0a-7793dd404fd0",
+      "type": "Math/Expression",
+      "x": 930,
+      "y": 2166,
+      "state": {
+        "Degrees": false,
+        "Formula": "hypot(z - x, w - y)",
+        "W": 6,
+        "X": 1,
+        "Y": 2,
+        "Z": 4
+      }
+    },
+    {
+      "id": "825b3c22-fa20-47b3-b6cf-d465f272dffc",
+      "type": "Output/Output",
+      "x": 1190,
+      "y": 2166,
+      "w": 240,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "6d715ff7-85f4-4bd9-aad7-3bd69507a6e3",
       "type": "Output/Note",
       "x": 12,
-      "y": -134,
+      "y": -149,
       "w": 640,
-      "h": 112,
+      "h": 127,
       "state": {
-        "Text": "09 \u2014 NUMBERS AND DATES\n\nA sine wave, a circle, a 3-4-5 triangle solved four ways, compound interest, a thermostat, paging, logic puzzles (a coin, two-way light switches, a door alarm, a weekend check), and dates: parts, month end, time zones, cron, Unix time.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
+        "Text": "09 \u2014 NUMBERS AND DATES\n\nA sine wave, a circle, a 3-4-5 triangle solved four ways, compound interest, a thermostat, paging, logic puzzles (a coin, two-way light switches, a door alarm, a weekend check), dates: parts, month end, time zones, cron, Unix time, and formulas typed as text.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
       }
     }
   ],
@@ -2249,6 +2310,25 @@
       "fromPort": "Text",
       "toNode": "9781885e-620d-4791-b926-fe3e32416818",
       "toPort": "Value"
+    },
+    {
+      "fromNode": "91e3afdb-2cb1-43da-b93d-f6452aa49ca6",
+      "fromPort": "Numbers",
+      "toNode": "fc808435-afff-4d5b-8096-4dbc660e1139",
+      "toPort": "X",
+      "each": true
+    },
+    {
+      "fromNode": "fc808435-afff-4d5b-8096-4dbc660e1139",
+      "fromPort": "Result",
+      "toNode": "35fe5aac-e443-47e2-a2de-64c6025b847b",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "e10c7ebb-8bc1-478c-8e0a-7793dd404fd0",
+      "fromPort": "Result",
+      "toNode": "825b3c22-fa20-47b3-b6cf-d465f272dffc",
+      "toPort": "Value"
     }
   ],
   "groups": [
@@ -2481,11 +2561,23 @@
         "217fb023-7cb7-483c-98ea-fdba0591d833",
         "9781885e-620d-4791-b926-fe3e32416818"
       ]
+    },
+    {
+      "id": "34f87ac7-36b9-4518-9e8a-a20ea32e7baf",
+      "name": "Formulas",
+      "isCollapsed": false,
+      "nodeIds": [
+        "91e3afdb-2cb1-43da-b93d-f6452aa49ca6",
+        "fc808435-afff-4d5b-8096-4dbc660e1139",
+        "35fe5aac-e443-47e2-a2de-64c6025b847b",
+        "e10c7ebb-8bc1-478c-8e0a-7793dd404fd0",
+        "825b3c22-fa20-47b3-b6cf-d465f272dffc"
+      ]
     }
   ],
   "notes": [
     {
-      "id": "444bb6c0-919e-41c8-b799-99f42a9d6557",
+      "id": "a0fbed74-0a7c-473a-9825-a94285146a2f",
       "target": "a28134cd-ecde-4a22-81d0-31a5662ed6cd",
       "x": 1106,
       "y": 0,
@@ -2493,12 +2585,20 @@
       "text": "Range runs per item through Map Range and Sin, into Plot: one point per item of the list."
     },
     {
-      "id": "438cd95f-4305-49de-80da-91c83e320972",
+      "id": "34bf291c-4a3e-4035-8daa-4a71cc71c976",
       "target": "217ccbc0-fef0-4a87-b969-824702f80e4b",
       "x": 1346,
       "y": 0,
       "w": 260,
       "text": "The statistics of the Random Gaussian samples settle as Continuous (Ctrl\u002BShift\u002BR) collects more."
+    },
+    {
+      "id": "49112bd6-fa57-4cc7-8649-fdd603ac2aee",
+      "target": "34f87ac7-36b9-4518-9e8a-a20ea32e7baf",
+      "x": 1456,
+      "y": 0,
+      "w": 260,
+      "text": "Expression evaluates a formula typed as text, in x, y, z and w. Fed from Range it runs once per item: a damped wave into Plot. On the right, the distance between (x, y) and (z, w). Hover the formula box for the syntax."
     }
   ]
 }
