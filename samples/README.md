@@ -63,3 +63,66 @@ and feeds that into File Write's Run If. File Write appends a line to
 
 Let it run: on odd seconds the write and everything after it dim out, and on even ones the count
 goes up. Stop it with **Stop**.
+
+## 05–10 — Showcases: every node at work
+
+Six larger samples, each a set of small, real tasks. Every task sits in its own named group box, so
+collapse the ones you are not reading (double-click a header). Between them (with 01–04 and the rest)
+the samples use every node type. Press **Run Once** and read the Outputs; values are not saved in the
+file, so the Outputs start empty.
+
+### 05 — Site monitor
+
+`05-site-monitor.vnoder` (needs internet) — press **Continuous** (`Ctrl+Shift+R`, every 5 s).
+
+Pings `example.com`, checks port 443, its TLS certificate (expiry, days left, a "renew soon" check)
+and DNS, fetches the page and reads its title. When the page **changes** (Hash → Changed → Run If) it
+saves a snapshot to `%TEMP%\vnoder-showcase` and shows a notification; on the first run that is
+"snapshot saved", afterwards only on a change. Log, Plot, History, Counter and Previous Value fill up
+as the run goes on. Send Email is wired but switched off: fill in the SMTP fields and tick its Boolean.
+
+### 06 — Data wrangling
+
+`06-data-wrangling.vnoder`
+
+A small sales CSV as a table, totals and revenue (price × qty, run once per row), distinct regions as
+JSON, the same rows as semicolon CSV and TSV, settings merged from defaults, stamped and shown as YAML
+and pretty JSON, and an RSS feed read with XPath: batches, a random headline, a search, filters and
+slices, and a link taken apart.
+
+### 07 — Text tools
+
+`07-text-tools.vnoder`
+
+Slugs and code-style names from a Czech title, a diff of two versions of release notes, Markdown to
+HTML, similarity, a palindrome check, trimming and padding an invoice number, regex extraction and
+email redaction, and round trips through HTML, URL, Base64, Hex, Brotli and the Windows-1250 code page.
+
+### 08 — Security toolkit
+
+`08-security-toolkit.vnoder`
+
+A private CA and a certificate it issues, a CSR, a message signed and a tampered copy rejected, a JWT
+made and decoded, 2FA codes with the setup QR code read back, a webhook HMAC, AES, BCrypt and PBKDF2,
+and an API key from a GUID and a random string.
+
+### 09 — Numbers and dates
+
+`09-numbers-and-dates.vnoder`
+
+A sine wave (Range run per item through Map Range and Sin, into Plot), a circle, a 3-4-5 triangle
+solved four ways, compound interest, a thermostat, paging, logic puzzles (a coin, two-way light
+switches, a door alarm, a weekend check), and dates: parts, month end, time zones, cron, Unix time.
+The statistics of Random Gaussian samples settle as **Continuous** collects more.
+
+### 10 — Files, images and the system
+
+`10-files-images-system.vnoder` — writes to `%TEMP%\vnoder-showcase`.
+
+A banner drawn and saved as PNG, grey PNG and a flipped WebP thumbnail, an HTML report with the image
+embedded, a backup copied and moved, then (after a Delay) the folder zipped, hashed and unzipped into a
+cleaned folder, all sequenced with Done → Run If. Also: drive space, machine and OS details, processes,
+an environment variable and a program's output. Process Kill (Notepad) and Clipboard Set are wired but
+switched off by their Booleans.
+
+Delete `%TEMP%\vnoder-showcase*` to clean up after 05 and 10.

@@ -68,24 +68,27 @@ a collapsed group stay drawn, stubbed to its edge, so you can still see it is co
 | Category | Nodes |
 |---|---|
 | Input | Static Number, Static Text |
-| Generators | Random Number, Random String, Random Bytes, Random Boolean, GUID (v4 / v7), Date Time |
-| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Lines, Trim, Pad, Contains (starts / ends with, equals, regex), Template, Regex Match, Regex Replace, Regex Extract All |
-| List | Count, Item At, First, Last, Sort (text, natural, numeric), Distinct, Reverse, Filter, Slice |
-| Convert | To Number, To Text, To Boolean |
-| JSON | Get (by path, e.g. `data.items[0].name`), Set, Format (indent / minify / validate) |
-| Date | Parse, Format, Add, Difference, To Unix, From Unix |
-| Math | Add, Subtract, Multiply, Divide, Modulo, Power, Min, Max, Abs, Negate, Sign, Floor, Ceiling, Round, Clamp, Sqrt, Exp, Ln, Log10, Sin, Cos, Tan, Asin, Acos, Atan, Constant (π, τ, e) |
-| Logic | And, Or, Xor, Nand, Not, Boolean, Equals, Compare, Select (if / else), Is Empty, Coalesce |
-| Encoding | Base64 Encode / Decode, URL Encode / Decode, Hex Encode / Decode, HTML Escape / Unescape, Compress / Decompress (GZip, Deflate, ZLib, Brotli), JWT Decode, QR Code |
-| Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512, CRC32), HMAC, AES Encrypt / Decrypt, BCrypt Hash, BCrypt Verify, PBKDF2 |
-| IO | File Read, File Write, File Copy, File Move, Path Delete (files and directories), Path Exists, File Info, Create Directory, File Search, Directory Size, Image Load, Image Save |
-| Path | Path Parts, Combine, Change Extension |
-| System | Environment Variable, Run Process |
-| Network | HTTP Request (GET, POST, PUT, PATCH, DELETE) |
-| Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM), Resize (fit, fill, stretch, pad; thumbnails), Crop, Rotate Flip (and EXIF auto-orient) |
-| Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text) |
+| Generators | Random Number, Random String, Random Bytes, Random Boolean, Random Gaussian, Range (a list of numbers), GUID (v4 / v7), Name-Based GUID (v5 / v3), Date Time |
+| Flow | Changed, Counter, Previous Value, History, Delay |
+| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Case Convert (camel, Pascal, snake, kebab, constant, title, sentence, slug), Normalize (accents, whitespace, Unicode forms), Lines, Trim, Pad, Reverse, Word Count, Contains (starts / ends with, equals, regex), Template, Regex Match, Regex Replace, Regex Extract All, Diff, Similarity (Levenshtein), Markdown To HTML |
+| List | Count, Item At, Index Of, First, Last, Sort (text, natural, numeric), Distinct, Reverse, Shuffle, Random Pick, Filter, Slice, Append, Zip, Chunk, Flatten |
+| Convert | To Number, To Text, To Boolean, Number Format (decimals, grouping, percent, file size, custom), Base Convert (binary, octal, hex, any base 2–36) |
+| JSON | Get (by path, e.g. `data.items[0].name`), Set, Keys, Merge, From List, Format (indent / minify / validate) |
+| Data | CSV Parse, CSV Format, CSV To JSON, JSON To CSV, XML Get (XPath), YAML To JSON, JSON To YAML |
+| Date | Parse, Format, Add, Difference, Date Parts (weekday, ISO week …), Start End Of (day, week, month, quarter, year), Time Zone Convert, Cron Next, To Unix, From Unix |
+| Math | Add, Subtract, Multiply, Divide, Modulo, Power, Min, Max, Abs, Negate, Sign, Floor, Ceiling, Round, Clamp, Sqrt, Exp, Ln, Log10, Log (any base), Sin, Cos, Tan, Asin, Acos, Atan, Atan2, Constant (π, τ, e), Aggregate (sum, average, min, max, product, median, std dev of a list), Map Range, Lerp, Bitwise |
+| Logic | And, Or, Xor, Nand, Not, Boolean, Equals, Compare, Select (if / else), Is Empty, Coalesce, Type Of |
+| Encoding | Base64 Encode / Decode, Base32 Encode / Decode, URL Encode / Decode, Hex Encode / Decode, HTML Escape / Unescape, Text To Bytes / Bytes To Text (UTF-16, Latin-1, Windows code pages), Compress / Decompress (GZip, Deflate, ZLib, Brotli), JWT Encode / Decode, QR Code, Barcode Read (QR, EAN, UPC, Code 128, Data Matrix, PDF 417 …) |
+| Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512, CRC32), HMAC, AES Encrypt / Decrypt, BCrypt Hash, BCrypt Verify, PBKDF2, TOTP (2FA codes), Key Pair, Sign Data, Verify Signature, Self-Signed Certificate (or a CA), Issue Certificate (signed by your CA), Certificate Request (CSR), Certificate Load (PFX, P12, CRT, CER, PEM) |
+| IO | File Read, File Write, File Copy, File Move, File Hash (streamed), Path Delete (files and directories), Path Exists, File Info, Create Directory, File Search, Directory Size, Drive Info, Zip Create, Zip Extract, Image Load, Image Save |
+| Path | Path Parts, Combine, Change Extension, Special Folder (Temp, Desktop, Downloads, AppData …) |
+| System | Environment Variable, Run Process, Process List, Process Kill, Machine Info, Registry Read, Clipboard Get / Set, Notify (desktop notification) |
+| Network | HTTP Request (GET, POST, PUT, PATCH, DELETE), Download To File, URL Parse, URL Build, TLS Certificate (a server's certificate and expiry), DNS Lookup, Ping, TCP Port Check, IP Range (CIDR), Send Email (SMTP) |
+| Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM), Resize (fit, fill, stretch, pad; thumbnails), Crop, Rotate Flip (and EXIF auto-orient), Adjust (brightness, contrast, saturation, hue), Filter (grayscale, sepia, invert, blur, sharpen, pixelate), Draw Text (watermarks, captions), Solid Color, To Data URI |
+| Output | Output, Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text), Table, Plot (a value over time), Log (a timestamped trail) |
 
-Ports carry one of `number`, `text`, `boolean`, `bytes`, `text list`, `date/time`, or `any`, and wire
+Ports carry one of `number`, `text`, `boolean`, `bytes`, `date/time`, `any`, or a list of those (`text
+list`, `number list` …), and wire
 colour follows the type (every kind of list is teal). Most node parameters can be either typed in place or driven by a wire — connect one
 and the inline field greys out.
 
@@ -96,8 +99,8 @@ than run on an empty or stale value.
 
 ### Run If and Done
 
-Nodes that touch the outside world — the file and folder nodes, Image Load and Save, HTTP Request and
-Run Process — have a **Run If** input and a **Done** output:
+Nodes that touch the outside world — the file, folder and zip nodes, Image Load and Save, the network
+nodes, the process nodes, the clipboard and Notify — have a **Run If** input and a **Done** output:
 
 - Left unwired, Run If changes nothing: the node runs on every pass.
 - Wired, the node runs only when the value is true. Since the wire also orders the two nodes, wiring
@@ -136,7 +139,9 @@ values. Lines → To Upper upper-cases each line; File Search → File Read → 
   has run. The graphs in [`samples/`](samples/README.md) show each of these in action.
 
 Nodes with side effects — File Write, File Copy, File Move, Path Delete, Create Directory, Image Save,
-HTTP Request and Run Process — act on every pass, so in a continuous run they fire on every tick. An
+Zip Create and Extract, HTTP Request, Download To File, Send Email, Run Process, Process Kill,
+Clipboard Set and Notify — act on every pass, so in a continuous run they fire on every tick; see
+**Reacting to change** below for firing only when something happens. An
 HTTP error status (404, 500) is a result, reported on the node's Status and Success outputs along with
 the body, not a failure. The same goes for a value that does not parse (To Number, Parse, JSON Get on a
 missing path): the node reports it on a Success or Found output rather than failing, so it can drive a
@@ -146,8 +151,26 @@ JSON travels as text, so HTTP Request and File Read wire straight into JSON Get,
 out as a text list for the List nodes. Run Process is killed, with anything it started, when its timeout
 passes or a continuous run is stopped.
 
-Inline values are saved in the graph file, including the HMAC key and AES password fields. To keep a
-secret out of the file, wire it in instead, from Environment Variable for example.
+Inline values are saved in the graph file, including secrets typed into a node: the HMAC key, the AES,
+PFX, CA and key passwords, the JWT and TOTP secrets and the SMTP password. Their fields say so. To keep
+a secret out of the file, wire it in instead, from Environment Variable for example.
+
+### Reacting to change
+
+A continuous run evaluates the whole graph every tick. The **Flow** nodes remember earlier passes, which
+is what lets a graph act when something *changes* rather than every time it looks:
+
+- **Changed** is true when its value differs from the last pass. Wired into Run If, it turns "every
+  tick" into "when it happens": File Info's Modified → Changed → Run If of Notify, or HTTP Request's
+  Body → Changed → Send Email.
+- **Counter** counts passes (or the passes where Count If is true), **Previous Value** gives the value
+  from the pass before, and **History** keeps the last N values as a list, for Aggregate or Plot.
+- **Plot** and **Log** in Output keep a history the same way: a value over time, and a timestamped line
+  per value, newest first.
+- **Delay** waits before passing its value on, for spacing side effects apart.
+
+Their memory starts over whenever a continuous run starts, and carries on between presses of Run Once,
+so a graph can be stepped through by hand. It is never saved in the file.
 
 ## Files
 
@@ -172,11 +195,24 @@ to change it.
 
 - `src/vNoder.Core` — graph model, port types, node registry, execution engine. No UI dependency.
 - `src/vNoder.Nodes` — the node implementations.
-
-Image conversion uses [ImageSharp](https://github.com/SixLabors/ImageSharp), which is under the
-Six Labors Split License: Apache 2.0 for open-source use, for-profits under 1M USD annual revenue and
-non-profits, and a commercial license otherwise. It is pinned to 3.1 (see `src/Directory.Packages.props`).
 - `src/vNoder.App` — the WPF application.
+
+The nodes use these libraries:
+
+| Library | For | License |
+|---|---|---|
+| [ImageSharp](https://github.com/SixLabors/ImageSharp) and ImageSharp.Drawing | image conversion, editing and Draw Text | Six Labors Split License |
+| [BCrypt.Net-Next](https://github.com/BcryptNet/bcrypt.net) | BCrypt Hash and Verify | MIT |
+| [QRCoder](https://github.com/codebude/QRCoder) | QR Code | MIT |
+| [ZXing.Net](https://github.com/micjahn/ZXing.Net) | Barcode Read | Apache 2.0 |
+| [Cronos](https://github.com/HangfireIO/Cronos) | Cron Next | MIT |
+| [MailKit](https://github.com/jstedfast/MailKit) | Send Email | MIT |
+| [Markdig](https://github.com/xoofx/markdig) | Markdown To HTML | BSD 2-Clause |
+| [YamlDotNet](https://github.com/aaubry/YamlDotNet) | YAML To JSON, JSON To YAML | MIT |
+
+The Six Labors Split License is Apache 2.0 for open-source use, for-profits under 1M USD annual revenue
+and non-profits, and a commercial license otherwise. ImageSharp is pinned to 3.1 and ImageSharp.Drawing
+to 2.1, the line built on it (see `src/Directory.Packages.props`).
 
 Adding a node type is one class with one attribute; the registry finds it by reflection and it
 appears in the catalogue, with its editable properties saved and loaded automatically. See

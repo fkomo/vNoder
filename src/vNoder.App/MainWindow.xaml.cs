@@ -761,6 +761,21 @@ namespace vNoder.App
             e.Handled = true;
         }
 
+        // ---- Node bodies ---------------------------------------------------------------------
+
+        /// <summary>
+        /// Puts the Table node's real column names on the headers. The DataView names its columns c0,
+        /// c1 … (see TableToViewConverter), because a DataGrid reads a column name as a binding path.
+        /// </summary>
+        private void TableGrid_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            if (sender is DataGrid { ItemsSource: System.Data.DataView view } && view.Table?.Columns[e.PropertyName] is { } column)
+            {
+                // A TextBlock rather than the string: a string header treats "_" as an access key and hides it.
+                e.Column.Header = new TextBlock { Text = column.Caption };
+            }
+        }
+
         // ---- Save / load --------------------------------------------------------------------
 
         private const string FileFilter =

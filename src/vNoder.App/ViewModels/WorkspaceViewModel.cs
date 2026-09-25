@@ -5,6 +5,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using vNoder.App.Presentation;
 using vNoder.Core;
 using vNoder.Nodes;
 
@@ -35,7 +36,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
         Registry = new NodeRegistry().ScanAssemblyOf<OutputNode>();
         Graph = new Graph();
-        Executor = new GraphExecutor(Graph);
+        Executor = new GraphExecutor(Graph) { Host = new DesktopNodeHost(_dispatcher) };
         Executor.Evaluated += OnEvaluated;
 
         SearchResults = [.. Registry.Definitions];

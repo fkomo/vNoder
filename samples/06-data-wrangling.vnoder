@@ -1,0 +1,1446 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 0.41,
+    "offsetX": 20,
+    "offsetY": 20
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "type": "Input/Static Text",
+      "x": 30,
+      "y": 74,
+      "w": 250,
+      "h": 110,
+      "state": {
+        "Text": "region,product,qty,price\nNorth,Widget,12,2.50\nSouth,Gadget,5,10.00\nNorth,Gadget,7,10.00\nEast,Widget,3,2.50\nSouth,Widget,9,2.50"
+      }
+    },
+    {
+      "id": "0ca25a8b-5903-41b5-b6ca-da4640647721",
+      "type": "Output/Table",
+      "x": 350,
+      "y": 74,
+      "w": 300,
+      "h": 120,
+      "state": {
+        "FirstRowIsHeader": true
+      }
+    },
+    {
+      "id": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "type": "Data/CSV Parse",
+      "x": 2310,
+      "y": 74,
+      "state": {
+        "Column": "qty",
+        "HasHeader": true,
+        "Separator": ""
+      }
+    },
+    {
+      "id": "c34ff59c-55a1-476b-834f-57b3f5e7360a",
+      "type": "Math/Aggregate",
+      "x": 2570,
+      "y": 238,
+      "state": {
+        "Kind": 0
+      }
+    },
+    {
+      "id": "0638122c-de94-4168-841c-fce4b24b6e71",
+      "type": "Text/Template",
+      "x": 2830,
+      "y": 238,
+      "state": {
+        "Template": "{A} units sold"
+      }
+    },
+    {
+      "id": "722ebf1c-f1a4-43d8-a4bc-4e3d79a002ae",
+      "type": "Output/Output",
+      "x": 3090,
+      "y": 238,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "0506ccf9-1830-4f7b-9d7f-7277c8d35c33",
+      "type": "Data/CSV Parse",
+      "x": 2310,
+      "y": 282,
+      "state": {
+        "Column": "region",
+        "HasHeader": true,
+        "Separator": ""
+      }
+    },
+    {
+      "id": "684c6909-bbb6-414a-813c-ea8f5834e5f5",
+      "type": "List/Distinct",
+      "x": 2570,
+      "y": 528,
+      "state": {
+        "IgnoreCase": false
+      }
+    },
+    {
+      "id": "a94e9c23-b700-48f1-a5f9-c230f74437c0",
+      "type": "List/Append",
+      "x": 2830,
+      "y": 490
+    },
+    {
+      "id": "b22701da-2ba2-4cf0-acea-7b38a260800f",
+      "type": "Input/Static Text",
+      "x": 2570,
+      "y": 74,
+      "state": {
+        "Text": "West"
+      }
+    },
+    {
+      "id": "a57ee9ac-40bc-40cc-befa-9dce0199230f",
+      "type": "JSON/From List",
+      "x": 3090,
+      "y": 490,
+      "state": {
+        "ItemsAreJson": false
+      }
+    },
+    {
+      "id": "2d6fafd7-f71a-4784-888b-7bf1457a467b",
+      "type": "Output/Output",
+      "x": 3350,
+      "y": 490,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "bda92f02-7599-4cca-82d6-0ce2467d8d7c",
+      "type": "List/Zip",
+      "x": 2570,
+      "y": 383,
+      "state": {
+        "Separator": "="
+      }
+    },
+    {
+      "id": "28e96e80-28b1-482e-b359-568b31d6280a",
+      "type": "Output/Output",
+      "x": 2830,
+      "y": 622,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "735bb27e-69fb-4c19-ad3c-1eff44d139a0",
+      "type": "Data/CSV Format",
+      "x": 30,
+      "y": 380,
+      "state": {
+        "AlwaysQuote": false,
+        "Separator": ";"
+      }
+    },
+    {
+      "id": "2d3fc491-7647-4dd0-94f3-1c36cab87ee7",
+      "type": "Output/Output",
+      "x": 290,
+      "y": 380,
+      "w": 240,
+      "h": 90,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "67a91665-b9e7-4ee0-94fc-3f6520b100b0",
+      "type": "Data/CSV To JSON",
+      "x": 30,
+      "y": 544,
+      "state": {
+        "DetectTypes": true,
+        "Separator": ""
+      }
+    },
+    {
+      "id": "20afddc3-5778-48f8-a924-dc0fbf895057",
+      "type": "Output/Output",
+      "x": 290,
+      "y": 558,
+      "w": 240,
+      "h": 90,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "d629ed5a-4470-4f01-9261-23578d57d6cb",
+      "type": "Data/JSON To CSV",
+      "x": 290,
+      "y": 736,
+      "state": {
+        "Separator": "\\t"
+      }
+    },
+    {
+      "id": "98cf5809-e6d3-405a-b9f4-ccd1ed16254a",
+      "type": "Output/Output",
+      "x": 600,
+      "y": 736,
+      "w": 240,
+      "h": 90,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "676f0b89-2e8c-4a25-b45a-2125a1275836",
+      "type": "Input/Static Text",
+      "x": 2310,
+      "y": 884,
+      "w": 250,
+      "h": 60,
+      "state": {
+        "Text": "{\u0022currency\u0022:\u0022EUR\u0022,\u0022decimals\u0022:2,\u0022report\u0022:{\u0022title\u0022:\u0022Sales\u0022,\u0022pages\u0022:1}}"
+      }
+    },
+    {
+      "id": "77b3791b-0862-4648-a349-01c2f13f6ac4",
+      "type": "Input/Static Text",
+      "x": 2310,
+      "y": 1032,
+      "w": 250,
+      "h": 40,
+      "state": {
+        "Text": "{\u0022report\u0022:{\u0022title\u0022:\u0022Q3 sales\u0022}}"
+      }
+    },
+    {
+      "id": "79237a4c-30e9-4402-82b3-90d7a1f16145",
+      "type": "JSON/Merge",
+      "x": 2630,
+      "y": 884,
+      "state": {
+        "Arrays": 0
+      }
+    },
+    {
+      "id": "7e05867b-0fec-4f61-86ba-0d76d730c04f",
+      "type": "Data/JSON To YAML",
+      "x": 2890,
+      "y": 884
+    },
+    {
+      "id": "4e023caa-0b75-45ee-a987-5a1c426d3d6a",
+      "type": "Output/Output",
+      "x": 3150,
+      "y": 884,
+      "w": 220,
+      "h": 100,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "628cf369-4124-4059-b1ab-51690e139c8c",
+      "type": "Data/YAML To JSON",
+      "x": 3150,
+      "y": 1072
+    },
+    {
+      "id": "08fe57bb-c36b-46f3-8d4b-eb072baebab8",
+      "type": "JSON/Keys",
+      "x": 3440,
+      "y": 1072,
+      "state": {
+        "Path": "report"
+      }
+    },
+    {
+      "id": "33393212-a776-4a69-bc6c-88638f02da01",
+      "type": "Output/Output",
+      "x": 3700,
+      "y": 1072,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "98c6d2a4-919d-4bcb-983d-fc4fd7612ae5",
+      "type": "Input/Static Text",
+      "x": 30,
+      "y": 1012,
+      "w": 250,
+      "h": 110,
+      "state": {
+        "Text": "\u003Crss version=\u00222.0\u0022\u003E\u003Cchannel\u003E\u003Ctitle\u003EvNoder news\u003C/title\u003E\n\u003Citem\u003E\u003Ctitle\u003EFlow nodes\u003C/title\u003E\u003Clink\u003Ehttps://example.com/news/flow?id=1\u003C/link\u003E\u003C/item\u003E\n\u003Citem\u003E\u003Ctitle\u003EData nodes\u003C/title\u003E\u003Clink\u003Ehttps://example.com/news/data?id=2\u003C/link\u003E\u003C/item\u003E\n\u003Citem\u003E\u003Ctitle\u003ECrypto nodes\u003C/title\u003E\u003Clink\u003Ehttps://example.com/news/crypto?id=3\u003C/link\u003E\u003C/item\u003E\n\u003Citem\u003E\u003Ctitle\u003EImage nodes\u003C/title\u003E\u003Clink\u003Ehttps://example.com/news/image?id=4\u003C/link\u003E\u003C/item\u003E\n\u003Citem\u003E\u003Ctitle\u003ENetwork nodes\u003C/title\u003E\u003Clink\u003Ehttps://example.com/news/network?id=5\u003C/link\u003E\u003C/item\u003E\u003C/channel\u003E\u003C/rss\u003E"
+      }
+    },
+    {
+      "id": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "type": "Data/XML Get",
+      "x": 350,
+      "y": 1012,
+      "state": {
+        "IgnoreNamespaces": true,
+        "XPath": "//item/title"
+      }
+    },
+    {
+      "id": "fc8bb97b-bfa5-49dc-9122-8157d8c45063",
+      "type": "List/Chunk",
+      "x": 610,
+      "y": 1012,
+      "state": {
+        "ChunkSize": 2
+      }
+    },
+    {
+      "id": "7838b666-2636-4b4c-be5a-ff1d812093bd",
+      "type": "Output/Table",
+      "x": 870,
+      "y": 1012,
+      "w": 220,
+      "h": 80,
+      "state": {
+        "FirstRowIsHeader": false
+      }
+    },
+    {
+      "id": "460a129f-5743-4c89-b7e9-387392c73fff",
+      "type": "List/Flatten",
+      "x": 870,
+      "y": 1180
+    },
+    {
+      "id": "1df65f3a-1947-45f9-a28e-5f3c040accda",
+      "type": "List/Shuffle",
+      "x": 1160,
+      "y": 1180
+    },
+    {
+      "id": "dd709125-0452-4fea-ad2e-4018f0399c30",
+      "type": "List/Random Pick",
+      "x": 1420,
+      "y": 1180,
+      "state": {
+        "Count": 1
+      }
+    },
+    {
+      "id": "a80639c2-67e7-4da5-853f-11e3cc94e959",
+      "type": "Text/Template",
+      "x": 1680,
+      "y": 1180,
+      "state": {
+        "Template": "Headline of the day: {A}"
+      }
+    },
+    {
+      "id": "aff7d45a-80be-40f6-b09b-e330671d17f2",
+      "type": "Output/Output",
+      "x": 1940,
+      "y": 1180,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "bf58b505-07d9-42d5-8d80-14e4d46e69b9",
+      "type": "List/Index Of",
+      "x": 610,
+      "y": 1157,
+      "state": {
+        "Find": "Data nodes",
+        "IgnoreCase": false
+      }
+    },
+    {
+      "id": "83c7a6c1-c755-48a8-8dcc-8ea3d4ed8f7b",
+      "type": "Output/Output",
+      "x": 870,
+      "y": 1290,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "34e47042-2c69-4733-9e2e-8271e00262c9",
+      "type": "Data/XML Get",
+      "x": 350,
+      "y": 1220,
+      "state": {
+        "IgnoreNamespaces": true,
+        "XPath": "//item[2]/link"
+      }
+    },
+    {
+      "id": "1199434f-ef6f-491c-adc7-d42872454b30",
+      "type": "Network/URL Parse",
+      "x": 610,
+      "y": 1343
+    },
+    {
+      "id": "6369f45d-b9fb-446e-829f-ebb1583a5265",
+      "type": "Output/Output",
+      "x": 870,
+      "y": 1454,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "3d1a1436-b74b-45cb-9b05-b425d65a8a86",
+      "type": "Output/Output",
+      "x": 870,
+      "y": 1618,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "75d866bf-4beb-4c23-85b6-77d4104a1caa",
+      "type": "Data/CSV Parse",
+      "x": 2310,
+      "y": 1359,
+      "state": {
+        "Column": "price",
+        "HasHeader": true,
+        "Separator": ""
+      }
+    },
+    {
+      "id": "d694b5fd-7b92-4e96-a632-a75103cdca6a",
+      "type": "Convert/To Number",
+      "x": 2570,
+      "y": 1504,
+      "state": {
+        "Culture": "",
+        "Fallback": 0
+      }
+    },
+    {
+      "id": "9af34547-24fb-4667-94bd-2d0edc1993bd",
+      "type": "Convert/To Number",
+      "x": 2570,
+      "y": 1359,
+      "state": {
+        "Culture": "",
+        "Fallback": 0
+      }
+    },
+    {
+      "id": "14b77366-c712-4155-a2ad-4b392fc44b49",
+      "type": "Math/Multiply",
+      "x": 2830,
+      "y": 1359
+    },
+    {
+      "id": "3c6e42e0-2986-4e73-bbe1-59458871182a",
+      "type": "Math/Aggregate",
+      "x": 3090,
+      "y": 1359,
+      "state": {
+        "Kind": 0
+      }
+    },
+    {
+      "id": "3a5524a8-2b15-43b1-a263-3bcd6af3aac2",
+      "type": "Math/Round",
+      "x": 3350,
+      "y": 1359,
+      "state": {
+        "Digits": 2
+      }
+    },
+    {
+      "id": "1fa0ee00-43c9-459e-912c-2a0311b7febd",
+      "type": "Convert/To Text",
+      "x": 3610,
+      "y": 1523,
+      "state": {
+        "Bytes": 0,
+        "ListSeparator": ""
+      }
+    },
+    {
+      "id": "37f1b4cd-627b-4512-a351-f61f946cc902",
+      "type": "Text/Concat",
+      "x": 3870,
+      "y": 1359
+    },
+    {
+      "id": "69e68aee-20e2-47ac-b8f6-b5eef23f2b94",
+      "type": "Input/Static Text",
+      "x": 3610,
+      "y": 1359,
+      "state": {
+        "Text": "Revenue EUR "
+      }
+    },
+    {
+      "id": "eab1f096-29f3-4312-8c7b-36e88c860b0c",
+      "type": "Output/Output",
+      "x": 4130,
+      "y": 1359,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "2f74d8e7-9927-45aa-b927-f236163b77c5",
+      "type": "Text/Count Occurrences",
+      "x": 2310,
+      "y": 1567,
+      "state": {
+        "Find": "Widget"
+      }
+    },
+    {
+      "id": "e60c51c4-2baa-4ba6-8660-a9599f7ab827",
+      "type": "Text/Template",
+      "x": 2570,
+      "y": 1649,
+      "state": {
+        "Template": "\u0022Widget\u0022 appears {A} times"
+      }
+    },
+    {
+      "id": "ea373e87-9729-4c26-8723-a5ab70ac82dc",
+      "type": "Output/Output",
+      "x": 2830,
+      "y": 1649,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "52a7d0d9-b747-4b91-b6b3-2b81eb9f6707",
+      "type": "Text/Lines",
+      "x": 30,
+      "y": 1880,
+      "state": {
+        "RemoveEmpty": false,
+        "Trim": false
+      }
+    },
+    {
+      "id": "f9dc6962-93a8-4539-9343-ff8d12f8e5d8",
+      "type": "List/First",
+      "x": 290,
+      "y": 1880
+    },
+    {
+      "id": "e5851ef3-1a2a-4c2c-a596-2116d736443c",
+      "type": "Text/Split",
+      "x": 550,
+      "y": 1880,
+      "state": {
+        "Separator": ","
+      }
+    },
+    {
+      "id": "400f97fe-dbc5-4ac4-80db-5cd8221cd796",
+      "type": "Data/CSV Parse",
+      "x": 30,
+      "y": 2009,
+      "state": {
+        "Column": "product",
+        "HasHeader": true,
+        "Separator": ""
+      }
+    },
+    {
+      "id": "7c7821f5-33fa-45db-9a50-6631b7dfcd1a",
+      "type": "List/Distinct",
+      "x": 290,
+      "y": 2009,
+      "state": {
+        "IgnoreCase": false
+      }
+    },
+    {
+      "id": "9c91d61b-ca74-4061-a736-6fd07b9316b4",
+      "type": "List/Sort",
+      "x": 550,
+      "y": 2025,
+      "state": {
+        "Descending": true,
+        "IgnoreCase": true,
+        "Mode": 1
+      }
+    },
+    {
+      "id": "ddc78e84-ee30-4ded-b3b6-037a8177f9dd",
+      "type": "List/Count",
+      "x": 810,
+      "y": 2025
+    },
+    {
+      "id": "39718019-8261-4098-984b-5c6d3c89dec4",
+      "type": "Text/Template",
+      "x": 1070,
+      "y": 1880,
+      "state": {
+        "Template": "columns: {A}\nproducts (Z\u2013A): {B}, {C} of them"
+      }
+    },
+    {
+      "id": "50ba5ced-4552-41e4-9bdf-c491acdf1177",
+      "type": "Text/Join",
+      "x": 810,
+      "y": 1880,
+      "state": {
+        "Separator": " | "
+      }
+    },
+    {
+      "id": "825fcd9b-a6c4-4ebc-89d7-cc3e959dbca0",
+      "type": "Text/Join",
+      "x": 810,
+      "y": 2113,
+      "state": {
+        "Separator": ", "
+      }
+    },
+    {
+      "id": "0bdbf7e7-78a6-45db-b5eb-feaefe9c2ddf",
+      "type": "Output/Output",
+      "x": 1330,
+      "y": 1880,
+      "w": 240,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "232a9174-2089-44c6-9711-5353900322e6",
+      "type": "JSON/Get",
+      "x": 2310,
+      "y": 1999,
+      "state": {
+        "Path": "[0].product"
+      }
+    },
+    {
+      "id": "9b7f9c3c-edb1-4b25-bee0-20ca6874f5bb",
+      "type": "Output/Output",
+      "x": 2570,
+      "y": 1999,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "113fd460-cee3-41d6-97c5-706d5fd79c9d",
+      "type": "Generators/Date Time",
+      "x": 2310,
+      "y": 2166,
+      "state": {
+        "OffsetSeconds": 0,
+        "Source": 0
+      }
+    },
+    {
+      "id": "18a5f589-df1d-42f2-a301-afb2e58f5ec3",
+      "type": "JSON/Set",
+      "x": 2570,
+      "y": 2166,
+      "state": {
+        "Path": "report.generated",
+        "ValueIsJson": false
+      }
+    },
+    {
+      "id": "68bf95dc-fd4a-4619-a5ea-d32d7847f747",
+      "type": "JSON/Format",
+      "x": 2830,
+      "y": 2166,
+      "state": {
+        "Style": 0
+      }
+    },
+    {
+      "id": "d5763def-4325-4d89-9859-66e51aca5551",
+      "type": "Output/Output",
+      "x": 3090,
+      "y": 2166,
+      "w": 220,
+      "h": 110,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "3485cfdb-70dd-4af3-a9d9-8f1914bf549e",
+      "type": "List/Filter",
+      "x": 30,
+      "y": 2356,
+      "state": {
+        "Find": "^(Crypto|Image)",
+        "IgnoreCase": false,
+        "Invert": false,
+        "Mode": 4
+      }
+    },
+    {
+      "id": "50c841b0-8bb5-446f-8fb9-a858a0fd1300",
+      "type": "List/Item At",
+      "x": 290,
+      "y": 2356,
+      "state": {
+        "Index": 2
+      }
+    },
+    {
+      "id": "fa2968a2-bf58-40b7-8f35-420294a46722",
+      "type": "List/Last",
+      "x": 290,
+      "y": 2501
+    },
+    {
+      "id": "36bab9f3-c7e0-4e1f-9e2c-1a46f7700770",
+      "type": "List/Slice",
+      "x": 30,
+      "y": 2555,
+      "state": {
+        "Length": 2,
+        "Start": 1
+      }
+    },
+    {
+      "id": "cce09ad7-49aa-4922-9a4b-cc8aa65affb1",
+      "type": "List/Reverse",
+      "x": 30,
+      "y": 2722
+    },
+    {
+      "id": "209cda7f-77cf-417a-b645-cb425bbfa488",
+      "type": "Text/Template",
+      "x": 550,
+      "y": 2356,
+      "state": {
+        "Template": "matching: {A}\nthird: {B} \u00B7 last: {C}\nnewest first: {D}"
+      }
+    },
+    {
+      "id": "9c4f97f4-adcd-477d-9d87-0abd7e0cbf26",
+      "type": "Text/Join",
+      "x": 290,
+      "y": 2611,
+      "state": {
+        "Separator": ", "
+      }
+    },
+    {
+      "id": "7e3b6ab0-c6cd-4345-9568-94b024fb52b8",
+      "type": "Text/Join",
+      "x": 290,
+      "y": 2920,
+      "state": {
+        "Separator": ", "
+      }
+    },
+    {
+      "id": "023f8905-1094-4631-9184-105fceb70981",
+      "type": "Output/Output",
+      "x": 810,
+      "y": 2356,
+      "w": 260,
+      "h": 70,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "e0e3d8d4-8bd9-46f4-a38a-a7fbc719de43",
+      "type": "Output/Output",
+      "x": 290,
+      "y": 2756,
+      "state": {
+        "Wrap": true
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "0ca25a8b-5903-41b5-b6ca-da4640647721",
+      "toPort": "Rows"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "toPort": "CSV"
+    },
+    {
+      "fromNode": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "fromPort": "Column",
+      "toNode": "c34ff59c-55a1-476b-834f-57b3f5e7360a",
+      "toPort": "List"
+    },
+    {
+      "fromNode": "c34ff59c-55a1-476b-834f-57b3f5e7360a",
+      "fromPort": "Result",
+      "toNode": "0638122c-de94-4168-841c-fce4b24b6e71",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "0638122c-de94-4168-841c-fce4b24b6e71",
+      "fromPort": "Text",
+      "toNode": "722ebf1c-f1a4-43d8-a4bc-4e3d79a002ae",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "0506ccf9-1830-4f7b-9d7f-7277c8d35c33",
+      "toPort": "CSV"
+    },
+    {
+      "fromNode": "0506ccf9-1830-4f7b-9d7f-7277c8d35c33",
+      "fromPort": "Column",
+      "toNode": "684c6909-bbb6-414a-813c-ea8f5834e5f5",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "684c6909-bbb6-414a-813c-ea8f5834e5f5",
+      "fromPort": "Items",
+      "toNode": "a94e9c23-b700-48f1-a5f9-c230f74437c0",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "b22701da-2ba2-4cf0-acea-7b38a260800f",
+      "fromPort": "Text",
+      "toNode": "a94e9c23-b700-48f1-a5f9-c230f74437c0",
+      "toPort": "Item"
+    },
+    {
+      "fromNode": "a94e9c23-b700-48f1-a5f9-c230f74437c0",
+      "fromPort": "Items",
+      "toNode": "a57ee9ac-40bc-40cc-befa-9dce0199230f",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "a57ee9ac-40bc-40cc-befa-9dce0199230f",
+      "fromPort": "JSON",
+      "toNode": "2d6fafd7-f71a-4784-888b-7bf1457a467b",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "0506ccf9-1830-4f7b-9d7f-7277c8d35c33",
+      "fromPort": "Column",
+      "toNode": "bda92f02-7599-4cca-82d6-0ce2467d8d7c",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "fromPort": "Column",
+      "toNode": "bda92f02-7599-4cca-82d6-0ce2467d8d7c",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "bda92f02-7599-4cca-82d6-0ce2467d8d7c",
+      "fromPort": "Joined",
+      "toNode": "28e96e80-28b1-482e-b359-568b31d6280a",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "fromPort": "Rows",
+      "toNode": "735bb27e-69fb-4c19-ad3c-1eff44d139a0",
+      "toPort": "Rows"
+    },
+    {
+      "fromNode": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "fromPort": "Header",
+      "toNode": "735bb27e-69fb-4c19-ad3c-1eff44d139a0",
+      "toPort": "Header"
+    },
+    {
+      "fromNode": "735bb27e-69fb-4c19-ad3c-1eff44d139a0",
+      "fromPort": "CSV",
+      "toNode": "2d3fc491-7647-4dd0-94f3-1c36cab87ee7",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "67a91665-b9e7-4ee0-94fc-3f6520b100b0",
+      "toPort": "CSV"
+    },
+    {
+      "fromNode": "67a91665-b9e7-4ee0-94fc-3f6520b100b0",
+      "fromPort": "JSON",
+      "toNode": "20afddc3-5778-48f8-a924-dc0fbf895057",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "67a91665-b9e7-4ee0-94fc-3f6520b100b0",
+      "fromPort": "JSON",
+      "toNode": "d629ed5a-4470-4f01-9261-23578d57d6cb",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "d629ed5a-4470-4f01-9261-23578d57d6cb",
+      "fromPort": "CSV",
+      "toNode": "98cf5809-e6d3-405a-b9f4-ccd1ed16254a",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "676f0b89-2e8c-4a25-b45a-2125a1275836",
+      "fromPort": "Text",
+      "toNode": "79237a4c-30e9-4402-82b3-90d7a1f16145",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "77b3791b-0862-4648-a349-01c2f13f6ac4",
+      "fromPort": "Text",
+      "toNode": "79237a4c-30e9-4402-82b3-90d7a1f16145",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "79237a4c-30e9-4402-82b3-90d7a1f16145",
+      "fromPort": "JSON",
+      "toNode": "7e05867b-0fec-4f61-86ba-0d76d730c04f",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "7e05867b-0fec-4f61-86ba-0d76d730c04f",
+      "fromPort": "YAML",
+      "toNode": "4e023caa-0b75-45ee-a987-5a1c426d3d6a",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "7e05867b-0fec-4f61-86ba-0d76d730c04f",
+      "fromPort": "YAML",
+      "toNode": "628cf369-4124-4059-b1ab-51690e139c8c",
+      "toPort": "YAML"
+    },
+    {
+      "fromNode": "628cf369-4124-4059-b1ab-51690e139c8c",
+      "fromPort": "JSON",
+      "toNode": "08fe57bb-c36b-46f3-8d4b-eb072baebab8",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "08fe57bb-c36b-46f3-8d4b-eb072baebab8",
+      "fromPort": "Keys",
+      "toNode": "33393212-a776-4a69-bc6c-88638f02da01",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "98c6d2a4-919d-4bcb-983d-fc4fd7612ae5",
+      "fromPort": "Text",
+      "toNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "toPort": "XML"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "fc8bb97b-bfa5-49dc-9122-8157d8c45063",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "fc8bb97b-bfa5-49dc-9122-8157d8c45063",
+      "fromPort": "Chunks",
+      "toNode": "7838b666-2636-4b4c-be5a-ff1d812093bd",
+      "toPort": "Rows"
+    },
+    {
+      "fromNode": "fc8bb97b-bfa5-49dc-9122-8157d8c45063",
+      "fromPort": "Chunks",
+      "toNode": "460a129f-5743-4c89-b7e9-387392c73fff",
+      "toPort": "Lists"
+    },
+    {
+      "fromNode": "460a129f-5743-4c89-b7e9-387392c73fff",
+      "fromPort": "Items",
+      "toNode": "1df65f3a-1947-45f9-a28e-5f3c040accda",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "1df65f3a-1947-45f9-a28e-5f3c040accda",
+      "fromPort": "Items",
+      "toNode": "dd709125-0452-4fea-ad2e-4018f0399c30",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "dd709125-0452-4fea-ad2e-4018f0399c30",
+      "fromPort": "Item",
+      "toNode": "a80639c2-67e7-4da5-853f-11e3cc94e959",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "a80639c2-67e7-4da5-853f-11e3cc94e959",
+      "fromPort": "Text",
+      "toNode": "aff7d45a-80be-40f6-b09b-e330671d17f2",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "bf58b505-07d9-42d5-8d80-14e4d46e69b9",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "bf58b505-07d9-42d5-8d80-14e4d46e69b9",
+      "fromPort": "Index",
+      "toNode": "83c7a6c1-c755-48a8-8dcc-8ea3d4ed8f7b",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "98c6d2a4-919d-4bcb-983d-fc4fd7612ae5",
+      "fromPort": "Text",
+      "toNode": "34e47042-2c69-4733-9e2e-8271e00262c9",
+      "toPort": "XML"
+    },
+    {
+      "fromNode": "34e47042-2c69-4733-9e2e-8271e00262c9",
+      "fromPort": "Value",
+      "toNode": "1199434f-ef6f-491c-adc7-d42872454b30",
+      "toPort": "URL"
+    },
+    {
+      "fromNode": "1199434f-ef6f-491c-adc7-d42872454b30",
+      "fromPort": "Query JSON",
+      "toNode": "6369f45d-b9fb-446e-829f-ebb1583a5265",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "1199434f-ef6f-491c-adc7-d42872454b30",
+      "fromPort": "Path",
+      "toNode": "3d1a1436-b74b-45cb-9b05-b425d65a8a86",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "75d866bf-4beb-4c23-85b6-77d4104a1caa",
+      "toPort": "CSV"
+    },
+    {
+      "fromNode": "75d866bf-4beb-4c23-85b6-77d4104a1caa",
+      "fromPort": "Column",
+      "toNode": "d694b5fd-7b92-4e96-a632-a75103cdca6a",
+      "toPort": "Value",
+      "each": true
+    },
+    {
+      "fromNode": "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+      "fromPort": "Column",
+      "toNode": "9af34547-24fb-4667-94bd-2d0edc1993bd",
+      "toPort": "Value",
+      "each": true
+    },
+    {
+      "fromNode": "9af34547-24fb-4667-94bd-2d0edc1993bd",
+      "fromPort": "Number",
+      "toNode": "14b77366-c712-4155-a2ad-4b392fc44b49",
+      "toPort": "A",
+      "each": true
+    },
+    {
+      "fromNode": "d694b5fd-7b92-4e96-a632-a75103cdca6a",
+      "fromPort": "Number",
+      "toNode": "14b77366-c712-4155-a2ad-4b392fc44b49",
+      "toPort": "B",
+      "each": true
+    },
+    {
+      "fromNode": "14b77366-c712-4155-a2ad-4b392fc44b49",
+      "fromPort": "Result",
+      "toNode": "3c6e42e0-2986-4e73-bbe1-59458871182a",
+      "toPort": "List"
+    },
+    {
+      "fromNode": "3c6e42e0-2986-4e73-bbe1-59458871182a",
+      "fromPort": "Result",
+      "toNode": "3a5524a8-2b15-43b1-a263-3bcd6af3aac2",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "3a5524a8-2b15-43b1-a263-3bcd6af3aac2",
+      "fromPort": "Result",
+      "toNode": "1fa0ee00-43c9-459e-912c-2a0311b7febd",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "69e68aee-20e2-47ac-b8f6-b5eef23f2b94",
+      "fromPort": "Text",
+      "toNode": "37f1b4cd-627b-4512-a351-f61f946cc902",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "1fa0ee00-43c9-459e-912c-2a0311b7febd",
+      "fromPort": "Text",
+      "toNode": "37f1b4cd-627b-4512-a351-f61f946cc902",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "37f1b4cd-627b-4512-a351-f61f946cc902",
+      "fromPort": "Text",
+      "toNode": "eab1f096-29f3-4312-8c7b-36e88c860b0c",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "2f74d8e7-9927-45aa-b927-f236163b77c5",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "2f74d8e7-9927-45aa-b927-f236163b77c5",
+      "fromPort": "Count",
+      "toNode": "e60c51c4-2baa-4ba6-8660-a9599f7ab827",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "e60c51c4-2baa-4ba6-8660-a9599f7ab827",
+      "fromPort": "Text",
+      "toNode": "ea373e87-9729-4c26-8723-a5ab70ac82dc",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "52a7d0d9-b747-4b91-b6b3-2b81eb9f6707",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "52a7d0d9-b747-4b91-b6b3-2b81eb9f6707",
+      "fromPort": "Lines",
+      "toNode": "f9dc6962-93a8-4539-9343-ff8d12f8e5d8",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "f9dc6962-93a8-4539-9343-ff8d12f8e5d8",
+      "fromPort": "Item",
+      "toNode": "e5851ef3-1a2a-4c2c-a596-2116d736443c",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "f8812f78-d2eb-4706-b018-693d67401ced",
+      "fromPort": "Text",
+      "toNode": "400f97fe-dbc5-4ac4-80db-5cd8221cd796",
+      "toPort": "CSV"
+    },
+    {
+      "fromNode": "400f97fe-dbc5-4ac4-80db-5cd8221cd796",
+      "fromPort": "Column",
+      "toNode": "7c7821f5-33fa-45db-9a50-6631b7dfcd1a",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "7c7821f5-33fa-45db-9a50-6631b7dfcd1a",
+      "fromPort": "Items",
+      "toNode": "9c91d61b-ca74-4061-a736-6fd07b9316b4",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "9c91d61b-ca74-4061-a736-6fd07b9316b4",
+      "fromPort": "Items",
+      "toNode": "ddc78e84-ee30-4ded-b3b6-037a8177f9dd",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "e5851ef3-1a2a-4c2c-a596-2116d736443c",
+      "fromPort": "Parts",
+      "toNode": "50ba5ced-4552-41e4-9bdf-c491acdf1177",
+      "toPort": "Parts"
+    },
+    {
+      "fromNode": "50ba5ced-4552-41e4-9bdf-c491acdf1177",
+      "fromPort": "Text",
+      "toNode": "39718019-8261-4098-984b-5c6d3c89dec4",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "9c91d61b-ca74-4061-a736-6fd07b9316b4",
+      "fromPort": "Items",
+      "toNode": "825fcd9b-a6c4-4ebc-89d7-cc3e959dbca0",
+      "toPort": "Parts"
+    },
+    {
+      "fromNode": "825fcd9b-a6c4-4ebc-89d7-cc3e959dbca0",
+      "fromPort": "Text",
+      "toNode": "39718019-8261-4098-984b-5c6d3c89dec4",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "ddc78e84-ee30-4ded-b3b6-037a8177f9dd",
+      "fromPort": "Count",
+      "toNode": "39718019-8261-4098-984b-5c6d3c89dec4",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "39718019-8261-4098-984b-5c6d3c89dec4",
+      "fromPort": "Text",
+      "toNode": "0bdbf7e7-78a6-45db-b5eb-feaefe9c2ddf",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "67a91665-b9e7-4ee0-94fc-3f6520b100b0",
+      "fromPort": "JSON",
+      "toNode": "232a9174-2089-44c6-9711-5353900322e6",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "232a9174-2089-44c6-9711-5353900322e6",
+      "fromPort": "Text",
+      "toNode": "9b7f9c3c-edb1-4b25-bee0-20ca6874f5bb",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "79237a4c-30e9-4402-82b3-90d7a1f16145",
+      "fromPort": "JSON",
+      "toNode": "18a5f589-df1d-42f2-a301-afb2e58f5ec3",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "113fd460-cee3-41d6-97c5-706d5fd79c9d",
+      "fromPort": "ISO 8601",
+      "toNode": "18a5f589-df1d-42f2-a301-afb2e58f5ec3",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "18a5f589-df1d-42f2-a301-afb2e58f5ec3",
+      "fromPort": "JSON",
+      "toNode": "68bf95dc-fd4a-4619-a5ea-d32d7847f747",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "68bf95dc-fd4a-4619-a5ea-d32d7847f747",
+      "fromPort": "JSON",
+      "toNode": "d5763def-4325-4d89-9859-66e51aca5551",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "3485cfdb-70dd-4af3-a9d9-8f1914bf549e",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "50c841b0-8bb5-446f-8fb9-a858a0fd1300",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "fa2968a2-bf58-40b7-8f35-420294a46722",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "36bab9f3-c7e0-4e1f-9e2c-1a46f7700770",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "1aec9891-4f59-4f07-8083-6339e46233c1",
+      "fromPort": "Values",
+      "toNode": "cce09ad7-49aa-4922-9a4b-cc8aa65affb1",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "3485cfdb-70dd-4af3-a9d9-8f1914bf549e",
+      "fromPort": "Items",
+      "toNode": "9c4f97f4-adcd-477d-9d87-0abd7e0cbf26",
+      "toPort": "Parts"
+    },
+    {
+      "fromNode": "9c4f97f4-adcd-477d-9d87-0abd7e0cbf26",
+      "fromPort": "Text",
+      "toNode": "209cda7f-77cf-417a-b645-cb425bbfa488",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "50c841b0-8bb5-446f-8fb9-a858a0fd1300",
+      "fromPort": "Item",
+      "toNode": "209cda7f-77cf-417a-b645-cb425bbfa488",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "fa2968a2-bf58-40b7-8f35-420294a46722",
+      "fromPort": "Item",
+      "toNode": "209cda7f-77cf-417a-b645-cb425bbfa488",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "cce09ad7-49aa-4922-9a4b-cc8aa65affb1",
+      "fromPort": "Items",
+      "toNode": "7e3b6ab0-c6cd-4345-9568-94b024fb52b8",
+      "toPort": "Parts"
+    },
+    {
+      "fromNode": "7e3b6ab0-c6cd-4345-9568-94b024fb52b8",
+      "fromPort": "Text",
+      "toNode": "209cda7f-77cf-417a-b645-cb425bbfa488",
+      "toPort": "D"
+    },
+    {
+      "fromNode": "209cda7f-77cf-417a-b645-cb425bbfa488",
+      "fromPort": "Text",
+      "toNode": "023f8905-1094-4631-9184-105fceb70981",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "36bab9f3-c7e0-4e1f-9e2c-1a46f7700770",
+      "fromPort": "Items",
+      "toNode": "e0e3d8d4-8bd9-46f4-a38a-a7fbc719de43",
+      "toPort": "Value"
+    }
+  ],
+  "groups": [
+    {
+      "id": "c4b9e901-5d29-4ce7-aea7-c2655496ccf0",
+      "name": "Column totals",
+      "isCollapsed": false,
+      "nodeIds": [
+        "a6ee0572-de2f-4d74-a9df-e50d1c0bdc32",
+        "c34ff59c-55a1-476b-834f-57b3f5e7360a",
+        "0638122c-de94-4168-841c-fce4b24b6e71",
+        "722ebf1c-f1a4-43d8-a4bc-4e3d79a002ae",
+        "0506ccf9-1830-4f7b-9d7f-7277c8d35c33",
+        "684c6909-bbb6-414a-813c-ea8f5834e5f5",
+        "a94e9c23-b700-48f1-a5f9-c230f74437c0",
+        "b22701da-2ba2-4cf0-acea-7b38a260800f",
+        "a57ee9ac-40bc-40cc-befa-9dce0199230f",
+        "2d6fafd7-f71a-4784-888b-7bf1457a467b",
+        "bda92f02-7599-4cca-82d6-0ce2467d8d7c",
+        "28e96e80-28b1-482e-b359-568b31d6280a"
+      ]
+    },
+    {
+      "id": "fdf1cd52-79df-434e-957b-5aa6e2c17ffd",
+      "name": "CSV, JSON and TSV",
+      "isCollapsed": false,
+      "nodeIds": [
+        "735bb27e-69fb-4c19-ad3c-1eff44d139a0",
+        "2d3fc491-7647-4dd0-94f3-1c36cab87ee7",
+        "67a91665-b9e7-4ee0-94fc-3f6520b100b0",
+        "20afddc3-5778-48f8-a924-dc0fbf895057",
+        "d629ed5a-4470-4f01-9261-23578d57d6cb",
+        "98cf5809-e6d3-405a-b9f4-ccd1ed16254a"
+      ]
+    },
+    {
+      "id": "9912cc6c-76ba-4d09-a4a4-38fa283a4579",
+      "name": "Settings as YAML",
+      "isCollapsed": false,
+      "nodeIds": [
+        "676f0b89-2e8c-4a25-b45a-2125a1275836",
+        "77b3791b-0862-4648-a349-01c2f13f6ac4",
+        "79237a4c-30e9-4402-82b3-90d7a1f16145",
+        "7e05867b-0fec-4f61-86ba-0d76d730c04f",
+        "4e023caa-0b75-45ee-a987-5a1c426d3d6a",
+        "628cf369-4124-4059-b1ab-51690e139c8c",
+        "08fe57bb-c36b-46f3-8d4b-eb072baebab8",
+        "33393212-a776-4a69-bc6c-88638f02da01"
+      ]
+    },
+    {
+      "id": "cd77916a-c772-4dfc-9b44-37ace4014b24",
+      "name": "RSS feed",
+      "isCollapsed": false,
+      "nodeIds": [
+        "98c6d2a4-919d-4bcb-983d-fc4fd7612ae5",
+        "1aec9891-4f59-4f07-8083-6339e46233c1",
+        "fc8bb97b-bfa5-49dc-9122-8157d8c45063",
+        "7838b666-2636-4b4c-be5a-ff1d812093bd",
+        "460a129f-5743-4c89-b7e9-387392c73fff",
+        "1df65f3a-1947-45f9-a28e-5f3c040accda",
+        "dd709125-0452-4fea-ad2e-4018f0399c30",
+        "a80639c2-67e7-4da5-853f-11e3cc94e959",
+        "aff7d45a-80be-40f6-b09b-e330671d17f2",
+        "bf58b505-07d9-42d5-8d80-14e4d46e69b9",
+        "83c7a6c1-c755-48a8-8dcc-8ea3d4ed8f7b",
+        "34e47042-2c69-4733-9e2e-8271e00262c9",
+        "1199434f-ef6f-491c-adc7-d42872454b30",
+        "6369f45d-b9fb-446e-829f-ebb1583a5265",
+        "3d1a1436-b74b-45cb-9b05-b425d65a8a86"
+      ]
+    },
+    {
+      "id": "d3eaa980-1606-45f6-8d1e-b283198d9b90",
+      "name": "Revenue",
+      "isCollapsed": false,
+      "nodeIds": [
+        "75d866bf-4beb-4c23-85b6-77d4104a1caa",
+        "d694b5fd-7b92-4e96-a632-a75103cdca6a",
+        "9af34547-24fb-4667-94bd-2d0edc1993bd",
+        "14b77366-c712-4155-a2ad-4b392fc44b49",
+        "3c6e42e0-2986-4e73-bbe1-59458871182a",
+        "3a5524a8-2b15-43b1-a263-3bcd6af3aac2",
+        "1fa0ee00-43c9-459e-912c-2a0311b7febd",
+        "37f1b4cd-627b-4512-a351-f61f946cc902",
+        "69e68aee-20e2-47ac-b8f6-b5eef23f2b94",
+        "eab1f096-29f3-4312-8c7b-36e88c860b0c",
+        "2f74d8e7-9927-45aa-b927-f236163b77c5",
+        "e60c51c4-2baa-4ba6-8660-a9599f7ab827",
+        "ea373e87-9729-4c26-8723-a5ab70ac82dc"
+      ]
+    },
+    {
+      "id": "eb66ea90-1d4e-4770-96ba-86cc4c063646",
+      "name": "Header and products",
+      "isCollapsed": false,
+      "nodeIds": [
+        "52a7d0d9-b747-4b91-b6b3-2b81eb9f6707",
+        "f9dc6962-93a8-4539-9343-ff8d12f8e5d8",
+        "e5851ef3-1a2a-4c2c-a596-2116d736443c",
+        "400f97fe-dbc5-4ac4-80db-5cd8221cd796",
+        "7c7821f5-33fa-45db-9a50-6631b7dfcd1a",
+        "9c91d61b-ca74-4061-a736-6fd07b9316b4",
+        "ddc78e84-ee30-4ded-b3b6-037a8177f9dd",
+        "39718019-8261-4098-984b-5c6d3c89dec4",
+        "50ba5ced-4552-41e4-9bdf-c491acdf1177",
+        "825fcd9b-a6c4-4ebc-89d7-cc3e959dbca0",
+        "0bdbf7e7-78a6-45db-b5eb-feaefe9c2ddf"
+      ]
+    },
+    {
+      "id": "d6a7c2d1-0f7b-4fdb-b9c4-f544c584dc92",
+      "name": "JSON get and set",
+      "isCollapsed": false,
+      "nodeIds": [
+        "232a9174-2089-44c6-9711-5353900322e6",
+        "9b7f9c3c-edb1-4b25-bee0-20ca6874f5bb",
+        "113fd460-cee3-41d6-97c5-706d5fd79c9d",
+        "18a5f589-df1d-42f2-a301-afb2e58f5ec3",
+        "68bf95dc-fd4a-4619-a5ea-d32d7847f747",
+        "d5763def-4325-4d89-9859-66e51aca5551"
+      ]
+    },
+    {
+      "id": "9c9577bf-4921-45a9-b5cd-8ea42197f37b",
+      "name": "Feed titles",
+      "isCollapsed": false,
+      "nodeIds": [
+        "3485cfdb-70dd-4af3-a9d9-8f1914bf549e",
+        "50c841b0-8bb5-446f-8fb9-a858a0fd1300",
+        "fa2968a2-bf58-40b7-8f35-420294a46722",
+        "36bab9f3-c7e0-4e1f-9e2c-1a46f7700770",
+        "cce09ad7-49aa-4922-9a4b-cc8aa65affb1",
+        "209cda7f-77cf-417a-b645-cb425bbfa488",
+        "9c4f97f4-adcd-477d-9d87-0abd7e0cbf26",
+        "7e3b6ab0-c6cd-4345-9568-94b024fb52b8",
+        "023f8905-1094-4631-9184-105fceb70981",
+        "e0e3d8d4-8bd9-46f4-a38a-a7fbc719de43"
+      ]
+    }
+  ]
+}

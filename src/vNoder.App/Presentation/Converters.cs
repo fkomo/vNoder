@@ -1,8 +1,10 @@
+using System.Data;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using vNoder.Core;
+using vNoder.Nodes;
 
 namespace vNoder.App.Presentation;
 
@@ -64,6 +66,8 @@ public sealed class CategoryBrushConverter : IValueConverter
         ["Date"] = PortBrushConverter.Frozen("#FF94502E"),
         ["Path"] = PortBrushConverter.Frozen("#FF6E5530"),
         ["System"] = PortBrushConverter.Frozen("#FF803A3A"),
+        ["Flow"] = PortBrushConverter.Frozen("#FF5E6B2A"),
+        ["Data"] = PortBrushConverter.Frozen("#FF2F6A4F"),
     };
 
     private static readonly SolidColorBrush Fallback = PortBrushConverter.Frozen("#FF414250");
@@ -160,6 +164,69 @@ public sealed class BytesToImageConverter : IValueConverter
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// The Table node's rows as a <see cref="DataView"/>, which a DataGrid generates columns for. Columns
+/// are named c0, c1 … with the real header as the caption: a DataGrid reads a column name as a binding
+/// path, so a header such as "a.b" or "x[1]" would bind to nothing.
+/// </summary>
+public sealed class TableToViewConverter : IValueConverter
+{
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is not TableSnapshot table)
+            return null;
+
+        var data = new DataTable();
+        for (var i = 0; i < table.Columns.Count; i++)
+            data.Columns.Add(new DataColumn($"c{i}", typeof(string)) { Caption = table.Columns[i] });
+
+        foreach (var row in table.Rows)
+        {
+            var cells = new object[table.Columns.Count];
+            for (var i = 0; i < cells.Length; i++)
+                cells[i] = i < row.Length ? row[i] : string.Empty;
+
+            data.Rows.Add(cells);
+        }
+
+        return data.DefaultView;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
+/// <summary>
+/// The Plot node's values as polyline points in the plot area's own pixels: oldest at the left, newest
+/// at the right, the lowest value at the bottom and the highest at the top. A flat series sits
+/// mid-height rather than dividing by a zero range.
+/// </summary>
+public sealed class PlotPointsConverter : IMultiValueConverter
+{
+    public object Convert(object?[] values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var points = new PointCollection();
+        if (values is not [double[] { Length: > 0 } series, double width, double height] || width <= 0 || height <= 0)
+            return points;
+
+        var min = series.Min();
+        var range = series.Max() - min;
+        var step = series.Length > 1 ? width / (series.Length - 1) : 0;
+
+        for (var i = 0; i < series.Length; i++)
+        {
+            var y = range == 0 ? height / 2 : height - ((series[i] - min) / range * height);
+            points.Add(new Point(series.Length > 1 ? i * step : width / 2, y));
+        }
+
+        points.Freeze();
+        return points;
+    }
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 }
 

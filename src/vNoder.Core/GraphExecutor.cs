@@ -13,10 +13,14 @@ public sealed class GraphExecutor(Graph graph)
     private CancellationTokenSource? _continuousCancellation;
     private Task? _continuousLoop;
     private long _tick;
+    private long _run;
 
     public Graph Graph { get; } = graph;
 
     public bool IsRunningContinuously => _continuousLoop is { IsCompleted: false };
+
+    /// <summary>Clipboard and notifications, handed to nodes on <see cref="NodeEvaluationContext.Host"/>.</summary>
+    public INodeHost? Host { get; set; }
 
     /// <summary>
     /// Raised after each completed pass, on the evaluation thread. Subscribers that touch UI state are
@@ -80,6 +84,7 @@ public sealed class GraphExecutor(Graph graph)
 
         _continuousCancellation?.Dispose();
         _continuousCancellation = new CancellationTokenSource();
+        Interlocked.Increment(ref _run);
         var token = _continuousCancellation.Token;
 
         _continuousLoop = Task.Run(() => ContinuousLoopAsync(token), CancellationToken.None);
@@ -267,7 +272,7 @@ public sealed class GraphExecutor(Graph graph)
         CancellationToken cancellationToken,
         Action<NodeBase, NodeRunPhase>? observer = null)
     {
-        var context = new NodeEvaluationContext(tick, cancellationToken);
+        var context = new NodeEvaluationContext(tick, cancellationToken, Interlocked.Read(ref _run), Host);
         var order = Graph.TopologicalOrder();
         var failed = new List<NodeBase>();
         var skipped = new List<NodeBase>();

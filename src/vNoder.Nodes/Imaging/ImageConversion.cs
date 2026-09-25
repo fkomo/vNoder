@@ -66,10 +66,19 @@ internal static class ImageConversion
 
         using var image = Load(source);
         cancellationToken.ThrowIfCancellationRequested();
+        return Encode(image, target, quality);
+    }
+
+    /// <summary>
+    /// Encodes an image made or edited in place (Solid Color, Draw Text) as <paramref name="target"/>,
+    /// flattening it onto white first for a format without alpha, as <see cref="Convert"/> does.
+    /// </summary>
+    public static byte[] Encode(Image image, ImageFileFormat target, int quality)
+    {
         FlattenIfOpaque(image, target);
 
         using var output = new MemoryStream();
-        image.Save(output, Encoder(target, quality));
+        image.Save(output, Encoder(target, Math.Clamp(quality, 1, 100)));
         return output.ToArray();
     }
 
@@ -100,7 +109,8 @@ internal static class ImageConversion
         return (output.ToArray(), image.Width, image.Height);
     }
 
-    private static Image Load(byte[] source)
+    /// <summary>Decodes to pixels, with a message naming the format when that fails.</summary>
+    public static Image Load(byte[] source)
     {
         try
         {

@@ -1,0 +1,1095 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 0.57,
+    "offsetX": 20,
+    "offsetY": 20
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "0d5dfe56-f5b8-4ad0-8239-dac05f06ae63",
+      "type": "Crypto/Self-Signed Certificate",
+      "x": 30,
+      "y": 74,
+      "state": {
+        "CertificateAuthority": true,
+        "KeyType": 4,
+        "Names": "",
+        "Password": "",
+        "Subject": "CN=vNoder Showcase CA, O=vNoder",
+        "ValidDays": 3650
+      }
+    },
+    {
+      "id": "01b03c2d-99aa-47fc-a010-1c864d047e13",
+      "type": "Crypto/Issue Certificate",
+      "x": 290,
+      "y": 74,
+      "state": {
+        "CaPassword": "",
+        "CertificateAuthority": false,
+        "KeyType": 0,
+        "Names": "localhost, 127.0.0.1",
+        "Password": "",
+        "Subject": "localhost",
+        "ValidDays": 397
+      }
+    },
+    {
+      "id": "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+      "type": "Crypto/Certificate Load",
+      "x": 620,
+      "y": 74,
+      "state": {
+        "Password": "",
+        "Path": ""
+      }
+    },
+    {
+      "id": "2a2ea785-385d-476d-90ca-134b05e4c11b",
+      "type": "Text/Template",
+      "x": 1140,
+      "y": 74,
+      "state": {
+        "Template": "{A}, issued by {B}, valid {C} more days, for {D}"
+      }
+    },
+    {
+      "id": "9255bcee-324e-41b9-92bc-8eaecb04aa97",
+      "type": "Convert/Number Format",
+      "x": 880,
+      "y": 74,
+      "state": {
+        "Culture": "",
+        "Decimals": 0,
+        "Format": "0.00",
+        "Style": 0
+      }
+    },
+    {
+      "id": "b6ef3502-5f50-427a-967b-c48e275a0a96",
+      "type": "Output/Output",
+      "x": 1400,
+      "y": 74,
+      "w": 260,
+      "h": 60,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "f74898dd-a7a9-4fa3-a8ee-7b23b5b21f41",
+      "type": "Crypto/Certificate Request",
+      "x": 30,
+      "y": 409,
+      "state": {
+        "KeyType": 0,
+        "Names": "api.example.com, www.api.example.com",
+        "Subject": "CN=api.example.com, O=Example"
+      }
+    },
+    {
+      "id": "74f5496e-09e1-49ed-b1c4-7d491a5e9a66",
+      "type": "Output/Output",
+      "x": 290,
+      "y": 466,
+      "w": 260,
+      "h": 100,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "d9b8d5f1-5474-4cb3-a022-06736d47fcf1",
+      "type": "Input/Static Text",
+      "x": 1840,
+      "y": 74,
+      "state": {
+        "Text": "Pay 100 EUR to Alice"
+      }
+    },
+    {
+      "id": "7d9f3a88-1224-4161-9896-33e9e6abf835",
+      "type": "Input/Static Text",
+      "x": 2100,
+      "y": 74,
+      "state": {
+        "Text": "Pay 900 EUR to Mallory"
+      }
+    },
+    {
+      "id": "4affa663-a4d0-4e6b-9921-81b6c1601c1e",
+      "type": "Crypto/Key Pair",
+      "x": 1840,
+      "y": 238,
+      "state": {
+        "KeyType": 3,
+        "Password": ""
+      }
+    },
+    {
+      "id": "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+      "type": "Crypto/Sign Data",
+      "x": 2100,
+      "y": 238,
+      "state": {
+        "Format": 0,
+        "Hash": 0,
+        "Padding": 0
+      }
+    },
+    {
+      "id": "156e31fb-7a55-4abc-87f0-d347a04934bf",
+      "type": "Crypto/Verify Signature",
+      "x": 2360,
+      "y": 74,
+      "state": {
+        "Format": 0,
+        "Hash": 0,
+        "Padding": 0
+      }
+    },
+    {
+      "id": "2057864d-d49b-463c-8a92-e09f60911b85",
+      "type": "Crypto/Verify Signature",
+      "x": 2360,
+      "y": 276,
+      "state": {
+        "Format": 0,
+        "Hash": 0,
+        "Padding": 0
+      }
+    },
+    {
+      "id": "c506b5ba-27fd-48da-90a1-865baea93021",
+      "type": "Text/Template",
+      "x": 2620,
+      "y": 74,
+      "state": {
+        "Template": "original: {A} \u00B7 tampered: {B}\nsignature: {C}"
+      }
+    },
+    {
+      "id": "d75d32f3-f222-45ee-ad88-d71908f0b4f9",
+      "type": "Output/Output",
+      "x": 2880,
+      "y": 74,
+      "w": 260,
+      "h": 60,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "eb763b67-742f-418c-ba93-0abe61fc1688",
+      "type": "Input/Static Text",
+      "x": 1840,
+      "y": 576,
+      "state": {
+        "Text": "{\u0022sub\u0022:\u0022showcase\u0022,\u0022role\u0022:\u0022admin\u0022}"
+      }
+    },
+    {
+      "id": "e75fad81-05a0-47fd-b8df-9fd14b8a647b",
+      "type": "Encoding/JWT Encode",
+      "x": 2100,
+      "y": 576,
+      "state": {
+        "Algorithm": 0,
+        "ExpiresIn": 3600,
+        "IssuedAt": true,
+        "KeyId": "",
+        "Secret": "showcase-secret-change-me"
+      }
+    },
+    {
+      "id": "40ef8f71-e012-45c9-859b-45333e9ffbda",
+      "type": "Encoding/JWT Decode",
+      "x": 2360,
+      "y": 576
+    },
+    {
+      "id": "1c90e35b-9a47-4859-8d8f-2df4919d939c",
+      "type": "Output/Output",
+      "x": 2620,
+      "y": 576,
+      "w": 220,
+      "h": 80,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "f47b8c23-5237-44b4-9a1f-17c0f70348ff",
+      "type": "Input/Static Text",
+      "x": 30,
+      "y": 766,
+      "state": {
+        "Text": "JBSWY3DPEHPK3PXP"
+      }
+    },
+    {
+      "id": "9c26d182-eee3-4fbd-bc7b-1bb8eda1fce1",
+      "type": "Crypto/TOTP",
+      "x": 290,
+      "y": 766,
+      "state": {
+        "Algorithm": 0,
+        "Digits": 6,
+        "Period": 30,
+        "Secret": ""
+      }
+    },
+    {
+      "id": "6d73ccfc-7bbe-4fc6-83ab-d60f6d75eb8f",
+      "type": "Text/Template",
+      "x": 550,
+      "y": 766,
+      "state": {
+        "Template": "code {A}, {B} s left"
+      }
+    },
+    {
+      "id": "1d82824b-c508-44fe-9ad0-a3db3c4520f2",
+      "type": "Output/Output",
+      "x": 810,
+      "y": 766,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "f7c3aca2-1162-4859-b4da-1c650f328cbd",
+      "type": "Text/Template",
+      "x": 290,
+      "y": 981,
+      "state": {
+        "Template": "otpauth://totp/vNoder:showcase?secret={A}\u0026issuer=vNoder"
+      }
+    },
+    {
+      "id": "30521928-227b-40ef-88e1-8f7fb82b38d0",
+      "type": "Encoding/QR Code",
+      "x": 550,
+      "y": 1018,
+      "w": 160,
+      "h": 150,
+      "state": {
+        "ErrorCorrection": 1,
+        "PixelsPerModule": 10
+      }
+    },
+    {
+      "id": "5808e5a9-4df5-4c35-b945-75e5f442821d",
+      "type": "Encoding/Barcode Read",
+      "x": 810,
+      "y": 1018
+    },
+    {
+      "id": "b18e9473-a793-473a-a95f-70467819db01",
+      "type": "Output/Output",
+      "x": 1070,
+      "y": 1018,
+      "w": 240,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "3554c09b-a550-46e4-8b8e-2e6ae12e73e2",
+      "type": "Encoding/Base32 Decode",
+      "x": 290,
+      "y": 1233
+    },
+    {
+      "id": "4ccf571b-32ce-43ee-8c06-bedb5b113bfa",
+      "type": "Encoding/Hex Encode",
+      "x": 550,
+      "y": 1256,
+      "state": {
+        "Separator": "",
+        "Uppercase": false
+      }
+    },
+    {
+      "id": "de407438-63b3-433b-ab06-2ccf974ef3bb",
+      "type": "Output/Output",
+      "x": 810,
+      "y": 1256,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "f395bbc8-c270-4422-92b2-95e692d199e7",
+      "type": "Generators/Random Bytes",
+      "x": 30,
+      "y": 930,
+      "state": {
+        "Length": 20
+      }
+    },
+    {
+      "id": "0a7d3894-5e7b-4756-b82b-5fff1e5e69d4",
+      "type": "Encoding/Base32 Encode",
+      "x": 290,
+      "y": 1343,
+      "state": {
+        "Padding": false
+      }
+    },
+    {
+      "id": "2003dde6-ce86-4bf5-b8ea-e5593ed4d021",
+      "type": "Output/Output",
+      "x": 550,
+      "y": 1398,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "f38d4676-e9fb-482a-87df-54bf47db2ab4",
+      "type": "Input/Static Text",
+      "x": 1840,
+      "y": 930,
+      "state": {
+        "Text": "mailto:alice@example.com"
+      }
+    },
+    {
+      "id": "cc08ea5e-b009-4668-8ef1-3fe278d50b65",
+      "type": "Generators/Name-Based GUID",
+      "x": 2100,
+      "y": 930,
+      "state": {
+        "CustomNamespace": "",
+        "Name": "",
+        "Namespace": 1,
+        "Version": 0
+      }
+    },
+    {
+      "id": "9bd8212f-b11b-49a5-aae7-e8a2a17ac051",
+      "type": "Output/Output",
+      "x": 2360,
+      "y": 930,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "270673a7-cf29-4b2b-a480-dc52224a10c1",
+      "type": "Input/Static Text",
+      "x": 1840,
+      "y": 1221,
+      "state": {
+        "Text": "{\u0022event\u0022:\u0022order.paid\u0022,\u0022amount\u0022:100}"
+      }
+    },
+    {
+      "id": "2adc17ff-4a75-405b-ab4b-c5c2ca9238c7",
+      "type": "Crypto/HMAC",
+      "x": 2100,
+      "y": 1221,
+      "state": {
+        "Algorithm": 0,
+        "Key": "whsec_showcase"
+      }
+    },
+    {
+      "id": "03ed0c67-0004-4543-9a40-46c69c2733c5",
+      "type": "Text/Template",
+      "x": 2360,
+      "y": 1221,
+      "state": {
+        "Template": "X-Signature: sha256={A}"
+      }
+    },
+    {
+      "id": "3896fbf0-43a2-4ac9-bc64-3b08723c1a02",
+      "type": "Output/Output",
+      "x": 2620,
+      "y": 1221,
+      "w": 260,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "a9e90432-3994-4c1b-a28b-2bf78786343d",
+      "type": "Input/Static Text",
+      "x": 1840,
+      "y": 1571,
+      "state": {
+        "Text": "The vault code is 1234."
+      }
+    },
+    {
+      "id": "dfae19a4-f5bb-42ef-8ca6-a2c14191f65a",
+      "type": "Crypto/AES Encrypt",
+      "x": 2100,
+      "y": 1571,
+      "state": {
+        "Password": "correct horse battery staple"
+      }
+    },
+    {
+      "id": "836225fa-d0c0-42f8-be2d-daa0a2e20ac2",
+      "type": "Output/Output",
+      "x": 2360,
+      "y": 1571,
+      "w": 240,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "c778404b-a6dc-4579-b37a-2996c1c643c7",
+      "type": "Crypto/AES Decrypt",
+      "x": 2360,
+      "y": 1707,
+      "state": {
+        "Password": "correct horse battery staple"
+      }
+    },
+    {
+      "id": "ddf28cbf-0841-40f1-8432-ca21aae0afdb",
+      "type": "Output/Output",
+      "x": 2670,
+      "y": 1707,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "b7c86903-5cde-4408-a2aa-1bb37f7824ff",
+      "type": "Input/Static Text",
+      "x": 30,
+      "y": 1660,
+      "state": {
+        "Text": "hunter2"
+      }
+    },
+    {
+      "id": "1faef6ce-fd0c-468d-8cb4-75b846bbc2d5",
+      "type": "Crypto/BCrypt Hash",
+      "x": 290,
+      "y": 1824,
+      "state": {
+        "WorkFactor": 10
+      }
+    },
+    {
+      "id": "29538e33-679d-4e5e-90d1-6eecc315ad93",
+      "type": "Crypto/BCrypt Verify",
+      "x": 550,
+      "y": 1660
+    },
+    {
+      "id": "bc07e08c-74c4-48b1-abbd-c643e0620fb7",
+      "type": "Crypto/BCrypt Verify",
+      "x": 550,
+      "y": 1770
+    },
+    {
+      "id": "af1adb85-9a1b-4381-bdfa-5bbd6981e8eb",
+      "type": "Input/Static Text",
+      "x": 290,
+      "y": 1660,
+      "state": {
+        "Text": "hunter3"
+      }
+    },
+    {
+      "id": "6f1ac43c-8fe9-4b5a-83c2-12f69b3ee491",
+      "type": "Text/Template",
+      "x": 810,
+      "y": 1660,
+      "state": {
+        "Template": "{A}\nright password: {B} \u00B7 wrong password: {C}"
+      }
+    },
+    {
+      "id": "159a7970-530b-48c0-95e5-cc5315bb7216",
+      "type": "Output/Output",
+      "x": 1120,
+      "y": 1660,
+      "w": 260,
+      "h": 60,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "983aac89-2650-49a2-9c61-5d4dc088437a",
+      "type": "Crypto/PBKDF2",
+      "x": 290,
+      "y": 1969,
+      "state": {
+        "Algorithm": 1,
+        "Iterations": 600000,
+        "Length": 32,
+        "Salt": "showcase-salt"
+      }
+    },
+    {
+      "id": "c6e467b0-a757-4132-96e4-62bc522f757a",
+      "type": "Encoding/Hex Encode",
+      "x": 550,
+      "y": 1969,
+      "state": {
+        "Separator": "",
+        "Uppercase": false
+      }
+    },
+    {
+      "id": "b2114485-87e1-4b31-ae6f-dc1f056f426a",
+      "type": "Output/Output",
+      "x": 810,
+      "y": 1969,
+      "w": 240,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "320a91ac-1897-4c0a-8c9c-8125e6f9417f",
+      "type": "Generators/GUID",
+      "x": 1840,
+      "y": 1969,
+      "state": {
+        "Format": 1,
+        "Uppercase": false,
+        "Version": 1
+      }
+    },
+    {
+      "id": "7469ef88-635e-47b2-9464-eabb55e91e0d",
+      "type": "Generators/Random String",
+      "x": 1840,
+      "y": 2111,
+      "state": {
+        "Charset": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        "Length": 32
+      }
+    },
+    {
+      "id": "1bda5660-6347-40bb-a7e6-ef380c83b9d4",
+      "type": "Text/Template",
+      "x": 2100,
+      "y": 1969,
+      "state": {
+        "Template": "vn_{A}.{B}"
+      }
+    },
+    {
+      "id": "cc3ab4c6-2edb-482f-8a3f-0bf6cfe6848c",
+      "type": "Output/Output",
+      "x": 2360,
+      "y": 1969,
+      "w": 260,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "0d5dfe56-f5b8-4ad0-8239-dac05f06ae63",
+      "fromPort": "PFX",
+      "toNode": "01b03c2d-99aa-47fc-a010-1c864d047e13",
+      "toPort": "CA"
+    },
+    {
+      "fromNode": "01b03c2d-99aa-47fc-a010-1c864d047e13",
+      "fromPort": "PFX",
+      "toNode": "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+      "fromPort": "Subject",
+      "toNode": "2a2ea785-385d-476d-90ca-134b05e4c11b",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+      "fromPort": "Issuer",
+      "toNode": "2a2ea785-385d-476d-90ca-134b05e4c11b",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+      "fromPort": "Days Left",
+      "toNode": "9255bcee-324e-41b9-92bc-8eaecb04aa97",
+      "toPort": "Number"
+    },
+    {
+      "fromNode": "9255bcee-324e-41b9-92bc-8eaecb04aa97",
+      "fromPort": "Text",
+      "toNode": "2a2ea785-385d-476d-90ca-134b05e4c11b",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+      "fromPort": "Names",
+      "toNode": "2a2ea785-385d-476d-90ca-134b05e4c11b",
+      "toPort": "D"
+    },
+    {
+      "fromNode": "2a2ea785-385d-476d-90ca-134b05e4c11b",
+      "fromPort": "Text",
+      "toNode": "b6ef3502-5f50-427a-967b-c48e275a0a96",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f74898dd-a7a9-4fa3-a8ee-7b23b5b21f41",
+      "fromPort": "CSR",
+      "toNode": "74f5496e-09e1-49ed-b1c4-7d491a5e9a66",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "d9b8d5f1-5474-4cb3-a022-06736d47fcf1",
+      "fromPort": "Text",
+      "toNode": "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "4affa663-a4d0-4e6b-9921-81b6c1601c1e",
+      "fromPort": "Private Key",
+      "toNode": "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+      "toPort": "Private Key"
+    },
+    {
+      "fromNode": "d9b8d5f1-5474-4cb3-a022-06736d47fcf1",
+      "fromPort": "Text",
+      "toNode": "156e31fb-7a55-4abc-87f0-d347a04934bf",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "4affa663-a4d0-4e6b-9921-81b6c1601c1e",
+      "fromPort": "Public Key",
+      "toNode": "156e31fb-7a55-4abc-87f0-d347a04934bf",
+      "toPort": "Key"
+    },
+    {
+      "fromNode": "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+      "fromPort": "Signature",
+      "toNode": "156e31fb-7a55-4abc-87f0-d347a04934bf",
+      "toPort": "Signature"
+    },
+    {
+      "fromNode": "7d9f3a88-1224-4161-9896-33e9e6abf835",
+      "fromPort": "Text",
+      "toNode": "2057864d-d49b-463c-8a92-e09f60911b85",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "4affa663-a4d0-4e6b-9921-81b6c1601c1e",
+      "fromPort": "Public Key",
+      "toNode": "2057864d-d49b-463c-8a92-e09f60911b85",
+      "toPort": "Key"
+    },
+    {
+      "fromNode": "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+      "fromPort": "Signature",
+      "toNode": "2057864d-d49b-463c-8a92-e09f60911b85",
+      "toPort": "Signature"
+    },
+    {
+      "fromNode": "156e31fb-7a55-4abc-87f0-d347a04934bf",
+      "fromPort": "Valid",
+      "toNode": "c506b5ba-27fd-48da-90a1-865baea93021",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "2057864d-d49b-463c-8a92-e09f60911b85",
+      "fromPort": "Valid",
+      "toNode": "c506b5ba-27fd-48da-90a1-865baea93021",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+      "fromPort": "Base64",
+      "toNode": "c506b5ba-27fd-48da-90a1-865baea93021",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "c506b5ba-27fd-48da-90a1-865baea93021",
+      "fromPort": "Text",
+      "toNode": "d75d32f3-f222-45ee-ad88-d71908f0b4f9",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "eb763b67-742f-418c-ba93-0abe61fc1688",
+      "fromPort": "Text",
+      "toNode": "e75fad81-05a0-47fd-b8df-9fd14b8a647b",
+      "toPort": "Payload"
+    },
+    {
+      "fromNode": "e75fad81-05a0-47fd-b8df-9fd14b8a647b",
+      "fromPort": "Token",
+      "toNode": "40ef8f71-e012-45c9-859b-45333e9ffbda",
+      "toPort": "Token"
+    },
+    {
+      "fromNode": "40ef8f71-e012-45c9-859b-45333e9ffbda",
+      "fromPort": "Payload",
+      "toNode": "1c90e35b-9a47-4859-8d8f-2df4919d939c",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f47b8c23-5237-44b4-9a1f-17c0f70348ff",
+      "fromPort": "Text",
+      "toNode": "9c26d182-eee3-4fbd-bc7b-1bb8eda1fce1",
+      "toPort": "Secret"
+    },
+    {
+      "fromNode": "9c26d182-eee3-4fbd-bc7b-1bb8eda1fce1",
+      "fromPort": "Code",
+      "toNode": "6d73ccfc-7bbe-4fc6-83ab-d60f6d75eb8f",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "9c26d182-eee3-4fbd-bc7b-1bb8eda1fce1",
+      "fromPort": "Seconds Left",
+      "toNode": "6d73ccfc-7bbe-4fc6-83ab-d60f6d75eb8f",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "6d73ccfc-7bbe-4fc6-83ab-d60f6d75eb8f",
+      "fromPort": "Text",
+      "toNode": "1d82824b-c508-44fe-9ad0-a3db3c4520f2",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f47b8c23-5237-44b4-9a1f-17c0f70348ff",
+      "fromPort": "Text",
+      "toNode": "f7c3aca2-1162-4859-b4da-1c650f328cbd",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "f7c3aca2-1162-4859-b4da-1c650f328cbd",
+      "fromPort": "Text",
+      "toNode": "30521928-227b-40ef-88e1-8f7fb82b38d0",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "30521928-227b-40ef-88e1-8f7fb82b38d0",
+      "fromPort": "PNG",
+      "toNode": "5808e5a9-4df5-4c35-b945-75e5f442821d",
+      "toPort": "Image"
+    },
+    {
+      "fromNode": "5808e5a9-4df5-4c35-b945-75e5f442821d",
+      "fromPort": "Text",
+      "toNode": "b18e9473-a793-473a-a95f-70467819db01",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f47b8c23-5237-44b4-9a1f-17c0f70348ff",
+      "fromPort": "Text",
+      "toNode": "3554c09b-a550-46e4-8b8e-2e6ae12e73e2",
+      "toPort": "Base32"
+    },
+    {
+      "fromNode": "3554c09b-a550-46e4-8b8e-2e6ae12e73e2",
+      "fromPort": "Bytes",
+      "toNode": "4ccf571b-32ce-43ee-8c06-bedb5b113bfa",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "4ccf571b-32ce-43ee-8c06-bedb5b113bfa",
+      "fromPort": "Hex",
+      "toNode": "de407438-63b3-433b-ab06-2ccf974ef3bb",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f395bbc8-c270-4422-92b2-95e692d199e7",
+      "fromPort": "Bytes",
+      "toNode": "0a7d3894-5e7b-4756-b82b-5fff1e5e69d4",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "0a7d3894-5e7b-4756-b82b-5fff1e5e69d4",
+      "fromPort": "Base32",
+      "toNode": "2003dde6-ce86-4bf5-b8ea-e5593ed4d021",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "f38d4676-e9fb-482a-87df-54bf47db2ab4",
+      "fromPort": "Text",
+      "toNode": "cc08ea5e-b009-4668-8ef1-3fe278d50b65",
+      "toPort": "Name"
+    },
+    {
+      "fromNode": "cc08ea5e-b009-4668-8ef1-3fe278d50b65",
+      "fromPort": "GUID",
+      "toNode": "9bd8212f-b11b-49a5-aae7-e8a2a17ac051",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "270673a7-cf29-4b2b-a480-dc52224a10c1",
+      "fromPort": "Text",
+      "toNode": "2adc17ff-4a75-405b-ab4b-c5c2ca9238c7",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "2adc17ff-4a75-405b-ab4b-c5c2ca9238c7",
+      "fromPort": "Hex",
+      "toNode": "03ed0c67-0004-4543-9a40-46c69c2733c5",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "03ed0c67-0004-4543-9a40-46c69c2733c5",
+      "fromPort": "Text",
+      "toNode": "3896fbf0-43a2-4ac9-bc64-3b08723c1a02",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "a9e90432-3994-4c1b-a28b-2bf78786343d",
+      "fromPort": "Text",
+      "toNode": "dfae19a4-f5bb-42ef-8ca6-a2c14191f65a",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "dfae19a4-f5bb-42ef-8ca6-a2c14191f65a",
+      "fromPort": "Base64",
+      "toNode": "836225fa-d0c0-42f8-be2d-daa0a2e20ac2",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "dfae19a4-f5bb-42ef-8ca6-a2c14191f65a",
+      "fromPort": "Encrypted",
+      "toNode": "c778404b-a6dc-4579-b37a-2996c1c643c7",
+      "toPort": "Encrypted"
+    },
+    {
+      "fromNode": "c778404b-a6dc-4579-b37a-2996c1c643c7",
+      "fromPort": "Text",
+      "toNode": "ddf28cbf-0841-40f1-8432-ca21aae0afdb",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "b7c86903-5cde-4408-a2aa-1bb37f7824ff",
+      "fromPort": "Text",
+      "toNode": "1faef6ce-fd0c-468d-8cb4-75b846bbc2d5",
+      "toPort": "Password"
+    },
+    {
+      "fromNode": "b7c86903-5cde-4408-a2aa-1bb37f7824ff",
+      "fromPort": "Text",
+      "toNode": "29538e33-679d-4e5e-90d1-6eecc315ad93",
+      "toPort": "Password"
+    },
+    {
+      "fromNode": "1faef6ce-fd0c-468d-8cb4-75b846bbc2d5",
+      "fromPort": "Hash",
+      "toNode": "29538e33-679d-4e5e-90d1-6eecc315ad93",
+      "toPort": "Hash"
+    },
+    {
+      "fromNode": "af1adb85-9a1b-4381-bdfa-5bbd6981e8eb",
+      "fromPort": "Text",
+      "toNode": "bc07e08c-74c4-48b1-abbd-c643e0620fb7",
+      "toPort": "Password"
+    },
+    {
+      "fromNode": "1faef6ce-fd0c-468d-8cb4-75b846bbc2d5",
+      "fromPort": "Hash",
+      "toNode": "bc07e08c-74c4-48b1-abbd-c643e0620fb7",
+      "toPort": "Hash"
+    },
+    {
+      "fromNode": "1faef6ce-fd0c-468d-8cb4-75b846bbc2d5",
+      "fromPort": "Hash",
+      "toNode": "6f1ac43c-8fe9-4b5a-83c2-12f69b3ee491",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "29538e33-679d-4e5e-90d1-6eecc315ad93",
+      "fromPort": "Match",
+      "toNode": "6f1ac43c-8fe9-4b5a-83c2-12f69b3ee491",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "bc07e08c-74c4-48b1-abbd-c643e0620fb7",
+      "fromPort": "Match",
+      "toNode": "6f1ac43c-8fe9-4b5a-83c2-12f69b3ee491",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "6f1ac43c-8fe9-4b5a-83c2-12f69b3ee491",
+      "fromPort": "Text",
+      "toNode": "159a7970-530b-48c0-95e5-cc5315bb7216",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "b7c86903-5cde-4408-a2aa-1bb37f7824ff",
+      "fromPort": "Text",
+      "toNode": "983aac89-2650-49a2-9c61-5d4dc088437a",
+      "toPort": "Password"
+    },
+    {
+      "fromNode": "983aac89-2650-49a2-9c61-5d4dc088437a",
+      "fromPort": "Hash",
+      "toNode": "c6e467b0-a757-4132-96e4-62bc522f757a",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "c6e467b0-a757-4132-96e4-62bc522f757a",
+      "fromPort": "Hex",
+      "toNode": "b2114485-87e1-4b31-ae6f-dc1f056f426a",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "320a91ac-1897-4c0a-8c9c-8125e6f9417f",
+      "fromPort": "GUID",
+      "toNode": "1bda5660-6347-40bb-a7e6-ef380c83b9d4",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "7469ef88-635e-47b2-9464-eabb55e91e0d",
+      "fromPort": "Text",
+      "toNode": "1bda5660-6347-40bb-a7e6-ef380c83b9d4",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "1bda5660-6347-40bb-a7e6-ef380c83b9d4",
+      "fromPort": "Text",
+      "toNode": "cc3ab4c6-2edb-482f-8a3f-0bf6cfe6848c",
+      "toPort": "Value"
+    }
+  ],
+  "groups": [
+    {
+      "id": "daf03510-605f-4f34-8c41-0325631ae845",
+      "name": "Private CA",
+      "isCollapsed": false,
+      "nodeIds": [
+        "0d5dfe56-f5b8-4ad0-8239-dac05f06ae63",
+        "01b03c2d-99aa-47fc-a010-1c864d047e13",
+        "13c05161-adcd-41f7-aeb3-8a10975f9cf0",
+        "2a2ea785-385d-476d-90ca-134b05e4c11b",
+        "9255bcee-324e-41b9-92bc-8eaecb04aa97",
+        "b6ef3502-5f50-427a-967b-c48e275a0a96",
+        "f74898dd-a7a9-4fa3-a8ee-7b23b5b21f41",
+        "74f5496e-09e1-49ed-b1c4-7d491a5e9a66"
+      ]
+    },
+    {
+      "id": "8876d629-3ed5-49ea-9d3a-d6bb403a085b",
+      "name": "Signatures",
+      "isCollapsed": false,
+      "nodeIds": [
+        "d9b8d5f1-5474-4cb3-a022-06736d47fcf1",
+        "7d9f3a88-1224-4161-9896-33e9e6abf835",
+        "4affa663-a4d0-4e6b-9921-81b6c1601c1e",
+        "2e24b2e2-30b3-4ff1-beb3-d99f5522c2ac",
+        "156e31fb-7a55-4abc-87f0-d347a04934bf",
+        "2057864d-d49b-463c-8a92-e09f60911b85",
+        "c506b5ba-27fd-48da-90a1-865baea93021",
+        "d75d32f3-f222-45ee-ad88-d71908f0b4f9"
+      ]
+    },
+    {
+      "id": "1d4794bb-a9eb-4c50-ad57-852b89e165db",
+      "name": "JWT",
+      "isCollapsed": false,
+      "nodeIds": [
+        "eb763b67-742f-418c-ba93-0abe61fc1688",
+        "e75fad81-05a0-47fd-b8df-9fd14b8a647b",
+        "40ef8f71-e012-45c9-859b-45333e9ffbda",
+        "1c90e35b-9a47-4859-8d8f-2df4919d939c"
+      ]
+    },
+    {
+      "id": "2f65bbbb-3f19-404e-b9b4-da6ab3db10c1",
+      "name": "Two-factor codes",
+      "isCollapsed": false,
+      "nodeIds": [
+        "f47b8c23-5237-44b4-9a1f-17c0f70348ff",
+        "9c26d182-eee3-4fbd-bc7b-1bb8eda1fce1",
+        "6d73ccfc-7bbe-4fc6-83ab-d60f6d75eb8f",
+        "1d82824b-c508-44fe-9ad0-a3db3c4520f2",
+        "f7c3aca2-1162-4859-b4da-1c650f328cbd",
+        "30521928-227b-40ef-88e1-8f7fb82b38d0",
+        "5808e5a9-4df5-4c35-b945-75e5f442821d",
+        "b18e9473-a793-473a-a95f-70467819db01",
+        "3554c09b-a550-46e4-8b8e-2e6ae12e73e2",
+        "4ccf571b-32ce-43ee-8c06-bedb5b113bfa",
+        "de407438-63b3-433b-ab06-2ccf974ef3bb",
+        "f395bbc8-c270-4422-92b2-95e692d199e7",
+        "0a7d3894-5e7b-4756-b82b-5fff1e5e69d4",
+        "2003dde6-ce86-4bf5-b8ea-e5593ed4d021"
+      ]
+    },
+    {
+      "id": "151874ba-99d7-4c8e-8263-6a7e15f72255",
+      "name": "Stable id",
+      "isCollapsed": false,
+      "nodeIds": [
+        "f38d4676-e9fb-482a-87df-54bf47db2ab4",
+        "cc08ea5e-b009-4668-8ef1-3fe278d50b65",
+        "9bd8212f-b11b-49a5-aae7-e8a2a17ac051"
+      ]
+    },
+    {
+      "id": "af7d416f-7397-4703-9c75-8e77817141ea",
+      "name": "Webhook HMAC",
+      "isCollapsed": false,
+      "nodeIds": [
+        "270673a7-cf29-4b2b-a480-dc52224a10c1",
+        "2adc17ff-4a75-405b-ab4b-c5c2ca9238c7",
+        "03ed0c67-0004-4543-9a40-46c69c2733c5",
+        "3896fbf0-43a2-4ac9-bc64-3b08723c1a02"
+      ]
+    },
+    {
+      "id": "083b074a-e000-44fb-af0a-572353ddda81",
+      "name": "AES",
+      "isCollapsed": false,
+      "nodeIds": [
+        "a9e90432-3994-4c1b-a28b-2bf78786343d",
+        "dfae19a4-f5bb-42ef-8ca6-a2c14191f65a",
+        "836225fa-d0c0-42f8-be2d-daa0a2e20ac2",
+        "c778404b-a6dc-4579-b37a-2996c1c643c7",
+        "ddf28cbf-0841-40f1-8432-ca21aae0afdb"
+      ]
+    },
+    {
+      "id": "062b5d24-d334-47ac-bfc0-4e40b98e75dc",
+      "name": "Passwords",
+      "isCollapsed": false,
+      "nodeIds": [
+        "b7c86903-5cde-4408-a2aa-1bb37f7824ff",
+        "1faef6ce-fd0c-468d-8cb4-75b846bbc2d5",
+        "29538e33-679d-4e5e-90d1-6eecc315ad93",
+        "bc07e08c-74c4-48b1-abbd-c643e0620fb7",
+        "af1adb85-9a1b-4381-bdfa-5bbd6981e8eb",
+        "6f1ac43c-8fe9-4b5a-83c2-12f69b3ee491",
+        "159a7970-530b-48c0-95e5-cc5315bb7216",
+        "983aac89-2650-49a2-9c61-5d4dc088437a",
+        "c6e467b0-a757-4132-96e4-62bc522f757a",
+        "b2114485-87e1-4b31-ae6f-dc1f056f426a"
+      ]
+    },
+    {
+      "id": "53c531cc-1d7b-447e-8959-1b9fe4f20371",
+      "name": "API key",
+      "isCollapsed": false,
+      "nodeIds": [
+        "320a91ac-1897-4c0a-8c9c-8125e6f9417f",
+        "7469ef88-635e-47b2-9464-eabb55e91e0d",
+        "1bda5660-6347-40bb-a7e6-ef380c83b9d4",
+        "cc3ab4c6-2edb-482f-8a3f-0bf6cfe6848c"
+      ]
+    }
+  ]
+}

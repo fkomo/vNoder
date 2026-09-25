@@ -33,7 +33,7 @@ public sealed class ImageLoadNode : NodeBase
 
     public override async Task EvaluateAsync(NodeEvaluationContext context)
     {
-        var path = ImageFiles.Resolve(_pathIn.IsConnected ? _pathIn.ValueOr(string.Empty) : Path);
+        var path = FilePaths.Existing(_pathIn.IsConnected ? _pathIn.ValueOr(string.Empty) : Path);
         var bytes = await File.ReadAllBytesAsync(path, context.CancellationToken).ConfigureAwait(false);
 
         // Unlike File Read, a file that is not an image is an error here: that is the point of the node.
@@ -168,7 +168,8 @@ public sealed class ImageSaveNode : NodeBase
 
 /// <summary>
 /// Shared by every node that writes a file (File Write, File Copy / Move, Image Save), so they create
-/// missing folders and number a series the same way.
+/// missing folders and number a series the same way, and by the loaders (Image Load, Certificate
+/// Load) for reading a path.
 /// </summary>
 internal static class FilePaths
 {
@@ -197,11 +198,9 @@ internal static class FilePaths
                 return candidate;
         }
     }
-}
 
-internal static class ImageFiles
-{
-    public static string Resolve(string path)
+    /// <summary>A path typed or wired into a node, trimmed of quotes with variables expanded; it must exist.</summary>
+    public static string Existing(string path)
     {
         path = path.Trim().Trim('"');
         if (path.Length == 0)

@@ -1,0 +1,1099 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 0.42,
+    "offsetX": 20,
+    "offsetY": 20
+  },
+  "intervalMilliseconds": 5000,
+  "nodes": [
+    {
+      "id": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "type": "Input/Static Text",
+      "x": 30,
+      "y": 74,
+      "state": {
+        "Text": "example.com"
+      }
+    },
+    {
+      "id": "c7f01335-e66e-4c3e-96a8-c41758f2f584",
+      "type": "Text/Template",
+      "x": 290,
+      "y": 74,
+      "state": {
+        "Template": "https://{A}/"
+      }
+    },
+    {
+      "id": "6524acd3-168b-4357-a576-dfbbe20721e1",
+      "type": "Network/URL Build",
+      "x": 550,
+      "y": 74,
+      "state": {
+        "Base": "https://example.com",
+        "Path": "",
+        "Query": "source=vnoder-showcase"
+      }
+    },
+    {
+      "id": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "type": "Network/Ping",
+      "x": 1530,
+      "y": 74,
+      "state": {
+        "Host": "",
+        "TimeoutMilliseconds": 1000
+      }
+    },
+    {
+      "id": "9e2431dd-084b-4012-9746-a98c930e8ae0",
+      "type": "Network/TCP Port Check",
+      "x": 1530,
+      "y": 320,
+      "state": {
+        "Host": "localhost",
+        "Port": 443,
+        "TimeoutMilliseconds": 2000
+      }
+    },
+    {
+      "id": "9d9b48d0-a7e5-4fc2-8b5f-a2131582d93c",
+      "type": "Flow/Counter",
+      "x": 1790,
+      "y": 74,
+      "state": {
+        "Start": 0,
+        "Step": 1
+      }
+    },
+    {
+      "id": "cb2b62da-1cdc-4961-baf8-9008069e2038",
+      "type": "Text/Template",
+      "x": 2050,
+      "y": 74,
+      "state": {
+        "Template": "check #{A}: {B}, ping (ms): {C}"
+      }
+    },
+    {
+      "id": "a08d0a8b-14f2-498e-93a7-9d2cd892eb44",
+      "type": "Logic/Coalesce",
+      "x": 1790,
+      "y": 219,
+      "state": {
+        "WhitespaceIsEmpty": false
+      }
+    },
+    {
+      "id": "13bf6880-890f-4d73-9c34-50153bf0aed4",
+      "type": "Input/Static Text",
+      "x": 1530,
+      "y": 544,
+      "state": {
+        "Text": "no reply"
+      }
+    },
+    {
+      "id": "e60ab275-7f26-42ff-9a9f-be1c1117031a",
+      "type": "Logic/Select",
+      "x": 1790,
+      "y": 392,
+      "state": {
+        "Condition": false
+      }
+    },
+    {
+      "id": "5eb4fbd1-5950-4744-83d8-47f42d1ca5d6",
+      "type": "Input/Static Text",
+      "x": 1530,
+      "y": 708,
+      "state": {
+        "Text": "UP"
+      }
+    },
+    {
+      "id": "21c85407-45ae-4e89-920c-3c706c4d1732",
+      "type": "Input/Static Text",
+      "x": 1530,
+      "y": 872,
+      "state": {
+        "Text": "DOWN"
+      }
+    },
+    {
+      "id": "12e3b2e8-7dee-4b1b-9010-765888fc0a02",
+      "type": "Output/Log",
+      "x": 2310,
+      "y": 74,
+      "w": 360,
+      "h": 120,
+      "state": {
+        "MaxLines": 100,
+        "Timestamp": true
+      }
+    },
+    {
+      "id": "05dc9dc2-2ee8-41c2-952a-8ed6a0a87239",
+      "type": "Output/Plot",
+      "x": 2850,
+      "y": 74,
+      "w": 300,
+      "h": 90,
+      "state": {
+        "Length": 60
+      }
+    },
+    {
+      "id": "9594a2a6-e26d-4436-96cf-36750f2265e6",
+      "type": "Flow/History",
+      "x": 2850,
+      "y": 252,
+      "state": {
+        "Length": 20
+      }
+    },
+    {
+      "id": "6b07985a-3f43-4c02-ad53-5678ab60b4eb",
+      "type": "Math/Aggregate",
+      "x": 3220,
+      "y": 252,
+      "state": {
+        "Kind": 1
+      }
+    },
+    {
+      "id": "c74484e1-b26b-4afa-925e-62896757ae7b",
+      "type": "Convert/Number Format",
+      "x": 3480,
+      "y": 252,
+      "state": {
+        "Culture": "",
+        "Decimals": 1,
+        "Format": "0.00",
+        "Style": 0
+      }
+    },
+    {
+      "id": "50990fc2-f4dd-412f-a5a5-eec61956c85d",
+      "type": "Flow/Previous Value",
+      "x": 2850,
+      "y": 397
+    },
+    {
+      "id": "4051cac8-7bd9-4d09-9c26-1f56a51c0652",
+      "type": "Math/Subtract",
+      "x": 3220,
+      "y": 397
+    },
+    {
+      "id": "0a8cc2ff-971e-4147-8b22-000a93acf01c",
+      "type": "Text/Template",
+      "x": 3740,
+      "y": 252,
+      "state": {
+        "Template": "average of the last 20: {A} ms \u00B7 change since last check: {B} ms"
+      }
+    },
+    {
+      "id": "e765e383-42a9-4f3a-a9a2-2681ecafab2f",
+      "type": "Output/Output",
+      "x": 4000,
+      "y": 252,
+      "w": 280,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+      "type": "Network/TLS Certificate",
+      "x": 30,
+      "y": 436,
+      "state": {
+        "Host": "",
+        "Port": 443,
+        "TimeoutSeconds": 10
+      }
+    },
+    {
+      "id": "a5bfd0d8-ce71-4154-a2e0-9e601d737302",
+      "type": "Convert/Number Format",
+      "x": 290,
+      "y": 543,
+      "state": {
+        "Culture": "",
+        "Decimals": 0,
+        "Format": "0.00",
+        "Style": 0
+      }
+    },
+    {
+      "id": "d191bd12-d456-493c-bd50-3ae9afad9a52",
+      "type": "Date/Format",
+      "x": 290,
+      "y": 758,
+      "state": {
+        "Culture": "",
+        "Format": "d MMM yyyy"
+      }
+    },
+    {
+      "id": "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+      "type": "Text/Template",
+      "x": 550,
+      "y": 764,
+      "state": {
+        "Template": "{A}: certificate expires {B}, in {C} days; trusted: {D}"
+      }
+    },
+    {
+      "id": "74fbe5ec-0d9a-47e2-859e-c76682dc823c",
+      "type": "Output/Output",
+      "x": 810,
+      "y": 764,
+      "w": 280,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "fcd5274c-3d46-4556-8855-c315707e2bcc",
+      "type": "Input/Static Number",
+      "x": 30,
+      "y": 902,
+      "state": {
+        "Value": 30
+      }
+    },
+    {
+      "id": "0870f8ef-6f00-4169-99f1-21b3b32b4cee",
+      "type": "Logic/Compare",
+      "x": 290,
+      "y": 938,
+      "state": {
+        "IgnoreCase": false
+      }
+    },
+    {
+      "id": "fc735618-3d3b-486c-8ecd-9f03bb7d1911",
+      "type": "Logic/Equals",
+      "x": 550,
+      "y": 1016,
+      "state": {
+        "IgnoreCase": false
+      }
+    },
+    {
+      "id": "be76d1fb-0440-4a1a-8515-7b85b4e48a70",
+      "type": "Input/Static Number",
+      "x": 290,
+      "y": 436,
+      "state": {
+        "Value": -1
+      }
+    },
+    {
+      "id": "cc8ed441-f6ca-4e74-90f9-b8b974483556",
+      "type": "Logic/Select",
+      "x": 810,
+      "y": 436,
+      "state": {
+        "Condition": false
+      }
+    },
+    {
+      "id": "14d56e6c-8475-4659-b6d3-e3055639c213",
+      "type": "Input/Static Text",
+      "x": 550,
+      "y": 436,
+      "state": {
+        "Text": "renew now: under 30 days left"
+      }
+    },
+    {
+      "id": "c7c0cdfe-bea4-48a4-b676-abfbab2f34c4",
+      "type": "Input/Static Text",
+      "x": 550,
+      "y": 600,
+      "state": {
+        "Text": "certificate fine for 30\u002B days"
+      }
+    },
+    {
+      "id": "c7321b7f-b55d-4ad8-948d-753d2da8e1da",
+      "type": "Output/Output",
+      "x": 1160,
+      "y": 436,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "ef43c944-652d-4b3b-afa4-9cce0cc08b4c",
+      "type": "Network/DNS Lookup",
+      "x": 30,
+      "y": 1009,
+      "state": {
+        "Host": "",
+        "Ipv4Only": false
+      }
+    },
+    {
+      "id": "9f28fdd9-3d17-4c06-bf3d-e5a17630ce4e",
+      "type": "Network/IP Range",
+      "x": 290,
+      "y": 1061,
+      "state": {
+        "Address": "",
+        "Cidr": "10.0.0.0/8"
+      }
+    },
+    {
+      "id": "50b30c5f-f583-4a0a-a7cf-b88acb906e5f",
+      "type": "Text/Template",
+      "x": 550,
+      "y": 1139,
+      "state": {
+        "Template": "{A} \u2192 {B} (private network: {C})"
+      }
+    },
+    {
+      "id": "29cbcc53-c4b4-4019-8738-b5edbf9d7da8",
+      "type": "Output/Output",
+      "x": 810,
+      "y": 1139,
+      "w": 280,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "type": "Network/HTTP Request",
+      "x": 2850,
+      "y": 605,
+      "h": 220,
+      "state": {
+        "Body": "",
+        "ContentType": "application/json",
+        "Headers": "",
+        "Method": 0,
+        "TimeoutSeconds": 30,
+        "Url": ""
+      }
+    },
+    {
+      "id": "d4d80e20-be40-4111-875f-b8c033c6df64",
+      "type": "Crypto/Hash",
+      "x": 3110,
+      "y": 605,
+      "state": {
+        "Algorithm": 2
+      }
+    },
+    {
+      "id": "254fecb1-30fd-48c8-858c-6505a4977077",
+      "type": "Flow/Changed",
+      "x": 3370,
+      "y": 605,
+      "state": {
+        "FirstCounts": true
+      }
+    },
+    {
+      "id": "27ebcef4-96bc-4d4e-901e-4ffde6398647",
+      "type": "Text/Regex Extract All",
+      "x": 2850,
+      "y": 1121,
+      "state": {
+        "Group": 1,
+        "IgnoreCase": true,
+        "Multiline": false,
+        "Pattern": "\u003Ctitle\u003E(.*?)\u003C/title\u003E"
+      }
+    },
+    {
+      "id": "ab0f01bd-49f5-467c-b4a9-ffb468ce7cd4",
+      "type": "List/First",
+      "x": 3110,
+      "y": 1429
+    },
+    {
+      "id": "36254dad-c929-4115-915d-b786379a2b53",
+      "type": "Text/Contains",
+      "x": 3110,
+      "y": 1121,
+      "state": {
+        "Find": "Example Domain",
+        "IgnoreCase": false,
+        "Mode": 0
+      }
+    },
+    {
+      "id": "934bb17f-7c88-45d8-9411-99aed4fa962b",
+      "type": "Logic/Is Empty",
+      "x": 2850,
+      "y": 1320,
+      "state": {
+        "WhitespaceIsEmpty": true
+      }
+    },
+    {
+      "id": "3761637f-df71-4ef5-ba1d-f6d0fa4da93d",
+      "type": "Logic/Not",
+      "x": 3110,
+      "y": 1539
+    },
+    {
+      "id": "b4ba41ad-aa7d-4557-a237-f9d7b4e5e65a",
+      "type": "Output/Length",
+      "x": 3110,
+      "y": 1320
+    },
+    {
+      "id": "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+      "type": "Text/Template",
+      "x": 3370,
+      "y": 1121,
+      "state": {
+        "Template": "title \u0022{A}\u0022, expected text: {B}, has content: {C}, {D} characters"
+      }
+    },
+    {
+      "id": "d1a5b34d-2ffc-4d1a-ac10-5bfdb5b1e38c",
+      "type": "Output/Output",
+      "x": 3630,
+      "y": 1121,
+      "w": 280,
+      "h": 48,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "14e150c2-3eb6-4616-bae5-395af4567831",
+      "type": "Path/Special Folder",
+      "x": 2850,
+      "y": 1449,
+      "state": {
+        "Folder": 0
+      }
+    },
+    {
+      "id": "06c35a99-cae4-41eb-ae90-82a7cb3cecb3",
+      "type": "Path/Combine",
+      "x": 3110,
+      "y": 1627,
+      "state": {
+        "A": "",
+        "B": "vnoder-showcase",
+        "C": "example.html"
+      }
+    },
+    {
+      "id": "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+      "type": "Network/Download To File",
+      "x": 3370,
+      "y": 1627,
+      "state": {
+        "IfExists": 0,
+        "Path": "",
+        "TimeoutSeconds": 300,
+        "Url": ""
+      }
+    },
+    {
+      "id": "c8a7df92-c599-428f-9c38-6be880974b38",
+      "type": "Text/Template",
+      "x": 3630,
+      "y": 1627,
+      "state": {
+        "Template": "A new snapshot of {A} was saved to {B}"
+      }
+    },
+    {
+      "id": "230a218f-65f1-4e87-bcb2-eea459e7802f",
+      "type": "System/Notify",
+      "x": 3980,
+      "y": 1627,
+      "state": {
+        "Caption": "vNoder",
+        "Message": "",
+        "Sound": false
+      }
+    },
+    {
+      "id": "d2fc040c-9acb-4558-af90-2d4bda2c0e4c",
+      "type": "Logic/Boolean",
+      "x": 1530,
+      "y": 1134,
+      "state": {
+        "Value": false
+      }
+    },
+    {
+      "id": "2b841eb2-cc15-47ea-9b9a-9cdd9c815d1c",
+      "type": "Logic/And",
+      "x": 1790,
+      "y": 1134
+    },
+    {
+      "id": "f906e905-dc0f-4cc2-827c-8e2bdb73c138",
+      "type": "Network/Send Email",
+      "x": 2050,
+      "y": 1134,
+      "state": {
+        "Body": "",
+        "From": "monitor@example.com",
+        "Html": false,
+        "Password": "",
+        "Port": 587,
+        "Security": 0,
+        "Server": "smtp.example.com",
+        "Subject": "example.com changed",
+        "To": "you@example.com",
+        "User": ""
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "c7f01335-e66e-4c3e-96a8-c41758f2f584",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "c7f01335-e66e-4c3e-96a8-c41758f2f584",
+      "fromPort": "Text",
+      "toNode": "6524acd3-168b-4357-a576-dfbbe20721e1",
+      "toPort": "Base"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "toPort": "Host"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "9e2431dd-084b-4012-9746-a98c930e8ae0",
+      "toPort": "Host"
+    },
+    {
+      "fromNode": "9d9b48d0-a7e5-4fc2-8b5f-a2131582d93c",
+      "fromPort": "Count",
+      "toNode": "cb2b62da-1cdc-4961-baf8-9008069e2038",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "fromPort": "Milliseconds",
+      "toNode": "a08d0a8b-14f2-498e-93a7-9d2cd892eb44",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "13bf6880-890f-4d73-9c34-50153bf0aed4",
+      "fromPort": "Text",
+      "toNode": "a08d0a8b-14f2-498e-93a7-9d2cd892eb44",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "a08d0a8b-14f2-498e-93a7-9d2cd892eb44",
+      "fromPort": "Result",
+      "toNode": "cb2b62da-1cdc-4961-baf8-9008069e2038",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "9e2431dd-084b-4012-9746-a98c930e8ae0",
+      "fromPort": "Open",
+      "toNode": "e60ab275-7f26-42ff-9a9f-be1c1117031a",
+      "toPort": "Condition"
+    },
+    {
+      "fromNode": "5eb4fbd1-5950-4744-83d8-47f42d1ca5d6",
+      "fromPort": "Text",
+      "toNode": "e60ab275-7f26-42ff-9a9f-be1c1117031a",
+      "toPort": "If True"
+    },
+    {
+      "fromNode": "21c85407-45ae-4e89-920c-3c706c4d1732",
+      "fromPort": "Text",
+      "toNode": "e60ab275-7f26-42ff-9a9f-be1c1117031a",
+      "toPort": "If False"
+    },
+    {
+      "fromNode": "e60ab275-7f26-42ff-9a9f-be1c1117031a",
+      "fromPort": "Result",
+      "toNode": "cb2b62da-1cdc-4961-baf8-9008069e2038",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "cb2b62da-1cdc-4961-baf8-9008069e2038",
+      "fromPort": "Text",
+      "toNode": "12e3b2e8-7dee-4b1b-9010-765888fc0a02",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "fromPort": "Milliseconds",
+      "toNode": "05dc9dc2-2ee8-41c2-952a-8ed6a0a87239",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "fromPort": "Milliseconds",
+      "toNode": "9594a2a6-e26d-4436-96cf-36750f2265e6",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "9594a2a6-e26d-4436-96cf-36750f2265e6",
+      "fromPort": "Values",
+      "toNode": "6b07985a-3f43-4c02-ad53-5678ab60b4eb",
+      "toPort": "List"
+    },
+    {
+      "fromNode": "6b07985a-3f43-4c02-ad53-5678ab60b4eb",
+      "fromPort": "Result",
+      "toNode": "c74484e1-b26b-4afa-925e-62896757ae7b",
+      "toPort": "Number"
+    },
+    {
+      "fromNode": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "fromPort": "Milliseconds",
+      "toNode": "50990fc2-f4dd-412f-a5a5-eec61956c85d",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "d22504d0-3562-4a33-abfc-f156c5e6d197",
+      "fromPort": "Milliseconds",
+      "toNode": "4051cac8-7bd9-4d09-9c26-1f56a51c0652",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "50990fc2-f4dd-412f-a5a5-eec61956c85d",
+      "fromPort": "Previous",
+      "toNode": "4051cac8-7bd9-4d09-9c26-1f56a51c0652",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "c74484e1-b26b-4afa-925e-62896757ae7b",
+      "fromPort": "Text",
+      "toNode": "0a8cc2ff-971e-4147-8b22-000a93acf01c",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "4051cac8-7bd9-4d09-9c26-1f56a51c0652",
+      "fromPort": "Result",
+      "toNode": "0a8cc2ff-971e-4147-8b22-000a93acf01c",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "0a8cc2ff-971e-4147-8b22-000a93acf01c",
+      "fromPort": "Text",
+      "toNode": "e765e383-42a9-4f3a-a9a2-2681ecafab2f",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+      "toPort": "Host"
+    },
+    {
+      "fromNode": "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+      "fromPort": "Days Left",
+      "toNode": "a5bfd0d8-ce71-4154-a2e0-9e601d737302",
+      "toPort": "Number"
+    },
+    {
+      "fromNode": "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+      "fromPort": "Not After",
+      "toNode": "d191bd12-d456-493c-bd50-3ae9afad9a52",
+      "toPort": "Date Time"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "d191bd12-d456-493c-bd50-3ae9afad9a52",
+      "fromPort": "Text",
+      "toNode": "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "a5bfd0d8-ce71-4154-a2e0-9e601d737302",
+      "fromPort": "Text",
+      "toNode": "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+      "fromPort": "Trusted",
+      "toNode": "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+      "toPort": "D"
+    },
+    {
+      "fromNode": "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+      "fromPort": "Text",
+      "toNode": "74fbe5ec-0d9a-47e2-859e-c76682dc823c",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+      "fromPort": "Days Left",
+      "toNode": "0870f8ef-6f00-4169-99f1-21b3b32b4cee",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "fcd5274c-3d46-4556-8855-c315707e2bcc",
+      "fromPort": "Value",
+      "toNode": "0870f8ef-6f00-4169-99f1-21b3b32b4cee",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "0870f8ef-6f00-4169-99f1-21b3b32b4cee",
+      "fromPort": "Result",
+      "toNode": "fc735618-3d3b-486c-8ecd-9f03bb7d1911",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "be76d1fb-0440-4a1a-8515-7b85b4e48a70",
+      "fromPort": "Value",
+      "toNode": "fc735618-3d3b-486c-8ecd-9f03bb7d1911",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "fc735618-3d3b-486c-8ecd-9f03bb7d1911",
+      "fromPort": "Result",
+      "toNode": "cc8ed441-f6ca-4e74-90f9-b8b974483556",
+      "toPort": "Condition"
+    },
+    {
+      "fromNode": "14d56e6c-8475-4659-b6d3-e3055639c213",
+      "fromPort": "Text",
+      "toNode": "cc8ed441-f6ca-4e74-90f9-b8b974483556",
+      "toPort": "If True"
+    },
+    {
+      "fromNode": "c7c0cdfe-bea4-48a4-b676-abfbab2f34c4",
+      "fromPort": "Text",
+      "toNode": "cc8ed441-f6ca-4e74-90f9-b8b974483556",
+      "toPort": "If False"
+    },
+    {
+      "fromNode": "cc8ed441-f6ca-4e74-90f9-b8b974483556",
+      "fromPort": "Result",
+      "toNode": "c7321b7f-b55d-4ad8-948d-753d2da8e1da",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "ef43c944-652d-4b3b-afa4-9cce0cc08b4c",
+      "toPort": "Host"
+    },
+    {
+      "fromNode": "ef43c944-652d-4b3b-afa4-9cce0cc08b4c",
+      "fromPort": "Address",
+      "toNode": "9f28fdd9-3d17-4c06-bf3d-e5a17630ce4e",
+      "toPort": "Address"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "50b30c5f-f583-4a0a-a7cf-b88acb906e5f",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "ef43c944-652d-4b3b-afa4-9cce0cc08b4c",
+      "fromPort": "Address",
+      "toNode": "50b30c5f-f583-4a0a-a7cf-b88acb906e5f",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "9f28fdd9-3d17-4c06-bf3d-e5a17630ce4e",
+      "fromPort": "Contains",
+      "toNode": "50b30c5f-f583-4a0a-a7cf-b88acb906e5f",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "50b30c5f-f583-4a0a-a7cf-b88acb906e5f",
+      "fromPort": "Text",
+      "toNode": "29cbcc53-c4b4-4019-8738-b5edbf9d7da8",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "6524acd3-168b-4357-a576-dfbbe20721e1",
+      "fromPort": "URL",
+      "toNode": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "toPort": "URL"
+    },
+    {
+      "fromNode": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "fromPort": "Body",
+      "toNode": "d4d80e20-be40-4111-875f-b8c033c6df64",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "d4d80e20-be40-4111-875f-b8c033c6df64",
+      "fromPort": "Digest",
+      "toNode": "254fecb1-30fd-48c8-858c-6505a4977077",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "fromPort": "Body",
+      "toNode": "27ebcef4-96bc-4d4e-901e-4ffde6398647",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "27ebcef4-96bc-4d4e-901e-4ffde6398647",
+      "fromPort": "Matches",
+      "toNode": "ab0f01bd-49f5-467c-b4a9-ffb468ce7cd4",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "fromPort": "Body",
+      "toNode": "36254dad-c929-4115-915d-b786379a2b53",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "fromPort": "Body",
+      "toNode": "934bb17f-7c88-45d8-9411-99aed4fa962b",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "934bb17f-7c88-45d8-9411-99aed4fa962b",
+      "fromPort": "Empty",
+      "toNode": "3761637f-df71-4ef5-ba1d-f6d0fa4da93d",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+      "fromPort": "Body",
+      "toNode": "b4ba41ad-aa7d-4557-a237-f9d7b4e5e65a",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "ab0f01bd-49f5-467c-b4a9-ffb468ce7cd4",
+      "fromPort": "Item",
+      "toNode": "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "36254dad-c929-4115-915d-b786379a2b53",
+      "fromPort": "Result",
+      "toNode": "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "3761637f-df71-4ef5-ba1d-f6d0fa4da93d",
+      "fromPort": "Result",
+      "toNode": "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "b4ba41ad-aa7d-4557-a237-f9d7b4e5e65a",
+      "fromPort": "Length",
+      "toNode": "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+      "toPort": "D"
+    },
+    {
+      "fromNode": "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+      "fromPort": "Text",
+      "toNode": "d1a5b34d-2ffc-4d1a-ac10-5bfdb5b1e38c",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "14e150c2-3eb6-4616-bae5-395af4567831",
+      "fromPort": "Path",
+      "toNode": "06c35a99-cae4-41eb-ae90-82a7cb3cecb3",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "6524acd3-168b-4357-a576-dfbbe20721e1",
+      "fromPort": "URL",
+      "toNode": "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+      "toPort": "URL"
+    },
+    {
+      "fromNode": "06c35a99-cae4-41eb-ae90-82a7cb3cecb3",
+      "fromPort": "Path",
+      "toNode": "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "254fecb1-30fd-48c8-858c-6505a4977077",
+      "fromPort": "Changed",
+      "toNode": "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+      "fromPort": "Text",
+      "toNode": "c8a7df92-c599-428f-9c38-6be880974b38",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+      "fromPort": "Saved As",
+      "toNode": "c8a7df92-c599-428f-9c38-6be880974b38",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "c8a7df92-c599-428f-9c38-6be880974b38",
+      "fromPort": "Text",
+      "toNode": "230a218f-65f1-4e87-bcb2-eea459e7802f",
+      "toPort": "Message"
+    },
+    {
+      "fromNode": "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+      "fromPort": "Done",
+      "toNode": "230a218f-65f1-4e87-bcb2-eea459e7802f",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "254fecb1-30fd-48c8-858c-6505a4977077",
+      "fromPort": "Changed",
+      "toNode": "2b841eb2-cc15-47ea-9b9a-9cdd9c815d1c",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "d2fc040c-9acb-4558-af90-2d4bda2c0e4c",
+      "fromPort": "Value",
+      "toNode": "2b841eb2-cc15-47ea-9b9a-9cdd9c815d1c",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "c8a7df92-c599-428f-9c38-6be880974b38",
+      "fromPort": "Text",
+      "toNode": "f906e905-dc0f-4cc2-827c-8e2bdb73c138",
+      "toPort": "Body"
+    },
+    {
+      "fromNode": "2b841eb2-cc15-47ea-9b9a-9cdd9c815d1c",
+      "fromPort": "Result",
+      "toNode": "f906e905-dc0f-4cc2-827c-8e2bdb73c138",
+      "toPort": "Run If"
+    }
+  ],
+  "groups": [
+    {
+      "id": "f1b1894f-0732-4daf-81c3-7c595865aad6",
+      "name": "Target",
+      "isCollapsed": false,
+      "nodeIds": [
+        "cf2d6d7b-081c-4189-84ae-6fad6d75df04",
+        "c7f01335-e66e-4c3e-96a8-c41758f2f584",
+        "6524acd3-168b-4357-a576-dfbbe20721e1"
+      ]
+    },
+    {
+      "id": "e1bd36a4-9943-40b6-8408-42a4d5a3d4ea",
+      "name": "Reachability log",
+      "isCollapsed": false,
+      "nodeIds": [
+        "d22504d0-3562-4a33-abfc-f156c5e6d197",
+        "9e2431dd-084b-4012-9746-a98c930e8ae0",
+        "9d9b48d0-a7e5-4fc2-8b5f-a2131582d93c",
+        "cb2b62da-1cdc-4961-baf8-9008069e2038",
+        "a08d0a8b-14f2-498e-93a7-9d2cd892eb44",
+        "13bf6880-890f-4d73-9c34-50153bf0aed4",
+        "e60ab275-7f26-42ff-9a9f-be1c1117031a",
+        "5eb4fbd1-5950-4744-83d8-47f42d1ca5d6",
+        "21c85407-45ae-4e89-920c-3c706c4d1732",
+        "12e3b2e8-7dee-4b1b-9010-765888fc0a02"
+      ]
+    },
+    {
+      "id": "3a8da89a-c2ee-4fce-9d1d-568a8e066ab4",
+      "name": "Latency",
+      "isCollapsed": false,
+      "nodeIds": [
+        "05dc9dc2-2ee8-41c2-952a-8ed6a0a87239",
+        "9594a2a6-e26d-4436-96cf-36750f2265e6",
+        "6b07985a-3f43-4c02-ad53-5678ab60b4eb",
+        "c74484e1-b26b-4afa-925e-62896757ae7b",
+        "50990fc2-f4dd-412f-a5a5-eec61956c85d",
+        "4051cac8-7bd9-4d09-9c26-1f56a51c0652",
+        "0a8cc2ff-971e-4147-8b22-000a93acf01c",
+        "e765e383-42a9-4f3a-a9a2-2681ecafab2f"
+      ]
+    },
+    {
+      "id": "d936f012-c15a-4fb5-baa5-be91ae2fd156",
+      "name": "Certificate and DNS",
+      "isCollapsed": false,
+      "nodeIds": [
+        "3d118712-932c-4c1b-af71-d0b96ee9eb81",
+        "a5bfd0d8-ce71-4154-a2e0-9e601d737302",
+        "d191bd12-d456-493c-bd50-3ae9afad9a52",
+        "d52d10a6-d4d5-4a57-a21f-adcc6bf2f830",
+        "74fbe5ec-0d9a-47e2-859e-c76682dc823c",
+        "fcd5274c-3d46-4556-8855-c315707e2bcc",
+        "0870f8ef-6f00-4169-99f1-21b3b32b4cee",
+        "fc735618-3d3b-486c-8ecd-9f03bb7d1911",
+        "be76d1fb-0440-4a1a-8515-7b85b4e48a70",
+        "cc8ed441-f6ca-4e74-90f9-b8b974483556",
+        "14d56e6c-8475-4659-b6d3-e3055639c213",
+        "c7c0cdfe-bea4-48a4-b676-abfbab2f34c4",
+        "c7321b7f-b55d-4ad8-948d-753d2da8e1da",
+        "ef43c944-652d-4b3b-afa4-9cce0cc08b4c",
+        "9f28fdd9-3d17-4c06-bf3d-e5a17630ce4e",
+        "50b30c5f-f583-4a0a-a7cf-b88acb906e5f",
+        "29cbcc53-c4b4-4019-8738-b5edbf9d7da8"
+      ]
+    },
+    {
+      "id": "d734410e-e8a6-429f-a458-8f2997c4c8c0",
+      "name": "Snapshot on change",
+      "isCollapsed": false,
+      "nodeIds": [
+        "03b2c45f-6f70-4c3b-b623-53d9c88cc86f",
+        "d4d80e20-be40-4111-875f-b8c033c6df64",
+        "254fecb1-30fd-48c8-858c-6505a4977077"
+      ]
+    },
+    {
+      "id": "febc3daf-0cf0-49c0-8453-711ded78efe2",
+      "name": "Page content",
+      "isCollapsed": false,
+      "nodeIds": [
+        "27ebcef4-96bc-4d4e-901e-4ffde6398647",
+        "ab0f01bd-49f5-467c-b4a9-ffb468ce7cd4",
+        "36254dad-c929-4115-915d-b786379a2b53",
+        "934bb17f-7c88-45d8-9411-99aed4fa962b",
+        "3761637f-df71-4ef5-ba1d-f6d0fa4da93d",
+        "b4ba41ad-aa7d-4557-a237-f9d7b4e5e65a",
+        "2c5b69b7-d772-43ad-82d8-cd4a9bbd9203",
+        "d1a5b34d-2ffc-4d1a-ac10-5bfdb5b1e38c",
+        "14e150c2-3eb6-4616-bae5-395af4567831",
+        "06c35a99-cae4-41eb-ae90-82a7cb3cecb3",
+        "621bf1ab-8bd4-4849-a0a5-155f1b73f3a4",
+        "c8a7df92-c599-428f-9c38-6be880974b38",
+        "230a218f-65f1-4e87-bcb2-eea459e7802f"
+      ]
+    },
+    {
+      "id": "14570973-567c-4cc1-ac33-74ffe33b5592",
+      "name": "Email alert (off)",
+      "isCollapsed": false,
+      "nodeIds": [
+        "d2fc040c-9acb-4558-af90-2d4bda2c0e4c",
+        "2b841eb2-cc15-47ea-9b9a-9cdd9c815d1c",
+        "f906e905-dc0f-4cc2-827c-8e2bdb73c138"
+      ]
+    }
+  ]
+}

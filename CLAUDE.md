@@ -39,13 +39,17 @@ copy of a build — including Release — gives stack traces with file and line 
 
 - `src/vNoder.Core` — plain `net10.0`: graph model, port/type system, node registry, execution
   engine. **No WPF reference**, so it can be exercised without a UI host.
-- `src/vNoder.Nodes` — plain `net10.0`, references Core only: the node implementations. Its only
-  NuGet dependencies are `BCrypt.Net-Next`, `QRCoder` and `SixLabors.ImageSharp`, all pure managed
-  code; prefer the BCL, and add a package only for something the BCL genuinely lacks.
+- `src/vNoder.Nodes` — plain `net10.0`, references Core only: the node implementations. Its NuGet
+  dependencies, all pure managed code, are `BCrypt.Net-Next`, `QRCoder`, `SixLabors.ImageSharp` and
+  `.Drawing`, `ZXing.Net` (barcodes), `Cronos` (cron), `MailKit` (SMTP), `Markdig` and `YamlDotNet`,
+  each for one thing the BCL genuinely lacks; prefer the BCL, and add a package only on the same
+  grounds. The README lists them with their licenses — keep that table in step.
 - **ImageSharp is pinned to 3.1.x — do not upgrade to 4.x casually.** 4.x adds a build-time license-key
   check (`SixLabors_ValidateLicense`) that only warns in Debug but **fails Release builds** without a
   key. It is also under the Six Labors Split License (free for open source, small for-profits and
   non-profits; commercial otherwise), which is the project owner's call, not a technical one.
+  `SixLabors.ImageSharp.Drawing` is pinned to 2.1.x for the same reason: 3.x requires ImageSharp 4.
+  Barcode Read hands ZXing raw RGB24 pixels, so no ZXing-to-ImageSharp bindings package is needed.
 - `src/vNoder.App` — WPF (`net10.0-windows`), references Core and Nodes. Only new NuGet dependency
   is `CommunityToolkit.Mvvm`.
 
@@ -80,6 +84,13 @@ public sealed class DoubleNode : NodeBase
 
 `NodeRegistry` finds it by reflection and it appears in the search popup. Do not add a registration
 list, factory switch, or any other second place to edit — that is the whole point of the attribute.
+
+**Every new node comes with a sample.** Use it in a graph in `samples/`, doing a small real job, not
+sitting alone on the canvas: add it to the existing sample it fits (05 site monitor, 06 data, 07 text,
+08 security, 09 numbers and dates, 10 files, images and the system), or add a new numbered sample
+when it opens a new area. Describe what it shows in `samples/README.md`. Between them the samples use
+every node type, and that is worth keeping: they are how a user sees what a node is for, and loading
+and running them is the cheapest regression check there is (see **Verifying changes**).
 
 Conventions that go with it:
 - Declare ports in the constructor and keep the returned `InputPort`/`OutputPort` in readonly fields.
@@ -135,6 +146,15 @@ Conventions that go with it:
 - Inline state is saved and loaded automatically (see **Persistence**). Nothing to register, but it
   does mean a public settable property of a simple type *is* persisted state — give anything that
   evaluation computes a non-public setter, as `OutputNode.Value` and `LengthNode.Count` do.
+- **Never name an inline property after a `NodeBase` member**: `Size`, `Title`, `Position`, `Id`,
+  `Category`, `Inputs`, `Outputs`. It compiles with only a CS0108 warning, but `Size` is the node's
+  saved geometry and `Title` its header text, so hiding them breaks the canvas or the file. Use
+  `ChunkSize`, `FontSize`, `Caption` (the port can still be called "Size" or "Title"). Class names are
+  global too: `Math/Sign` is `SignNode` and `Math/Log` is `LogarithmNode`, so the crypto and output
+  ones are `SignDataNode` and `LogNode`.
+- A node whose outputs describe a shared thing declares them through a small ports class built with
+  its own `AddOutput` (`CertificateInfoPorts`, shared by Certificate Load and TLS Certificate), so the
+  two read the same without a base class.
 
 ## Node catalogue notes
 
@@ -165,8 +185,10 @@ What an individual node does and why is documented on its class. What follows ap
 - **Select picks a value; it does not skip work by itself.** Skipping a branch is Run If's job (see
   **Execution model**); Select, Coalesce, Is Empty and Output are declared `Merges = true`, so they
   still run when one side is skipped and read it as empty.
-- Nodes with side effects (file writes and deletes, HTTP Request, Run Process, Image Save) **fire on
-  every tick** of a continuous run.
+- Nodes with side effects (file writes and deletes, zips, HTTP Request, Download To File, Send Email,
+  Run Process, Process Kill, Image Save, Clipboard Set, Notify) **fire on every tick** of a continuous
+  run. Changed into Run If is the answer to "only when something happens"; say so in the node's comment
+  when it is one a user would typically want gated.
 - Text nodes **clamp rather than throw** on out-of-range arguments (`SubstringNode`) and treat a
   degenerate argument as a no-op (`ReplaceAllNode` with an empty Find, `SplitNode` with an empty
   separator, an empty regex pattern). A graph running continuously would otherwise sit in an error
@@ -232,6 +254,17 @@ colour — a thicker border would move the port dots off their anchors (`NodeMet
 Evaluation runs off the UI thread. Nodes must not raise `PropertyChanged` from inside
 `EvaluateAsync`: assign quietly, and let `WorkspaceViewModel` call `NodeBase.RaiseBindingsChanged()`
 on the dispatcher once the pass completes. `OutputNode` is the worked example.
+
+- **Nodes with memory derive from `StatefulNode`** (Changed, Counter, Previous Value, History, Plot,
+  Log): private fields, never saved, cleared by `Reset()`. `Remember(context)` resets them when
+  `NodeEvaluationContext.Run` changes, which it does each time a continuous run starts; one-shot
+  passes carry the latest, so Run Once steps through. A run number rather than a first-pass flag,
+  because a node skipped on the first pass would miss the flag. Undo keeps node instances
+  (`Reconcile`), so it keeps their memory too.
+- **`INodeHost`** (`NodeEvaluationContext.Host`, set on `GraphExecutor.Host`) is how a node reaches
+  what only the app has: the clipboard and desktop notifications, implemented by `DesktopNodeHost` on
+  the dispatcher. It is null in a harness, and those nodes then fail with a clear message. Add to the
+  interface rather than giving Nodes a UI reference.
 
 ### Per-item evaluation
 
@@ -403,7 +436,8 @@ Do not replace it with per-operation commands.
 ## Chrome and theming
 
 The framework's default control chrome is light, so `App.xaml` carries **implicit** dark styles
-(`CheckBox`, `ComboBox`, `ComboBoxItem`, `ListBoxItem`, `ScrollBar`) rather than keyed ones — anything
+(`CheckBox`, `ComboBox`, `ComboBoxItem`, `ListBoxItem`, `ScrollBar`, and `DataGrid` with its header and
+cell for the Table node) rather than keyed ones — anything
 dropped into a node body is themed without extra wiring. Add a style here when a new control type
 first appears in a node, or it will render white.
 
@@ -523,10 +557,15 @@ Until then, engine behaviour is checked with a **throwaway console harness** in 
 `GraphExecutor.RunOnceAsync`, and asserts on outputs. It is fast to write and exercises the real
 model. Prefer it to reasoning about whether a graph change is correct.
 
-The `.vnoder` files in `samples/` (described in `samples/README.md`) are real saved graphs covering
-Run If / Done, skipping and merges. Loading them through `GraphFile` + `GraphRestore.Into` and
-checking for zero warnings is a cheap regression check after changing ports, node paths or the file
-format — and if a change renames something they use, update the samples too.
+The `.vnoder` files in `samples/` (described in `samples/README.md`) are real saved graphs: 01–04
+cover Run If / Done, skipping and merges, and 05–10 are self-contained showcases that together use
+every node type. Three cheap checks after changing ports, node paths, the file format or adding a
+node: load every sample through `GraphFile` + `GraphRestore.Into` and expect zero warnings; collect
+the node types they use and expect every registry definition among them; and run 05–10 with
+`GraphExecutor.RunOnceAsync`, expecting no failure but Notify (it needs the app's host) and no skip but
+the nodes switched off on purpose (Send Email, Process Kill, Clipboard Set and Get). If a change
+renames something the samples use, update them too; editing a sample by hand in the app and saving is
+fine, since node positions and inline values are all a file holds.
 
 The canvas cannot be driven by synthetic input from here — the session has run inside a VM console
 where clicks never reach the window, and Windows blocks foreground activation. Two techniques work
@@ -545,6 +584,16 @@ toolbar), so sampled pixels sit that far down the bitmap; read `VisualTreeHelper
 rather than assuming the origin. With virtualization on, remember that only realized nodes are in the
 visual tree — pan there (and pump the dispatcher) before looking for one. Call async workspace methods
 with a `DispatcherSynchronizationContext` installed, or their continuations resume off the UI thread.
+
+**Catch binding errors instead of eyeballing templates.** Add a `TraceListener` to
+`PresentationTraceSources.DataBindingSource` (level `Warning`) before constructing the window, add
+every registry definition to the workspace a batch at a time in view (so each editor is realized),
+and assert nothing was logged. A misspelt property in an editor template only ever shows up there;
+it neither throws nor fails the build. The editors for the batch of nodes added with Flow and Data
+were generated from a spec by a scratch script and checked this way.
+
+The clipboard is unusable in this session (`CLIPBRD_E_CANT_OPEN` even for a direct call), so the
+clipboard nodes can only be checked for failing cleanly here; check the round trip by hand.
 
 Two traps when doing this: a rendered check can pass for the wrong reason (thin strokes antialias
 away at low zoom — compare against a baseline), and `mv`/`cp` that preserves an old timestamp will

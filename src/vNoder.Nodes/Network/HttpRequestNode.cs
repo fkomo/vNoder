@@ -30,10 +30,11 @@ public enum HttpMethodKind
     Resizable = true)]
 public sealed class HttpRequestNode : NodeBase
 {
-    /// <summary>One client for the process, as HttpClient is meant to be used; timeouts are per request.</summary>
-    // One shared client for every node. Its own timeout is off: each request carries its node's
-    // TimeoutSeconds as a cancellation instead.
-    private static readonly HttpClient Client = new(new SocketsHttpHandler
+    /// <summary>
+    /// One client for the process, as HttpClient is meant to be used, shared with Download To File. Its
+    /// own timeout is off: each request carries its node's timeout as a cancellation instead.
+    /// </summary>
+    internal static readonly HttpClient Client = new(new SocketsHttpHandler
     {
         PooledConnectionLifetime = TimeSpan.FromMinutes(5),
         AutomaticDecompression = System.Net.DecompressionMethods.All,

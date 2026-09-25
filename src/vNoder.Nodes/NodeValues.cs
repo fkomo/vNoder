@@ -56,6 +56,58 @@ internal static class NodeValues
         _ => false,
     };
 
+    /// <summary>
+    /// A value as a number: a number itself, text that parses (invariant), a boolean as 1 or 0.
+    /// Anything else, including text that does not parse, is null.
+    /// </summary>
+    public static double? AsNumber(object? value) => value switch
+    {
+        double number => number,
+        bool flag => flag ? 1 : 0,
+        string text when double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) => parsed,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Entries typed as one text (separated by commas, semicolons or lines) or wired as a list, trimmed,
+    /// empty ones dropped: host names, email recipients.
+    /// </summary>
+    public static string[] SplitList(object? value) => value switch
+    {
+        null => [],
+        string[] list => list.SelectMany(SplitText).ToArray(),
+        _ => SplitText(ToText(value)),
+    };
+
+    private static string[] SplitText(string text) =>
+        text.Split([',', ';', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    /// <summary>The items of a list value; a single value is a list of one, nothing an empty list.</summary>
+    public static IReadOnlyList<object?> Items(object? value) => value switch
+    {
+        null => [],
+        Array list and not byte[] => [.. list.Cast<object?>()],
+        _ => [value],
+    };
+
+    /// <summary>
+    /// Values as the most specific list they fit: <c>double[]</c>, <c>string[]</c>, <c>bool[]</c> and
+    /// so on when every item is that type, otherwise a list of "any". Text lists are what Join and the
+    /// List nodes take, so a list assembled from text items should reach them as one.
+    /// </summary>
+    public static Array ToTypedList(IReadOnlyList<object?> values)
+    {
+        var types = values.Select(v => v?.GetType()).Distinct().ToList();
+        if (types.Count != 1 || types[0] is not { } element)
+            return values.ToArray();
+
+        var list = Array.CreateInstance(element, values.Count);
+        for (var i = 0; i < values.Count; i++)
+            list.SetValue(values[i], i);
+
+        return list;
+    }
+
     /// <summary>A culture by name, or invariant for an empty name. Predefined cultures only.</summary>
     public static CultureInfo Culture(string? name)
     {
