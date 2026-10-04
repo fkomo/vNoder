@@ -104,3 +104,14 @@ public sealed class GraphRestoreResult(IReadOnlyList<string> warnings)
 
     public bool IsComplete => Warnings.Count == 0;
 }
+
+/// <summary>What <see cref="GraphRestore.Import"/> added, and what it could not.</summary>
+public sealed class GraphImportResult(IReadOnlyList<NodeBase> nodes, IReadOnlyList<string> warnings)
+{
+    /// <summary>The nodes added, under their fresh ids.</summary>
+    public IReadOnlyList<NodeBase> Nodes { get; } = nodes;
+
+    public IReadOnlyList<string> Warnings { get; } = warnings;
+
+    public bool IsComplete => Warnings.Count == 0;
+}

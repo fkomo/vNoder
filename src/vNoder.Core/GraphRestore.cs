@@ -107,7 +107,43 @@ public static class GraphRestore
         GraphDocument document,
         NodeRegistry registry,
         double offsetX,
+        double offsetY) =>
+        AppendCore(graph, document, registry, offsetX, offsetY, withGroups: false, warnings: null);
+
+    /// <summary>
+    /// Adds a whole saved graph to an existing one: <see cref="Append"/> plus the document's groups (and
+    /// the notes on them), under fresh ids, with whatever could not be restored reported rather than
+    /// silently dropped. The document's interval and view are ignored; they belong to the graph being
+    /// added to.
+    /// </summary>
+    public static GraphImportResult Import(
+        Graph graph,
+        GraphDocument document,
+        NodeRegistry registry,
+        double offsetX,
         double offsetY)
+    {
+        var warnings = new List<string>();
+
+        if (document.FormatVersion > GraphDocument.CurrentFormatVersion)
+        {
+            warnings.Add(
+                $"File format version {document.FormatVersion} is newer than this build understands "
+                + $"(version {GraphDocument.CurrentFormatVersion}); parts of it may be missing.");
+        }
+
+        var added = AppendCore(graph, document, registry, offsetX, offsetY, withGroups: true, warnings);
+        return new GraphImportResult(added, warnings);
+    }
+
+    private static IReadOnlyList<NodeBase> AppendCore(
+        Graph graph,
+        GraphDocument document,
+        NodeRegistry registry,
+        double offsetX,
+        double offsetY,
+        bool withGroups,
+        List<string>? warnings)
     {
         var added = new List<NodeBase>();
         var byDocumentId = new Dictionary<Guid, NodeBase>();
@@ -115,21 +151,25 @@ public static class GraphRestore
         foreach (var entry in document.Nodes)
         {
             if (registry.Find(entry.Type) is not { } definition)
+            {
+                warnings?.Add($"Unknown node type '{entry.Type}' was skipped.");
                 continue;
+            }
 
             NodeBase node;
             try
             {
                 node = definition.CreateInstance();
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                warnings?.Add($"Could not create '{entry.Type}': {exception.Message}");
                 continue;
             }
 
             node.Position = new GraphPoint(entry.X + offsetX, entry.Y + offsetY);
             node.Size = new GraphSize(entry.W ?? 0, entry.H ?? 0);
-            RestoreState(node, entry, []);
+            RestoreState(node, entry, warnings ?? []);
 
             graph.Add(node);
             added.Add(node);
@@ -147,17 +187,49 @@ public static class GraphRestore
             var output = source.Outputs.FirstOrDefault(p => p.Name == entry.FromPort);
             var input = target.Inputs.FirstOrDefault(p => p.Name == entry.ToPort);
 
-            if (output is not null && input is not null)
-                graph.Attach(output, input, entry.Each == true, out _, out _);
+            if (output is null || input is null)
+            {
+                warnings?.Add(
+                    $"Link {source.Title}.{entry.FromPort} to {target.Title}.{entry.ToPort} was dropped: "
+                    + "a port with that name no longer exists.");
+                continue;
+            }
+
+            if (graph.Attach(output, input, entry.Each == true, out _, out var error) is null)
+                warnings?.Add($"Link {output} to {input} was rejected: {error}");
         }
 
-        graph.Settle();
+        if (warnings is null)
+            graph.Settle();
+        else
+            SettleLinks(graph, warnings);
 
-        // Notes follow their nodes to the new ids; a note on anything else was not copied.
+        // Groups get fresh ids too, so a note on a group follows it through this map.
+        var targets = byDocumentId.ToDictionary(p => p.Key, p => p.Value.Id);
+        if (withGroups)
+        {
+            foreach (var entry in document.Groups ?? [])
+            {
+                var members = entry.NodeIds.Where(byDocumentId.ContainsKey).Select(id => byDocumentId[id].Id).ToList();
+                if (members.Count == 0)
+                {
+                    warnings?.Add($"Group '{entry.Name}' was dropped: none of its nodes loaded.");
+                    continue;
+                }
+
+                var group = new NodeGroup { Name = entry.Name, IsCollapsed = entry.IsCollapsed, NodeIds = members };
+                graph.AddGroup(group);
+                targets[entry.Id] = group.Id;
+            }
+        }
+
+        // Notes follow their nodes (and groups) to the new ids; a note on anything else was not copied.
         foreach (var entry in document.Notes ?? [])
         {
-            if (byDocumentId.TryGetValue(entry.Target, out var target))
-                graph.AddNote(NoteFrom(entry, target.Id, freshId: true));
+            if (targets.TryGetValue(entry.Target, out var target))
+                graph.AddNote(NoteFrom(entry, target, freshId: true));
+            else
+                warnings?.Add("A note was dropped: the node or group it was attached to did not load.");
         }
 
         return added;

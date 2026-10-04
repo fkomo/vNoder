@@ -39,4 +39,16 @@ public interface INodeHost
 
     /// <summary>Shows a desktop notification, optionally with a sound.</summary>
     Task NotifyAsync(string title, string message, bool sound, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sets the code the process exits with once the run is over. Only the command-line runner has
+    /// one to give; the editor ignores it. The last call in a pass wins.
+    /// </summary>
+    void SetExitCode(int code);
+
+    /// <summary>
+    /// The value given for a named command-line parameter (<c>--name value</c>), or null when it was
+    /// not given. Only the command-line runner has any; in the editor every parameter is absent.
+    /// </summary>
+    string? GetParameter(string name);
 }

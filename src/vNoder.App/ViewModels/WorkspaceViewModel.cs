@@ -889,6 +889,54 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         StatusText = $"Pasted {added.Count} node(s).";
     }
 
+    /// <summary>
+    /// Adds a saved graph's nodes, wiring, groups and notes to this one, keeping their layout, centred
+    /// in the view, and selects them so they can be dragged into place. One undo step, like a paste;
+    /// the current file, its interval and the view stay as they are.
+    /// </summary>
+    public async Task<GraphImportResult> ImportAsync(string path)
+    {
+        var document = await GraphFile.LoadAsync(path);
+        FlushPendingEdit();
+
+        using var change = BeginChange("Import");
+
+        var (offsetX, offsetY) = CenteringOffset(document);
+        var result = GraphRestore.Import(Graph, document, Registry, offsetX, offsetY);
+
+        RebuildFromGraph();
+        SelectNodes(Nodes.Where(n => result.Nodes.Contains(n.Model)));
+        RaiseRunStateChanged();
+
+        var name = System.IO.Path.GetFileName(path);
+        StatusText = result.Nodes.Count == 0
+            ? $"Nothing in {name} could be imported."
+            : $"Imported {result.Nodes.Count} node(s) from {name}"
+              + (result.IsComplete ? "; drag them into place." : $", with {result.Warnings.Count} warning(s).");
+
+        return result;
+    }
+
+    /// <summary>
+    /// The shift that puts a document's nodes in the middle of the view, keeping their layout. The
+    /// extent is approximate (an unresized node's height is not saved), which is fine for a block the
+    /// user is about to drag. With no laid-out view yet, a paste's offset instead.
+    /// </summary>
+    private (double X, double Y) CenteringOffset(GraphDocument document)
+    {
+        var visible = VisibleGraphRect;
+        if (document.Nodes.Count == 0 || visible.IsEmpty)
+            return (PasteOffset, PasteOffset);
+
+        var left = document.Nodes.Min(n => n.X);
+        var top = document.Nodes.Min(n => n.Y);
+        var right = document.Nodes.Max(n => n.X + (n.W > 0 ? n.W.Value : NodeMetrics.Width));
+        var bottom = document.Nodes.Max(n => n.Y + (n.H > 0 ? n.H.Value : NodeMetrics.DefaultContentHeight) + NodeMetrics.HeaderHeight);
+
+        var center = new Point(visible.X + visible.Width / 2, visible.Y + visible.Height / 2);
+        return (Math.Round(center.X - (left + right) / 2), Math.Round(center.Y - (top + bottom) / 2));
+    }
+
     // ---- Wire preview during a drag -------------------------------------------------------
 
     [ObservableProperty]

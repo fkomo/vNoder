@@ -72,6 +72,17 @@ public sealed class DesktopNodeHost : INodeHost
                 : throw new InvalidOperationException("Windows refused the notification.");
         }, cancellationToken);
 
+    /// <summary>
+    /// The editor is not a command-line run and has no exit code to set, so Exit Code succeeds and
+    /// does nothing here: a graph meant for vnoder-cli can still be built and run in the editor.
+    /// </summary>
+    public void SetExitCode(int code)
+    {
+    }
+
+    /// <summary>The editor has no command line, so every CLI Param falls back to its default here.</summary>
+    public string? GetParameter(string name) => null;
+
     private Task<T> OnUiThread<T>(Func<T> action, CancellationToken cancellationToken) =>
         _dispatcher.InvokeAsync(action, DispatcherPriority.Normal, cancellationToken).Task;
 

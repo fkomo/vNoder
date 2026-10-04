@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\vNoder.Core\vNoder.Core.csproj" />
+    <ProjectReference Include="..\vNoder.Nodes\vNoder.Nodes.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Not "vNoder": that is the editor's executable, and the two may be published side by side. -->
+    <AssemblyName>vnoder-cli</AssemblyName>
+  </PropertyGroup>
+
+</Project>

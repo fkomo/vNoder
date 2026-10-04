@@ -68,6 +68,7 @@ public sealed class CategoryBrushConverter : IValueConverter
         ["System"] = PortBrushConverter.Frozen("#FF803A3A"),
         ["Flow"] = PortBrushConverter.Frozen("#FF5E6B2A"),
         ["Data"] = PortBrushConverter.Frozen("#FF2F6A4F"),
+        ["CLI"] = PortBrushConverter.Frozen("#FF3F5A3A"),
     };
 
     private static readonly SolidColorBrush Fallback = PortBrushConverter.Frozen("#FF414250");

@@ -19,6 +19,11 @@ namespace vNoder.App
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>Adds another file's contents to this graph (Ctrl+I); there is no built-in command for it.</summary>
+        public static readonly RoutedUICommand ImportCommand = new(
+            "Import", nameof(ImportCommand), typeof(MainWindow),
+            [new KeyGesture(Key.I, ModifierKeys.Control)]);
+
         private const double MinScale = 0.2;
         private const double MaxScale = 3.0;
         private const double ZoomStep = 1.12;
@@ -972,6 +977,34 @@ namespace vNoder.App
             catch (Exception exception)
             {
                 AppDialog.Message(this, "Could not open", exception.Message);
+            }
+        }
+
+        /// <summary>
+        /// Adds a file to the graph rather than replacing it, so unlike Open there is nothing to discard
+        /// and nothing to confirm; an import is one undo step.
+        /// </summary>
+        private async void ImportCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Import graph into this one",
+                Filter = FileFilter,
+                DefaultExt = GraphFile.Extension,
+            };
+
+            if (dialog.ShowDialog(this) != true)
+                return;
+
+            try
+            {
+                var result = await Workspace.ImportAsync(dialog.FileName);
+                if (!result.IsComplete)
+                    AppDialog.Message(this, "Imported with warnings", string.Join(Environment.NewLine, result.Warnings));
+            }
+            catch (Exception exception)
+            {
+                AppDialog.Message(this, "Could not import", exception.Message);
             }
         }
 

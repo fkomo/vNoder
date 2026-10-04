@@ -1,0 +1,257 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 1,
+    "offsetX": 177,
+    "offsetY": 442
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "11000000-0000-4000-8000-000000000001",
+      "type": "Output/Note",
+      "x": 0,
+      "y": -380,
+      "w": 560,
+      "h": 330,
+      "state": {
+        "Text": "11 \u2014 RUN A GRAPH FROM THE COMMAND LINE\n\nvnoder-cli runs a saved graph once, as Run Once does, and exits:\n\n    vnoder-cli samples/11-command-line.vnoder --name Ada\n\nCLI Param nodes are the graph\u0027s parameters. Run with only the file to list them; a lone -- runs on the defaults:\n\n    vnoder-cli samples/11-command-line.vnoder\n    vnoder-cli samples/11-command-line.vnoder --\n\nCLI Write prints to standard output (or error), and Exit Code sets the code the process exits with, so a script can branch on what the graph found. Without an Exit Code node vnoder-cli exits 0, or 1 if a node failed.\n\nIn the editor there is no console: CLI Write passes its text on (wire it to an Output to see it), and Exit Code does nothing.\n\nTop row: a greeting, a pause, then a second line \u2014 Done \u2192 Run If keeps the three in order. Bottom row: the exit code is 0 when %TEMP% exists, 3 when it does not."
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000002",
+      "type": "System/Machine Info",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000003",
+      "type": "Text/Template",
+      "x": 250,
+      "y": 0,
+      "state": {
+        "Template": "Hello {C}, from {A}, running {B}."
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000010",
+      "type": "CLI/CLI Param",
+      "x": 1,
+      "y": 278,
+      "state": {
+        "Default": "world",
+        "Description": "Who to greet.",
+        "Name": "name",
+        "Required": false
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000004",
+      "type": "CLI/CLI Write",
+      "x": 500,
+      "y": 0,
+      "state": {
+        "NewLine": true,
+        "Stream": 0,
+        "Text": ""
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000005",
+      "type": "Input/Static Text",
+      "x": 500,
+      "y": 230,
+      "state": {
+        "Text": "Half a second later: done."
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000006",
+      "type": "Flow/Delay",
+      "x": 750,
+      "y": 100,
+      "state": {
+        "Milliseconds": 500
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000007",
+      "type": "CLI/CLI Write",
+      "x": 1000,
+      "y": 100,
+      "state": {
+        "NewLine": true,
+        "Stream": 0,
+        "Text": ""
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000008",
+      "type": "Output/Output",
+      "x": 1250,
+      "y": 100,
+      "w": 222,
+      "h": 76,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-000000000009",
+      "type": "System/Environment Variable",
+      "x": 10,
+      "y": 530,
+      "state": {
+        "Name": "TEMP"
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-00000000000a",
+      "type": "IO/Path Exists",
+      "x": 250,
+      "y": 420,
+      "state": {
+        "Path": ""
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-00000000000b",
+      "type": "Input/Static Number",
+      "x": 250,
+      "y": 600,
+      "state": {
+        "Value": 0
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-00000000000c",
+      "type": "Input/Static Number",
+      "x": 250,
+      "y": 700,
+      "state": {
+        "Value": 3
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-00000000000d",
+      "type": "Logic/Select",
+      "x": 500,
+      "y": 420,
+      "state": {
+        "Condition": false
+      }
+    },
+    {
+      "id": "11000000-0000-4000-8000-00000000000e",
+      "type": "CLI/Exit Code",
+      "x": 750,
+      "y": 420,
+      "state": {
+        "Code": 0
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000002",
+      "fromPort": "Machine Name",
+      "toNode": "11000000-0000-4000-8000-000000000003",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000002",
+      "fromPort": "OS",
+      "toNode": "11000000-0000-4000-8000-000000000003",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000010",
+      "fromPort": "Value",
+      "toNode": "11000000-0000-4000-8000-000000000003",
+      "toPort": "C"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000003",
+      "fromPort": "Text",
+      "toNode": "11000000-0000-4000-8000-000000000004",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000004",
+      "fromPort": "Done",
+      "toNode": "11000000-0000-4000-8000-000000000006",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000005",
+      "fromPort": "Text",
+      "toNode": "11000000-0000-4000-8000-000000000006",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000006",
+      "fromPort": "Value",
+      "toNode": "11000000-0000-4000-8000-000000000007",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000007",
+      "fromPort": "Text",
+      "toNode": "11000000-0000-4000-8000-000000000008",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000009",
+      "fromPort": "Value",
+      "toNode": "11000000-0000-4000-8000-00000000000a",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-00000000000a",
+      "fromPort": "Exists",
+      "toNode": "11000000-0000-4000-8000-00000000000d",
+      "toPort": "Condition"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-00000000000b",
+      "fromPort": "Value",
+      "toNode": "11000000-0000-4000-8000-00000000000d",
+      "toPort": "If True"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-00000000000c",
+      "fromPort": "Value",
+      "toNode": "11000000-0000-4000-8000-00000000000d",
+      "toPort": "If False"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-00000000000d",
+      "fromPort": "Result",
+      "toNode": "11000000-0000-4000-8000-00000000000e",
+      "toPort": "Code"
+    }
+  ],
+  "notes": [
+    {
+      "id": "11000000-0000-4000-8000-0000000000f3",
+      "target": "11000000-0000-4000-8000-000000000010",
+      "x": 236,
+      "y": 22,
+      "text": "--name sets this; without it Value is the default, world, and Found is false. Tick Required and vnoder-cli refuses to run without it."
+    },
+    {
+      "id": "11000000-0000-4000-8000-0000000000f1",
+      "target": "11000000-0000-4000-8000-000000000006",
+      "x": 0,
+      "y": -90,
+      "text": "Delay is the sleep: it waits, then passes its value on. Its Run If comes from the first write\u0027s Done, so the pause falls between the two lines."
+    },
+    {
+      "id": "11000000-0000-4000-8000-0000000000f2",
+      "target": "11000000-0000-4000-8000-00000000000e",
+      "x": 0,
+      "y": -90,
+      "text": "Try: vnoder-cli samples/11-command-line.vnoder; echo $LASTEXITCODE (PowerShell) or echo %ERRORLEVEL% (cmd)."
+    }
+  ]
+}

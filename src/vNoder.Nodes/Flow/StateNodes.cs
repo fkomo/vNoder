@@ -204,7 +204,7 @@ public sealed class HistoryNode : StatefulNode
 /// Waits, then passes its value on. With Run If / Done it spaces out side effects ("write, wait, then
 /// read"); in a continuous run the pass waits with it, and ticks that fall inside are skipped.
 /// </summary>
-[NodeDefinition("Flow/Delay", Description = "Waits a number of milliseconds, then passes the value on.")]
+[NodeDefinition("Flow/Delay", Description = "Waits (sleeps) a number of milliseconds, then passes the value on.")]
 public sealed class DelayNode : NodeBase
 {
     private double _milliseconds = 1000;

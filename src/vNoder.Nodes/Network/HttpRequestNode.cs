@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using vNoder.Core;
 
 namespace vNoder.Nodes;
@@ -14,6 +15,16 @@ public enum HttpMethodKind
     DELETE,
 }
 
+/// <summary>How <see cref="HttpRequestNode"/> sends its body. Saved by number: append only.</summary>
+public enum HttpBodyKind
+{
+    /// <summary>The body as given, with the node's Content-Type.</summary>
+    Raw,
+
+    /// <summary>Fields URL-encoded as <c>application/x-www-form-urlencoded</c>, as an HTML form or an OAuth2 token endpoint expects.</summary>
+    Form,
+}
+
 /// <summary>
 /// One HTTP request per pass. A single node with a method selector rather than one node per verb:
 /// they differ only in whether a body is sent, and switching verb should not mean rewiring.
@@ -23,10 +34,16 @@ public enum HttpMethodKind
 /// with its body, because an API's error body is usually the thing worth reading. Only a request that
 /// gets no response at all (bad URL, DNS, refused, timeout) throws. Like <c>PathDeleteNode</c> this has
 /// side effects on every pass, so a continuous run sends a request every tick.
+/// <para>
+/// A Form body is a list of fields, written <c>name=value</c> one per line (inline, or wired as text or
+/// a text list) or wired as a JSON object. Values are written plain and encoded here, so a secret
+/// with <c>&amp;</c> or <c>+</c> in it needs no escaping: <c>grant_type=client_credentials</c> on one line,
+/// <c>client_id=…</c> on the next, is an OAuth2 token request.
+/// </para>
 /// </remarks>
 [NodeDefinition(
     "Network/HTTP Request",
-    Description = "Sends an HTTP GET, POST, PUT, PATCH or DELETE and returns the status and body.",
+    Description = "Sends an HTTP GET, POST, PUT, PATCH or DELETE, with a raw or form body, and returns the status and body.",
     Resizable = true)]
 public sealed class HttpRequestNode : NodeBase
 {
@@ -44,6 +61,7 @@ public sealed class HttpRequestNode : NodeBase
     };
 
     private HttpMethodKind _method = HttpMethodKind.GET;
+    private HttpBodyKind _bodyKind = HttpBodyKind.Raw;
     private string _url = string.Empty;
     private string _contentType = "application/json";
     private string _headers = string.Empty;
@@ -85,7 +103,13 @@ public sealed class HttpRequestNode : NodeBase
         set => Set(ref _url, value ?? string.Empty);
     }
 
-    /// <summary>Content-Type of the body sent with POST, PUT and PATCH.</summary>
+    public HttpBodyKind BodyKind
+    {
+        get => _bodyKind;
+        set => Set(ref _bodyKind, value);
+    }
+
+    /// <summary>Content-Type of a raw body sent with POST, PUT and PATCH; a form sets its own.</summary>
     public string ContentType
     {
         get => _contentType;
@@ -129,7 +153,11 @@ public sealed class HttpRequestNode : NodeBase
 
         using var request = new HttpRequestMessage(new HttpMethod(Method.ToString()), uri);
 
-        if (SendsBody)
+        if (SendsBody && BodyKind == HttpBodyKind.Form)
+        {
+            request.Content = new FormUrlEncodedContent(_bodyIn.IsConnected ? FormFields(_bodyIn.Value) : FormFields(Body));
+        }
+        else if (SendsBody)
         {
             var body = _bodyIn.IsConnected ? NodeValues.AsBytes(_bodyIn.Value, "An HTTP body") : Encoding.UTF8.GetBytes(Body);
             request.Content = new ByteArrayContent(body);
@@ -202,6 +230,57 @@ public sealed class HttpRequestNode : NodeBase
             content.Headers.Remove(name);
             content.Headers.TryAddWithoutValidation(name, value);
         }
+    }
+
+    /// <summary>
+    /// Form fields from a JSON object, a list of <c>name=value</c> lines, or text holding such lines.
+    /// Blank lines are skipped and a line with no <c>=</c> is a field with an empty value; names may
+    /// repeat, as forms allow.
+    /// </summary>
+    private static List<KeyValuePair<string, string>> FormFields(object? value)
+    {
+        if (value is string[] lines)
+            return FormFields(lines);
+
+        var text = value is byte[] bytes ? Encoding.UTF8.GetString(bytes) : NodeValues.ToText(value);
+        return text.TrimStart().StartsWith('{') ? JsonFormFields(text) : FormFields(text.Split('\n'));
+    }
+
+    private static List<KeyValuePair<string, string>> FormFields(IEnumerable<string> lines)
+    {
+        var fields = new List<KeyValuePair<string, string>>();
+        foreach (var raw in lines)
+        {
+            var line = raw.Trim();
+            if (line.Length == 0)
+                continue;
+
+            var separator = line.IndexOf('=');
+            fields.Add(separator < 0
+                ? new(line, string.Empty)
+                : new(line[..separator].Trim(), line[(separator + 1)..].Trim()));
+        }
+
+        return fields;
+    }
+
+    /// <summary>A JSON object's properties as fields: strings as they are, anything else as its JSON text.</summary>
+    private static List<KeyValuePair<string, string>> JsonFormFields(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
+            throw new InvalidOperationException("A form body given as JSON must be an object.");
+
+        return document.RootElement.EnumerateObject()
+            .Select(p => new KeyValuePair<string, string>(
+                p.Name,
+                p.Value.ValueKind switch
+                {
+                    JsonValueKind.String => p.Value.GetString() ?? string.Empty,
+                    JsonValueKind.Null => string.Empty,
+                    _ => p.Value.GetRawText(),
+                }))
+            .ToList();
     }
 
     private static string Decode(byte[] bytes, string? charset)
