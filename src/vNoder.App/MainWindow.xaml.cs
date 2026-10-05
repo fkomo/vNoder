@@ -854,6 +854,7 @@ namespace vNoder.App
             {
                 case Key.Enter:
                     Workspace.CommitSearch();
+                    RevealSearchSelection();
                     e.Handled = true;
                     break;
 
@@ -864,26 +865,77 @@ namespace vNoder.App
 
                 case Key.Down:
                     Workspace.MoveSearchSelection(1);
-                    SearchList.ScrollIntoView(SearchList.SelectedItem);
+                    RevealSearchSelection();
                     e.Handled = true;
                     break;
 
                 case Key.Up:
                     Workspace.MoveSearchSelection(-1);
-                    SearchList.ScrollIntoView(SearchList.SelectedItem);
+                    RevealSearchSelection();
+                    e.Handled = true;
+                    break;
+
+                // Left and Right work the tree only while the box is empty: with text in it they move
+                // the caret, and a search opens every category it matches anyway.
+                case Key.Left when SearchBox.Text.Length == 0:
+                    Workspace.CatalogLeft();
+                    RevealSearchSelection();
+                    e.Handled = true;
+                    break;
+
+                case Key.Right when SearchBox.Text.Length == 0:
+                    Workspace.CatalogRight();
+                    RevealSearchSelection();
                     e.Handled = true;
                     break;
             }
         }
 
+        /// <summary>
+        /// Scrolls the selected row into view. For a category header that is open, its last node first and
+        /// then the header, so opening a category near the bottom shows as many of its nodes as fit
+        /// rather than leaving them all below the fold. The second scroll waits for the first one's layout,
+        /// since the list is virtualized and the last node may not have a container yet.
+        /// </summary>
+        private void RevealSearchSelection()
+        {
+            var selected = SearchList.SelectedItem;
+            if (selected is null)
+                return;
+
+            if (selected is CatalogCategoryRow { IsExpanded: true } header)
+            {
+                var lastChild = Workspace.SearchResults
+                    .SkipWhile(r => r != header).Skip(1)
+                    .TakeWhile(r => r is CatalogNodeRow)
+                    .LastOrDefault();
+
+                if (lastChild is not null)
+                {
+                    SearchList.ScrollIntoView(lastChild);
+                    Dispatcher.BeginInvoke(() => SearchList.ScrollIntoView(header), DispatcherPriority.Loaded);
+                    return;
+                }
+            }
+
+            SearchList.ScrollIntoView(selected);
+        }
+
         private void SearchList_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            // Commit on a single click, but only when the click actually landed on a result row.
+            // Commit on a single click, but only when the click actually landed on a result row. A click
+            // on a category header opens or closes it instead, and the search box keeps the keyboard.
             if (ItemsControl.ContainerFromElement(SearchList, (DependencyObject)e.OriginalSource) is not ListBoxItem item)
                 return;
 
             SearchList.SelectedItem = item.DataContext;
             Workspace.CommitSearch();
+            if (Workspace.IsSearchOpen)
+            {
+                SearchBox.Focus();
+                RevealSearchSelection();
+            }
+
             e.Handled = true;
         }
 

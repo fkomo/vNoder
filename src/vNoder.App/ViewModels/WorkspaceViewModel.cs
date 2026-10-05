@@ -39,7 +39,8 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         Executor = new GraphExecutor(Graph) { Host = new DesktopNodeHost(_dispatcher) };
         Executor.Evaluated += OnEvaluated;
 
-        SearchResults = [.. Registry.Definitions];
+        SearchResults = [];
+        RefreshSearchResults(string.Empty);
 
         History = new GraphHistory(Graph, Registry);
         _savedState = History.Current;
@@ -965,7 +966,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     private string _searchQuery = string.Empty;
 
     [ObservableProperty]
-    private NodeDefinition? _selectedSearchResult;
+    private CatalogRow? _selectedSearchResult;
 
     [ObservableProperty]
     private double _searchScreenX;
@@ -973,7 +974,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     [ObservableProperty]
     private double _searchScreenY;
 
-    public ObservableCollection<NodeDefinition> SearchResults { get; }
+    public ObservableCollection<CatalogRow> SearchResults { get; }
 
     private Point _pendingNodePosition;
 
@@ -989,7 +990,34 @@ public sealed partial class WorkspaceViewModel : ObservableObject
     /// </summary>
     private NodeGroupViewModel? _pendingGroup;
 
-    partial void OnSearchQueryChanged(string value) => RefreshSearchResults(value);
+    partial void OnSearchQueryChanged(string value)
+    {
+        // A new query opens every category it matches again, whatever was collapsed for the last one.
+        _collapsedWhileSearching.Clear();
+        RefreshSearchResults(value);
+    }
+
+    /// <summary>
+    /// Categories opened by hand while browsing (no query, no wire filter). All start closed. Session
+    /// state, not document state.
+    /// </summary>
+    private readonly HashSet<string> _expandedCategories = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Categories closed by hand during a search. A search opens every category it matches, since a
+    /// hit hidden in a closed one would look like no hit; this is what lets one be closed anyway.
+    /// </summary>
+    private readonly HashSet<string> _collapsedWhileSearching = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The foot of the catalog: how many node types match.</summary>
+    [ObservableProperty]
+    private string _catalogSummary = string.Empty;
+
+    private bool IsCatalogSearching => !string.IsNullOrWhiteSpace(SearchQuery) || _pendingLinkSource is not null;
+
+    private bool IsCategoryExpanded(string category) => IsCatalogSearching
+        ? !_collapsedWhileSearching.Contains(category)
+        : _expandedCategories.Contains(category);
 
     /// <summary>
     /// Set while the catalog was opened by dropping a wire: the list then shows only node types with
@@ -1013,11 +1041,144 @@ public sealed partial class WorkspaceViewModel : ObservableObject
                 .OrderBy(d => d.NodeType == typeof(OutputNode) ? 0 : 1);
         }
 
-        SearchResults.Clear();
-        foreach (var definition in matches)
-            SearchResults.Add(definition);
+        BuildCatalogRows([.. matches], keepCategory: null);
+    }
 
-        SelectedSearchResult = SearchResults.FirstOrDefault();
+    /// <summary>
+    /// Lays the matches out as rows: flat, or under a header per category (in the order they arrive,
+    /// so a wire filter's Output-first ordering puts the Output category first). The selection goes to
+    /// <paramref name="keepCategory"/>'s header when a header was just toggled, otherwise to the first
+    /// node on show, so Enter after typing still adds the best match.
+    /// </summary>
+    private void BuildCatalogRows(IReadOnlyList<NodeDefinition> matches, string? keepCategory)
+    {
+        _catalogMatches = matches;
+        SearchResults.Clear();
+
+        foreach (var category in matches.GroupBy(d => d.Category, StringComparer.OrdinalIgnoreCase))
+        {
+            var expanded = IsCategoryExpanded(category.Key);
+            SearchResults.Add(new CatalogCategoryRow(category.Key, category.Count(), expanded));
+
+            if (expanded)
+            {
+                foreach (var definition in category)
+                    SearchResults.Add(new CatalogNodeRow(definition));
+            }
+        }
+
+        SelectedSearchResult =
+            (keepCategory is null
+                ? null
+                : SearchResults.OfType<CatalogCategoryRow>().FirstOrDefault(r => r.Category.Equals(keepCategory, StringComparison.OrdinalIgnoreCase)))
+            ?? SearchResults.OfType<CatalogNodeRow>().FirstOrDefault()
+            ?? SearchResults.FirstOrDefault();
+
+        AllCategoriesExpanded = SearchResults.OfType<CatalogCategoryRow>().All(r => r.IsExpanded) && matches.Count > 0;
+        OnPropertyChanged(nameof(AllCategoriesExpanded));
+        OnPropertyChanged(nameof(ToggleAllCategoriesText));
+
+        var categories = matches.Select(d => d.Category).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        CatalogSummary = matches.Count == 0
+            ? "No matching nodes"
+            : $"{matches.Count} node{(matches.Count == 1 ? "" : "s")} in {categories} categor{(categories == 1 ? "y" : "ies")}";
+    }
+
+    /// <summary>What the last search matched, kept so a header can be toggled without searching again.</summary>
+    private IReadOnlyList<NodeDefinition> _catalogMatches = [];
+
+    /// <summary>Opens or closes a category in the tree, keeping it selected.</summary>
+    public void SetCategoryExpanded(string category, bool expanded)
+    {
+        if (IsCategoryExpanded(category) == expanded)
+            return;
+
+        var collapsed = IsCatalogSearching ? _collapsedWhileSearching : null;
+        if (collapsed is not null)
+        {
+            if (expanded) collapsed.Remove(category); else collapsed.Add(category);
+        }
+        else if (expanded)
+        {
+            _expandedCategories.Add(category);
+        }
+        else
+        {
+            _expandedCategories.Remove(category);
+        }
+
+        BuildCatalogRows(_catalogMatches, keepCategory: category);
+    }
+
+    public void ToggleCategory(string category) => SetCategoryExpanded(category, !IsCategoryExpanded(category));
+
+    /// <summary>
+    /// The one button at the catalog's foot: opens every category on show while any is closed,
+    /// otherwise closes them all. "On show" is all of them while browsing, only the ones with a match
+    /// during a search or wire filter. The selection stays on the selected row's category.
+    /// </summary>
+    [RelayCommand]
+    private void ToggleAllCategories() => SetAllCategoriesExpanded(!AllCategoriesExpanded);
+
+    /// <summary>True when every category on show is open, which turns the button into Collapse all.</summary>
+    public bool AllCategoriesExpanded { get; private set; }
+
+    public string ToggleAllCategoriesText => AllCategoriesExpanded ? "Collapse all" : "Expand all";
+
+    private void SetAllCategoriesExpanded(bool expanded)
+    {
+        var keep = SelectedSearchResult switch
+        {
+            CatalogCategoryRow header => header.Category,
+            CatalogNodeRow node => node.Category,
+            _ => null,
+        };
+
+        foreach (var category in _catalogMatches.Select(d => d.Category).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (IsCatalogSearching)
+            {
+                if (expanded) _collapsedWhileSearching.Remove(category); else _collapsedWhileSearching.Add(category);
+            }
+            else if (expanded)
+            {
+                _expandedCategories.Add(category);
+            }
+            else
+            {
+                _expandedCategories.Remove(category);
+            }
+        }
+
+        BuildCatalogRows(_catalogMatches, keep);
+    }
+
+    /// <summary>
+    /// Left in the tree: closes the selected category, or from a node goes up to its category's header.
+    /// </summary>
+    public void CatalogLeft()
+    {
+        switch (SelectedSearchResult)
+        {
+            case CatalogCategoryRow { IsExpanded: true } header:
+                SetCategoryExpanded(header.Category, false);
+                break;
+            case CatalogNodeRow node:
+                SelectedSearchResult = SearchResults.OfType<CatalogCategoryRow>().FirstOrDefault(r => r.Category == node.Category);
+                break;
+        }
+    }
+
+    /// <summary>Right in the tree: opens the selected category, or if it is open steps into its first node.</summary>
+    public void CatalogRight()
+    {
+        if (SelectedSearchResult is not CatalogCategoryRow header)
+            return;
+
+        if (!header.IsExpanded)
+            SetCategoryExpanded(header.Category, true);
+        else
+            MoveSearchSelection(1);
     }
 
     /// <summary>
@@ -1035,6 +1196,7 @@ public sealed partial class WorkspaceViewModel : ObservableObject
         OnPropertyChanged(nameof(IsSearchFiltered));
         SearchScreenX = screenPosition.X;
         SearchScreenY = screenPosition.Y;
+        _collapsedWhileSearching.Clear();
         SearchQuery = string.Empty;
         RefreshSearchResults(string.Empty);
         IsSearchOpen = true;
@@ -1057,7 +1219,14 @@ public sealed partial class WorkspaceViewModel : ObservableObject
 
     public void CommitSearch()
     {
-        var definition = SelectedSearchResult ?? SearchResults.FirstOrDefault();
+        // Enter (or a click) on a category header opens or closes it; the catalog stays open.
+        if (SelectedSearchResult is CatalogCategoryRow header)
+        {
+            ToggleCategory(header.Category);
+            return;
+        }
+
+        var definition = (SelectedSearchResult as CatalogNodeRow ?? SearchResults.OfType<CatalogNodeRow>().FirstOrDefault())?.Definition;
         var linkSource = _pendingLinkSource;
         var group = _pendingGroup;
 

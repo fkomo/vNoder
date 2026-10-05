@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:vNoder.App"
+        xmlns:vm="clr-namespace:vNoder.App.ViewModels"
         xmlns:p="clr-namespace:vNoder.App.Presentation"
         xmlns:n="clr-namespace:vNoder.Nodes;assembly=vNoder.Nodes"
         Title="{Binding WindowTitle}" Height="760" Width="1220"
@@ -1389,7 +1390,7 @@
 
         <DataTemplate DataType="{x:Type n:SelfSignedCertificateNode}">
             <StackPanel>
-                <TextBlock Text="Subject (name or CN=…, O=…)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBlock Text="Subject (name or CN=â¦, O=â¦)" Style="{StaticResource NodeFieldLabel}" />
                 <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Subject}"
@@ -2113,7 +2114,7 @@
 
         <DataTemplate DataType="{x:Type n:IssueCertificateNode}">
             <StackPanel>
-                <TextBlock Text="Subject (name or CN=…, O=…)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBlock Text="Subject (name or CN=â¦, O=â¦)" Style="{StaticResource NodeFieldLabel}" />
                 <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Subject}"
@@ -2159,7 +2160,7 @@
 
         <DataTemplate DataType="{x:Type n:CertificateRequestNode}">
             <StackPanel>
-                <TextBlock Text="Subject (name or CN=…, O=…)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBlock Text="Subject (name or CN=â¦, O=â¦)" Style="{StaticResource NodeFieldLabel}" />
                 <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Subject}"
@@ -2568,7 +2569,7 @@
 
         <DataTemplate DataType="{x:Type n:RegistryReadNode}">
             <StackPanel>
-                <TextBlock Text="Key (HKLM\…, HKCU\…)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBlock Text="Key (HKLM\â¦, HKCU\â¦)" Style="{StaticResource NodeFieldLabel}" />
                 <TextBox Style="{StaticResource NodeFieldTextBox}"
                          IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
                                      ConverterParameter=Key}"
@@ -2737,7 +2738,7 @@
                                  Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <TextBlock Text="Opacity (0–1)" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBlock Text="Opacity (0â1)" Style="{StaticResource NodeFieldLabel}" />
                         <TextBox Style="{StaticResource NodeFieldTextBox}"
                                  Text="{Binding Opacity, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
@@ -2964,7 +2965,7 @@
                                 Background="{Binding Category, Converter={StaticResource CategoryBrush}}"
                                 MouseLeftButtonDown="NodeHeader_MouseLeftButtonDown">
                             <DockPanel>
-                                <!-- "×N": this node runs once per list item, N times in the last run. -->
+                                <!-- "ÃN": this node runs once per list item, N times in the last run. -->
                                 <TextBlock DockPanel.Dock="Right" Text="{Binding ItemBadge}" Margin="0,0,9,0"
                                            VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{StaticResource TextPrimary}" Opacity="0.85"
@@ -3437,27 +3438,48 @@
                                    Text="{Binding SearchFilterLabel}"
                                    Visibility="{Binding IsSearchFiltered,
                                                 Converter={StaticResource BoolToVisibility}}" />
-                        <ListBox x:Name="SearchList" MaxHeight="280" Margin="0,6,0,0" Background="Transparent"
+                        <!-- One list for both views: in the tree, category headers and their nodes are
+                             rows of it (CatalogRows.cs), told apart by the implicit templates below. -->
+                        <ListBox x:Name="SearchList" MaxHeight="380" Margin="0,6,0,0" Background="Transparent"
                                  BorderThickness="0" ItemsSource="{Binding SearchResults}"
                                  SelectedItem="{Binding SelectedSearchResult, Mode=TwoWay}"
                                  PreviewMouseLeftButtonUp="SearchList_PreviewMouseLeftButtonUp"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="2">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextPrimary}" />
-                                            <TextBlock Text="{Binding Category}" Margin="8,0,0,0" FontSize="10"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{StaticResource TextMuted}" />
-                                        </StackPanel>
+                            <ListBox.Resources>
+                                <DataTemplate DataType="{x:Type vm:CatalogCategoryRow}">
+                                    <DockPanel Margin="2,3">
+                                        <TextBlock DockPanel.Dock="Left" Text="{Binding Glyph}" Width="14" FontSize="11"
+                                                   VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}" />
+                                        <Border DockPanel.Dock="Left" Width="10" Height="10" CornerRadius="2"
+                                                Margin="0,0,6,0" VerticalAlignment="Center"
+                                                Background="{Binding Category, Converter={StaticResource CategoryBrush}}" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Count}" FontSize="10"
+                                                   VerticalAlignment="Center" Foreground="{StaticResource TextMuted}" />
+                                        <TextBlock Text="{Binding Category}" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimary}" />
+                                    </DockPanel>
+                                </DataTemplate>
+                                <DataTemplate DataType="{x:Type vm:CatalogNodeRow}">
+                                    <!-- Indented under its header, past the glyph and the colour swatch. -->
+                                    <StackPanel Margin="30,2,2,2">
+                                        <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimary}" />
                                         <TextBlock Text="{Binding Description}" FontSize="10" TextWrapping="Wrap"
                                                    Foreground="{StaticResource TextSecondary}" />
                                     </StackPanel>
                                 </DataTemplate>
-                            </ListBox.ItemTemplate>
+                            </ListBox.Resources>
                         </ListBox>
+                        <!-- Foot: one button opening or closing every category on show (all, or those matching the search).
+                             Not focusable, so the search box keeps the keyboard. -->
+                        <DockPanel Margin="0,6,2,0">
+                            <Button DockPanel.Dock="Left" Content="{Binding ToggleAllCategoriesText}" FontSize="10"
+                                    Padding="8,2" Focusable="False" Style="{StaticResource ToolbarButton}"
+                                    Command="{Binding ToggleAllCategoriesCommand}"
+                                    ToolTip="Open or close every category listed. With the search box empty, ← and → close and open the selected one." />
+                            <TextBlock Text="{Binding CatalogSummary}" FontSize="10" TextAlignment="Right"
+                                       VerticalAlignment="Center" Foreground="{StaticResource TextMuted}" />
+                        </DockPanel>
                     </StackPanel>
                 </Border>
             </Popup>

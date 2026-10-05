@@ -64,6 +64,20 @@
   second mouse-down means the release that follows is a button event outside the captured popup —
   which dismisses it instantly. `_pendingSearchAt` carries the position from the down to the up, and
   the open is posted at `DispatcherPriority.Input` so it happens after that release has been routed.
+- **The catalog tree is a flattened list, not a `TreeView`.** `SearchResults` holds `CatalogRow`s
+  (`CatalogRows.cs`): a `CatalogCategoryRow` per category and the `CatalogNodeRow`s under it, told apart
+  by implicit templates in the `SearchList` resources. That keeps the search box in charge of the
+  keyboard (Up, Down and Enter move over headers and nodes alike; Enter or a click on a header toggles
+  it instead of committing), and keeps one selection to commit. A `TreeView` would take focus and its
+  own keyboard handling. Left and Right work the tree only while the box is empty, since otherwise they
+  move the caret.
+- Which categories are open is session state: all start closed. A search or a wire filter (`IsCatalogSearching`) opens every category with a match, because a
+  hit inside a closed one reads as no hit; closing one during a search lasts until the query changes
+  (`_collapsedWhileSearching`). Opening a category scrolls its last node and then its header into view
+  (`RevealSearchSelection`), in two passes because the list is virtualized. The one button at the
+  foot (`ToggleAllCategories`: Expand all while any is closed, else Collapse all) acts on the
+  categories on show, so during a search it changes only `_collapsedWhileSearching` and leaves the
+  browsing state alone.
 
 ## Chrome and theming
 

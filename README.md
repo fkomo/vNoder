@@ -50,6 +50,12 @@ an output port to an input port to wire them up — incompatible ports are refus
 connections that would form a cycle. Drop a wire on empty canvas and the catalogue opens filtered to
 nodes that can accept it, with Output at the top, then wires the one you pick automatically.
 
+The catalogue opens as a tree: one collapsible group per category, with its colour and node count.
+Click a category (or select it and press Enter) to open or close it; with the search box empty, ← and
+→ close and open the selected one too. Typing opens every category with a match, so a search still
+sees everything. The button at the foot opens every category listed (**Expand all**), or closes them
+once all are open (**Collapse all**): all of them, or only those matching the search.
+
 Press **Run Once** (`Ctrl+R`) to evaluate the graph. Each node flashes as it finishes, in the order
 the graph evaluated it — green, or red if it failed — and a node that takes a while, such as an HTTP
 request, is outlined in amber while it runs. **Continuous** (`Ctrl+Shift+R`) re-runs it on a timer
