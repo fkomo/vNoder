@@ -379,6 +379,7 @@
       "h": 220,
       "state": {
         "Body": "",
+        "BodyKind": 0,
         "ContentType": "application/json",
         "Headers": "",
         "Method": 0,

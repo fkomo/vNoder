@@ -608,6 +608,74 @@
       "state": {
         "Text": "08 \u2014 SECURITY TOOLKIT\n\nA private CA and a certificate it issues, a CSR, a message signed and a tampered copy rejected, a JWT made and decoded, 2FA codes with the setup QR code read back, a webhook HMAC, AES, BCrypt and PBKDF2, and an API key from a GUID and a random string.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
       }
+    },
+    {
+      "id": "e955744a-509f-43ef-a3ff-a28fc898fe1a",
+      "type": "Input/Secret",
+      "x": 12,
+      "y": 2585,
+      "state": {
+        "Protected": ""
+      }
+    },
+    {
+      "id": "8bed0730-d418-4fef-9a6c-89f8f5b3c6b2",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 2785,
+      "state": {
+        "Text": "demo-key"
+      }
+    },
+    {
+      "id": "74c5b4f4-4232-4e3e-8301-04a375c25640",
+      "type": "Logic/Coalesce",
+      "x": 282,
+      "y": 2645,
+      "state": {
+        "WhitespaceIsEmpty": false
+      }
+    },
+    {
+      "id": "041907c3-fd42-4047-8a73-2daf07757938",
+      "type": "Input/Static Text",
+      "x": 282,
+      "y": 2845,
+      "state": {
+        "Text": "order=1234\u0026amount=99.90"
+      }
+    },
+    {
+      "id": "77b736b3-7480-40db-b241-bfd470f0f46a",
+      "type": "Crypto/HMAC",
+      "x": 532,
+      "y": 2645,
+      "state": {
+        "Algorithm": 0,
+        "Key": ""
+      }
+    },
+    {
+      "id": "2f4ef53c-eb74-4024-92e8-cfe6223504c9",
+      "type": "Output/Output",
+      "x": 792,
+      "y": 2645,
+      "w": 320,
+      "h": 48,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "2c51ea57-4e0f-40a9-9669-9edc1a8f65d4",
+      "type": "Output/Output",
+      "x": 282,
+      "y": 2495,
+      "w": 160,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
     }
   ],
   "links": [
@@ -976,6 +1044,42 @@
       "fromPort": "Text",
       "toNode": "cc3ab4c6-2edb-482f-8a3f-0bf6cfe6848c",
       "toPort": "Value"
+    },
+    {
+      "fromNode": "e955744a-509f-43ef-a3ff-a28fc898fe1a",
+      "fromPort": "Value",
+      "toNode": "74c5b4f4-4232-4e3e-8301-04a375c25640",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "8bed0730-d418-4fef-9a6c-89f8f5b3c6b2",
+      "fromPort": "Text",
+      "toNode": "74c5b4f4-4232-4e3e-8301-04a375c25640",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "74c5b4f4-4232-4e3e-8301-04a375c25640",
+      "fromPort": "Result",
+      "toNode": "77b736b3-7480-40db-b241-bfd470f0f46a",
+      "toPort": "Key"
+    },
+    {
+      "fromNode": "041907c3-fd42-4047-8a73-2daf07757938",
+      "fromPort": "Text",
+      "toNode": "77b736b3-7480-40db-b241-bfd470f0f46a",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "77b736b3-7480-40db-b241-bfd470f0f46a",
+      "fromPort": "Hex",
+      "toNode": "2f4ef53c-eb74-4024-92e8-cfe6223504c9",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "e955744a-509f-43ef-a3ff-a28fc898fe1a",
+      "fromPort": "Is Set",
+      "toNode": "2c51ea57-4e0f-40a9-9669-9edc1a8f65d4",
+      "toPort": "Value"
     }
   ],
   "groups": [
@@ -1101,6 +1205,29 @@
         "1bda5660-6347-40bb-a7e6-ef380c83b9d4",
         "cc3ab4c6-2edb-482f-8a3f-0bf6cfe6848c"
       ]
+    },
+    {
+      "id": "6ac20da9-6940-4892-ae6b-ab9850a6d5da",
+      "name": "Keep keys out of the file: Secret",
+      "isCollapsed": false,
+      "nodeIds": [
+        "e955744a-509f-43ef-a3ff-a28fc898fe1a",
+        "8bed0730-d418-4fef-9a6c-89f8f5b3c6b2",
+        "74c5b4f4-4232-4e3e-8301-04a375c25640",
+        "041907c3-fd42-4047-8a73-2daf07757938",
+        "77b736b3-7480-40db-b241-bfd470f0f46a",
+        "2f4ef53c-eb74-4024-92e8-cfe6223504c9",
+        "2c51ea57-4e0f-40a9-9669-9edc1a8f65d4"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "6e4aa492-f70d-46e0-b822-815c660b797f",
+      "target": "6ac20da9-6940-4892-ae6b-ab9850a6d5da",
+      "x": 0,
+      "y": -110,
+      "text": "Type a key into Secret: it is saved encrypted for your Windows account, never as text, so the file can be shared without it. Until one is set, Coalesce falls back to demo-key."
     }
   ]
 }

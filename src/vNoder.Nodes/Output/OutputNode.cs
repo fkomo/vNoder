@@ -48,4 +48,10 @@ public sealed class OutputNode : NodeBase
         _out.Value = _in.Value;
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Run per item (its input ticked "For each item"), it shows every item it passed on, as the list
+    /// its output now carries, rather than whichever item came last.
+    /// </summary>
+    protected override void ItemsGathered() => Value = _out.Value;
 }

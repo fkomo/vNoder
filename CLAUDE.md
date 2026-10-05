@@ -46,8 +46,10 @@ copy of a build — including Release — gives stack traces with file and line 
   engine. **No WPF reference**, so it can be exercised without a UI host.
 - `src/vNoder.Nodes` — plain `net10.0`, references Core only: the node implementations. Its NuGet
   dependencies, all pure managed code, are `BCrypt.Net-Next`, `QRCoder`, `SixLabors.ImageSharp` and
-  `.Drawing`, `ZXing.Net` (barcodes), `Cronos` (cron), `MailKit` (SMTP), `Markdig` and `YamlDotNet`,
-  each for one thing the BCL genuinely lacks; prefer the BCL, and add a package only on the same
+  `.Drawing`, `ZXing.Net` (barcodes), `Cronos` (cron), `MailKit` (SMTP), `Markdig`, `YamlDotNet`,
+  `AngleSharp` (HTML parsing, for HTML Select) and `System.Security.Cryptography.ProtectedData`
+  (Windows DPAPI, for Secret; it throws elsewhere, and the node says so), each for one thing the BCL
+  genuinely lacks; prefer the BCL, and add a package only on the same
   grounds. The README lists them with their licenses — keep that table in step.
 - **ImageSharp is pinned to 3.1.x — do not upgrade to 4.x casually.** 4.x adds a build-time license-key
   check (`SixLabors_ValidateLicense`) that only warns in Debug but **fails Release builds** without a
@@ -88,5 +90,5 @@ a control type that has not appeared in a node before needs an implicit style in
 There is no test project; changes are verified with a throwaway console harness and the samples in
 `samples/`, as described in the verifying guide.
 
-Commit history starts from the first working POC; `src/`, `docs/`, `README.md`, `TODO.md` and this
+Commit history starts from the first working POC; `src/`, `docs/`, `samples/`, `README.md` and this
 file are tracked.

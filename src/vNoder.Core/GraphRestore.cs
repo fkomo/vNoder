@@ -60,6 +60,8 @@ public static class GraphRestore
 
             node.Position = new GraphPoint(entry.X, entry.Y);
             node.Size = new GraphSize(entry.W ?? 0, entry.H ?? 0);
+            node.Pairing = GraphFile.ParsePairing(entry.Pairing);
+            node.SkipFailedItems = entry.SkipFailedItems == true;
             RestoreState(node, entry, warnings);
 
             graph.Add(node);
@@ -169,6 +171,8 @@ public static class GraphRestore
 
             node.Position = new GraphPoint(entry.X + offsetX, entry.Y + offsetY);
             node.Size = new GraphSize(entry.W ?? 0, entry.H ?? 0);
+            node.Pairing = GraphFile.ParsePairing(entry.Pairing);
+            node.SkipFailedItems = entry.SkipFailedItems == true;
             RestoreState(node, entry, warnings ?? []);
 
             graph.Add(node);
@@ -297,6 +301,8 @@ public static class GraphRestore
 
             node.Position = new GraphPoint(entry.X, entry.Y);
             node.Size = new GraphSize(entry.W ?? 0, entry.H ?? 0);
+            node.Pairing = GraphFile.ParsePairing(entry.Pairing);
+            node.SkipFailedItems = entry.SkipFailedItems == true;
             RestoreState(node, entry, warnings);
 
             byDocumentId[entry.Id] = node;

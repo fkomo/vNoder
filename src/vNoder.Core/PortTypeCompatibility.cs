@@ -13,6 +13,16 @@ public static class PortTypeCompatibility
     public static Type AnyList => typeof(object[]);
 
     /// <summary>
+    /// The "list" port type: an input that takes any list whole, of text, numbers, booleans or dates
+    /// (the List nodes, Join). A list of lists does not fit whole but fits per item, so it runs the node
+    /// once per inner list, which is how Chunk into Join joins each chunk.
+    /// </summary>
+    public static Type ItemList => typeof(ItemList);
+
+    /// <summary>A list whose items are not lists themselves.</summary>
+    private static bool IsFlatList(Type type) => type.IsArray && type != typeof(byte[]) && !IsList(ElementOf(type));
+
+    /// <summary>
     /// True when <paramref name="outputType"/> may feed <paramref name="inputType"/> as a whole value.
     /// </summary>
     /// <remarks>
@@ -25,11 +35,13 @@ public static class PortTypeCompatibility
     /// list inputs: the items' real type is only known at run time.
     /// </remarks>
     public static bool CanConnect(Type outputType, Type inputType) =>
-        inputType == Any
-        || outputType == Any
-        || inputType == outputType
-        || (outputType == AnyList && IsList(inputType))
-        || inputType.IsAssignableFrom(outputType);
+        inputType == ItemList
+            ? outputType == Any || outputType == AnyList || IsFlatList(outputType)
+            : inputType == Any
+              || outputType == Any
+              || inputType == outputType
+              || (outputType == AnyList && IsList(inputType))
+              || inputType.IsAssignableFrom(outputType);
 
     /// <summary>
     /// True when each item of <paramref name="outputType"/> may feed <paramref name="inputType"/>, so a
@@ -44,7 +56,7 @@ public static class PortTypeCompatibility
     /// A list type. Lists are arrays, except <c>byte[]</c>, which is one value (a buffer or an image)
     /// rather than a list of numbers.
     /// </summary>
-    public static bool IsList(Type type) => type.IsArray && type != typeof(byte[]);
+    public static bool IsList(Type type) => type == ItemList || (type.IsArray && type != typeof(byte[]));
 
     /// <summary>A list value, by the same rule as <see cref="IsList(Type)"/>.</summary>
     public static bool IsListValue(object? value) => value is Array and not byte[];
@@ -64,6 +76,7 @@ public static class PortTypeCompatibility
         _ when type == typeof(byte[]) => "bytes",
         _ when type == typeof(DateTime) => "date/time",
         _ when type == typeof(object) => "any",
+        _ when type == ItemList => "list",
         _ when IsList(type) => $"{Describe(ElementOf(type))} list",
         _ => type.Name,
     };

@@ -82,6 +82,17 @@ internal static class NodeValues
     private static string[] SplitText(string text) =>
         text.Split([',', ';', '\n', '\r'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
+    /// <summary>
+    /// A list input (<see cref="PortTypeCompatibility.ItemList"/>) as text items: a text list as it is,
+    /// a list of numbers, booleans or dates through <see cref="ToText"/>, so they sort, filter and join
+    /// the way they display. A single value is a list of one, nothing an empty list.
+    /// </summary>
+    public static string[] TextItems(object? value) => value switch
+    {
+        string[] text => text,
+        _ => [.. Items(value).Select(ToText)],
+    };
+
     /// <summary>The items of a list value; a single value is a list of one, nothing an empty list.</summary>
     public static IReadOnlyList<object?> Items(object? value) => value switch
     {

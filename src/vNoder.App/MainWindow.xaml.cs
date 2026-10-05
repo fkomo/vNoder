@@ -648,6 +648,48 @@ namespace vNoder.App
                 menu.Items.Add(new Separator());
             }
 
+            // A node running per item: how its lists pair up, and what a failed item does.
+            if (node.Model.RunsPerItem)
+            {
+                var perItem = new MenuItem { Header = "Per item" };
+                var iterating = node.Model.Inputs.Count(input => input.Link is { Iterate: true });
+
+                foreach (var (pairing, label) in new[]
+                         {
+                             (ItemPairing.ByIndex, "Pair lists by index"),
+                             (ItemPairing.Longest, "Pair lists to the longest"),
+                             (ItemPairing.CrossProduct, "Every combination of the lists"),
+                         })
+                {
+                    var pairingItem = new MenuItem
+                    {
+                        Header = label,
+                        IsCheckable = true,
+                        IsChecked = node.Model.Pairing == pairing,
+                        IsEnabled = iterating >= 2,
+                        ToolTip = iterating >= 2 ? null : "Only one input runs per item, so there is nothing to pair.",
+                    };
+                    ToolTipService.SetShowOnDisabled(pairingItem, true);
+                    pairingItem.Click += (_, _) => Workspace.SetPairing(node, pairing);
+                    perItem.Items.Add(pairingItem);
+                }
+
+                perItem.Items.Add(new Separator());
+
+                var skipItem = new MenuItem
+                {
+                    Header = "Skip items that fail",
+                    IsCheckable = true,
+                    IsChecked = node.Model.SkipFailedItems,
+                    ToolTip = "A failed item leaves its results empty and the node reports it, instead of the whole node failing.",
+                };
+                skipItem.Click += (_, _) => Workspace.SetSkipFailedItems(node, !node.Model.SkipFailedItems);
+                perItem.Items.Add(skipItem);
+
+                menu.Items.Add(perItem);
+                menu.Items.Add(new Separator());
+            }
+
             var groupItem = new MenuItem
             {
                 Header = selected >= 2 ? $"Group {selected} selected nodes" : "Group selected nodes",
@@ -889,6 +931,17 @@ namespace vNoder.App
                     e.Handled = true;
                     break;
             }
+        }
+
+        /// <summary>
+        /// The Secret node's password box. A PasswordBox does not bind its password (by design, so the
+        /// plain text is not left in a binding), so each edit is handed to the node here; the node keeps
+        /// only the encrypted form, and that is what the edit and undo machinery see.
+        /// </summary>
+        private void SecretBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (sender is PasswordBox { DataContext: vNoder.Nodes.SecretNode node } box)
+                node.SetSecret(box.Password);
         }
 
         /// <summary>

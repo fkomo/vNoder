@@ -125,6 +125,11 @@ public sealed partial class NodeViewModel : ObservableObject
         ? Model.ItemCount is { } count ? $"×{count}" : "×"
         : null;
 
+    /// <summary>Items a per-item node skipped because they failed (<see cref="NodeBase.ItemWarning"/>); shown in amber.</summary>
+    public string? ItemWarning => Model.ItemWarning;
+
+    public bool HasItemWarning => Model.ItemWarning is not null;
+
     /// <summary>
     /// Rendered height, reported by the view. Node bodies vary with their inline editor, so this
     /// cannot be derived from <see cref="NodeMetrics"/> the way port anchors can; groups need it to
@@ -294,6 +299,8 @@ public sealed partial class NodeViewModel : ObservableObject
         OnPropertyChanged(nameof(HasError));
         OnPropertyChanged(nameof(IsSkipped));
         OnPropertyChanged(nameof(ItemBadge));
+        OnPropertyChanged(nameof(ItemWarning));
+        OnPropertyChanged(nameof(HasItemWarning));
     }
 
     /// <summary>

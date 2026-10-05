@@ -779,6 +779,338 @@
       "state": {
         "Text": "06 \u2014 DATA WRANGLING\n\nA small sales CSV as a table, totals and revenue (price \u00D7 qty, run once per row), distinct regions as JSON, the same rows as semicolon CSV and TSV, settings merged from defaults, stamped and shown as YAML and pretty JSON, and an RSS feed read with XPath: batches, a random headline, a search, filters and slices, and a link taken apart.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
       }
+    },
+    {
+      "id": "07c32ec6-9302-4e81-a149-0f63a2319c3b",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 3394,
+      "state": {
+        "Text": "web1,web2,db1,cache1"
+      }
+    },
+    {
+      "id": "ae108c4e-a4e9-4550-90ef-07f2154f1ff6",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 3574,
+      "state": {
+        "Text": "web1,web2,web3,db1"
+      }
+    },
+    {
+      "id": "1f8a8b35-08cd-4413-b157-cec81855e9f7",
+      "type": "Text/Split",
+      "x": 262,
+      "y": 3394,
+      "state": {
+        "Separator": ","
+      }
+    },
+    {
+      "id": "ef76bd5e-2f43-4bc0-b3ed-20f56d1a8c4b",
+      "type": "Text/Split",
+      "x": 262,
+      "y": 3574,
+      "state": {
+        "Separator": ","
+      }
+    },
+    {
+      "id": "87e1d5c4-91fb-4372-9991-3088f084552e",
+      "type": "List/Set Operation",
+      "x": 502,
+      "y": 3394,
+      "state": {
+        "IgnoreCase": false,
+        "Operation": 2
+      }
+    },
+    {
+      "id": "0659e853-6aef-4e5e-bff4-30158329b0da",
+      "type": "List/Set Operation",
+      "x": 502,
+      "y": 3574,
+      "state": {
+        "IgnoreCase": false,
+        "Operation": 2
+      }
+    },
+    {
+      "id": "37379983-d243-49e3-8168-390c3b43947a",
+      "type": "Output/Output",
+      "x": 752,
+      "y": 3414,
+      "w": 200,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "074dab04-44d6-4847-9ced-20c342046c58",
+      "type": "Output/Output",
+      "x": 752,
+      "y": 3594,
+      "w": 200,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "914726d1-0c13-4fd4-b0f5-a5175881ac9c",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 3864,
+      "state": {
+        "Text": "INFO WARN INFO ERROR INFO WARN INFO"
+      }
+    },
+    {
+      "id": "5c5afe77-392b-4c7f-89a3-1bc24480e57d",
+      "type": "Text/Split",
+      "x": 262,
+      "y": 3864,
+      "state": {
+        "Separator": " "
+      }
+    },
+    {
+      "id": "da76f39d-5f9e-4b31-a320-1f0fef820a48",
+      "type": "List/Count By",
+      "x": 502,
+      "y": 3864,
+      "state": {
+        "IgnoreCase": false,
+        "Order": 0
+      }
+    },
+    {
+      "id": "1bf0cee3-a5d7-40a5-a60b-d15805013dd0",
+      "type": "Output/Table",
+      "x": 752,
+      "y": 3864,
+      "w": 220,
+      "h": 130,
+      "state": {
+        "FirstRowIsHeader": true
+      }
+    },
+    {
+      "id": "17a4cd3b-55a7-46fa-a352-d12169cda8c5",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 4154,
+      "state": {
+        "Text": "\u003Cfeed lang=\u0022en\u0022\u003E\n  \u003Centry id=\u00221\u0022\u003E\u003Ctitle\u003EHello\u003C/title\u003E\u003C/entry\u003E\n  \u003Centry id=\u00222\u0022\u003E\u003Ctitle\u003EWorld\u003C/title\u003E\u003C/entry\u003E\n\u003C/feed\u003E"
+      }
+    },
+    {
+      "id": "59e85937-2df3-4393-aa37-5b9f6094cf91",
+      "type": "Data/XML To JSON",
+      "x": 282,
+      "y": 4154,
+      "state": {
+        "IgnoreNamespaces": true
+      }
+    },
+    {
+      "id": "4e04970d-7488-4e6c-88af-2bcf936fe5cd",
+      "type": "JSON/Get",
+      "x": 532,
+      "y": 4154,
+      "state": {
+        "Path": "feed.entry[1].title"
+      }
+    },
+    {
+      "id": "618c5c24-98be-46f1-9ec3-5399f421fdb0",
+      "type": "Data/JSON To XML",
+      "x": 282,
+      "y": 4354,
+      "state": {
+        "RootName": "root"
+      }
+    },
+    {
+      "id": "16074127-6cca-4db5-85fd-a016ca08bfd7",
+      "type": "Output/Output",
+      "x": 782,
+      "y": 4154,
+      "w": 220,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "7760926e-5ea7-47e8-b61e-085027c99153",
+      "type": "Output/Output",
+      "x": 532,
+      "y": 4354,
+      "w": 300,
+      "h": 150,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "5444a954-3342-4139-8f0a-275d6540a1b6",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 4614,
+      "state": {
+        "Text": "\u003Ch1\u003EDownloads\u003C/h1\u003E\n\u003Ca class=\u0022dl\u0022 href=\u0022/files/tool-1.2.zip\u0022\u003E1.2\u003C/a\u003E\n\u003Ca class=\u0022dl\u0022 href=\u0022/files/tool-1.3.zip\u0022\u003E1.3\u003C/a\u003E"
+      }
+    },
+    {
+      "id": "37f41fc1-84db-475b-9ff6-5a78757f52af",
+      "type": "Data/HTML Select",
+      "x": 282,
+      "y": 4614,
+      "state": {
+        "Attribute": "href",
+        "BaseUrl": "https://example.com/",
+        "Kind": 1,
+        "Selector": "a.dl"
+      }
+    },
+    {
+      "id": "2e4b6528-e6a4-40ac-a83a-15d5e4a0d7b0",
+      "type": "Output/Output",
+      "x": 572,
+      "y": 4614,
+      "w": 320,
+      "h": 60,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "476b9fc3-16fc-48d3-81b7-d92237d3bdb3",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 5132,
+      "state": {
+        "Text": "web,db"
+      }
+    },
+    {
+      "id": "3542d40b-6b14-40f5-bda9-120d27ae6f98",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 5302,
+      "state": {
+        "Text": "dev,test,prod"
+      }
+    },
+    {
+      "id": "6ce0a67e-25c9-4442-b201-8caecb4cbf26",
+      "type": "Text/Split",
+      "x": 262,
+      "y": 5132,
+      "state": {
+        "Separator": ","
+      }
+    },
+    {
+      "id": "99bef116-2aae-4c5b-b623-55846f03a50e",
+      "type": "Text/Split",
+      "x": 262,
+      "y": 5302,
+      "state": {
+        "Separator": ","
+      }
+    },
+    {
+      "id": "67d0f005-9d9f-42e1-a802-ccaa8087f1aa",
+      "type": "Text/Template",
+      "x": 512,
+      "y": 5192,
+      "pairing": "crossProduct",
+      "state": {
+        "Template": "{A}-{B}.example.com"
+      }
+    },
+    {
+      "id": "48fd6886-f35a-42bc-a01a-d61b8819c870",
+      "type": "Output/Output",
+      "x": 772,
+      "y": 5192,
+      "w": 260,
+      "h": 120,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "ff2f014b-ac2a-4493-aae5-ae9e7ab71a81",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 5672,
+      "state": {
+        "Text": "{\u0022price\u0022: 10}\nnot json at all\n{\u0022price\u0022: 30}"
+      }
+    },
+    {
+      "id": "5e3e6f68-888f-4d5e-9ac0-d6dc61601c21",
+      "type": "Text/Lines",
+      "x": 262,
+      "y": 5672,
+      "state": {
+        "RemoveEmpty": false,
+        "Trim": false
+      }
+    },
+    {
+      "id": "e1fedc77-e1cb-47c3-94c4-ce70ad653d53",
+      "type": "JSON/Get",
+      "x": 512,
+      "y": 5672,
+      "skipFailedItems": true,
+      "state": {
+        "Path": "price"
+      }
+    },
+    {
+      "id": "7a16470a-51f8-4d09-82d0-e39363a752f6",
+      "type": "Output/Output",
+      "x": 772,
+      "y": 5672,
+      "w": 260,
+      "h": 80,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "965f5937-9938-402e-9c33-69f153e75666",
+      "type": "Generators/Range",
+      "x": 12,
+      "y": 6172,
+      "state": {
+        "Count": 5,
+        "Start": 1,
+        "Step": 1
+      }
+    },
+    {
+      "id": "dc46c2bb-2b20-4169-9f7e-73f5f3e7f36e",
+      "type": "List/Reverse",
+      "x": 262,
+      "y": 6172
+    },
+    {
+      "id": "e23e1137-2793-46b9-a943-a39c164b14bc",
+      "type": "Output/Output",
+      "x": 512,
+      "y": 6172,
+      "w": 200,
+      "h": 110,
+      "state": {
+        "Wrap": false
+      }
     }
   ],
   "links": [
@@ -1313,6 +1645,177 @@
       "fromPort": "Items",
       "toNode": "e0e3d8d4-8bd9-46f4-a38a-a7fbc719de43",
       "toPort": "Value"
+    },
+    {
+      "fromNode": "07c32ec6-9302-4e81-a149-0f63a2319c3b",
+      "fromPort": "Text",
+      "toNode": "1f8a8b35-08cd-4413-b157-cec81855e9f7",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "ae108c4e-a4e9-4550-90ef-07f2154f1ff6",
+      "fromPort": "Text",
+      "toNode": "ef76bd5e-2f43-4bc0-b3ed-20f56d1a8c4b",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "ef76bd5e-2f43-4bc0-b3ed-20f56d1a8c4b",
+      "fromPort": "Parts",
+      "toNode": "87e1d5c4-91fb-4372-9991-3088f084552e",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "1f8a8b35-08cd-4413-b157-cec81855e9f7",
+      "fromPort": "Parts",
+      "toNode": "87e1d5c4-91fb-4372-9991-3088f084552e",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "1f8a8b35-08cd-4413-b157-cec81855e9f7",
+      "fromPort": "Parts",
+      "toNode": "0659e853-6aef-4e5e-bff4-30158329b0da",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "ef76bd5e-2f43-4bc0-b3ed-20f56d1a8c4b",
+      "fromPort": "Parts",
+      "toNode": "0659e853-6aef-4e5e-bff4-30158329b0da",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "87e1d5c4-91fb-4372-9991-3088f084552e",
+      "fromPort": "Items",
+      "toNode": "37379983-d243-49e3-8168-390c3b43947a",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "0659e853-6aef-4e5e-bff4-30158329b0da",
+      "fromPort": "Items",
+      "toNode": "074dab04-44d6-4847-9ced-20c342046c58",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "914726d1-0c13-4fd4-b0f5-a5175881ac9c",
+      "fromPort": "Text",
+      "toNode": "5c5afe77-392b-4c7f-89a3-1bc24480e57d",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "5c5afe77-392b-4c7f-89a3-1bc24480e57d",
+      "fromPort": "Parts",
+      "toNode": "da76f39d-5f9e-4b31-a320-1f0fef820a48",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "da76f39d-5f9e-4b31-a320-1f0fef820a48",
+      "fromPort": "Rows",
+      "toNode": "1bf0cee3-a5d7-40a5-a60b-d15805013dd0",
+      "toPort": "Rows"
+    },
+    {
+      "fromNode": "17a4cd3b-55a7-46fa-a352-d12169cda8c5",
+      "fromPort": "Text",
+      "toNode": "59e85937-2df3-4393-aa37-5b9f6094cf91",
+      "toPort": "XML"
+    },
+    {
+      "fromNode": "59e85937-2df3-4393-aa37-5b9f6094cf91",
+      "fromPort": "JSON",
+      "toNode": "4e04970d-7488-4e6c-88af-2bcf936fe5cd",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "4e04970d-7488-4e6c-88af-2bcf936fe5cd",
+      "fromPort": "Value",
+      "toNode": "16074127-6cca-4db5-85fd-a016ca08bfd7",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "59e85937-2df3-4393-aa37-5b9f6094cf91",
+      "fromPort": "JSON",
+      "toNode": "618c5c24-98be-46f1-9ec3-5399f421fdb0",
+      "toPort": "JSON"
+    },
+    {
+      "fromNode": "618c5c24-98be-46f1-9ec3-5399f421fdb0",
+      "fromPort": "XML",
+      "toNode": "7760926e-5ea7-47e8-b61e-085027c99153",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "5444a954-3342-4139-8f0a-275d6540a1b6",
+      "fromPort": "Text",
+      "toNode": "37f41fc1-84db-475b-9ff6-5a78757f52af",
+      "toPort": "HTML"
+    },
+    {
+      "fromNode": "37f41fc1-84db-475b-9ff6-5a78757f52af",
+      "fromPort": "Values",
+      "toNode": "2e4b6528-e6a4-40ac-a83a-15d5e4a0d7b0",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "476b9fc3-16fc-48d3-81b7-d92237d3bdb3",
+      "fromPort": "Text",
+      "toNode": "6ce0a67e-25c9-4442-b201-8caecb4cbf26",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "3542d40b-6b14-40f5-bda9-120d27ae6f98",
+      "fromPort": "Text",
+      "toNode": "99bef116-2aae-4c5b-b623-55846f03a50e",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "6ce0a67e-25c9-4442-b201-8caecb4cbf26",
+      "fromPort": "Parts",
+      "toNode": "67d0f005-9d9f-42e1-a802-ccaa8087f1aa",
+      "toPort": "A",
+      "each": true
+    },
+    {
+      "fromNode": "99bef116-2aae-4c5b-b623-55846f03a50e",
+      "fromPort": "Parts",
+      "toNode": "67d0f005-9d9f-42e1-a802-ccaa8087f1aa",
+      "toPort": "B",
+      "each": true
+    },
+    {
+      "fromNode": "67d0f005-9d9f-42e1-a802-ccaa8087f1aa",
+      "fromPort": "Text",
+      "toNode": "48fd6886-f35a-42bc-a01a-d61b8819c870",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "ff2f014b-ac2a-4493-aae5-ae9e7ab71a81",
+      "fromPort": "Text",
+      "toNode": "5e3e6f68-888f-4d5e-9ac0-d6dc61601c21",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "5e3e6f68-888f-4d5e-9ac0-d6dc61601c21",
+      "fromPort": "Lines",
+      "toNode": "e1fedc77-e1cb-47c3-94c4-ce70ad653d53",
+      "toPort": "JSON",
+      "each": true
+    },
+    {
+      "fromNode": "e1fedc77-e1cb-47c3-94c4-ce70ad653d53",
+      "fromPort": "Value",
+      "toNode": "7a16470a-51f8-4d09-82d0-e39363a752f6",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "965f5937-9938-402e-9c33-69f153e75666",
+      "fromPort": "Numbers",
+      "toNode": "dc46c2bb-2b20-4169-9f7e-73f5f3e7f36e",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "dc46c2bb-2b20-4169-9f7e-73f5f3e7f36e",
+      "fromPort": "Items",
+      "toNode": "e23e1137-2793-46b9-a943-a39c164b14bc",
+      "toPort": "Value"
     }
   ],
   "groups": [
@@ -1452,6 +1955,140 @@
         "023f8905-1094-4631-9184-105fceb70981",
         "e0e3d8d4-8bd9-46f4-a38a-a7fbc719de43"
       ]
+    },
+    {
+      "id": "d3e7867f-5467-4091-9b7e-448accd5c0a0",
+      "name": "What changed: Set Operation",
+      "isCollapsed": false,
+      "nodeIds": [
+        "07c32ec6-9302-4e81-a149-0f63a2319c3b",
+        "ae108c4e-a4e9-4550-90ef-07f2154f1ff6",
+        "1f8a8b35-08cd-4413-b157-cec81855e9f7",
+        "ef76bd5e-2f43-4bc0-b3ed-20f56d1a8c4b",
+        "87e1d5c4-91fb-4372-9991-3088f084552e",
+        "0659e853-6aef-4e5e-bff4-30158329b0da",
+        "37379983-d243-49e3-8168-390c3b43947a",
+        "074dab04-44d6-4847-9ced-20c342046c58"
+      ]
+    },
+    {
+      "id": "76cebb9f-d005-4186-b9b4-23bb58a7ed68",
+      "name": "A frequency table: Count By",
+      "isCollapsed": false,
+      "nodeIds": [
+        "914726d1-0c13-4fd4-b0f5-a5175881ac9c",
+        "5c5afe77-392b-4c7f-89a3-1bc24480e57d",
+        "da76f39d-5f9e-4b31-a320-1f0fef820a48",
+        "1bf0cee3-a5d7-40a5-a60b-d15805013dd0"
+      ]
+    },
+    {
+      "id": "f8ceb7db-fbae-48ea-a3a9-2c62cd6a7a42",
+      "name": "XML both ways: XML To JSON, JSON To XML",
+      "isCollapsed": false,
+      "nodeIds": [
+        "17a4cd3b-55a7-46fa-a352-d12169cda8c5",
+        "59e85937-2df3-4393-aa37-5b9f6094cf91",
+        "4e04970d-7488-4e6c-88af-2bcf936fe5cd",
+        "618c5c24-98be-46f1-9ec3-5399f421fdb0",
+        "16074127-6cca-4db5-85fd-a016ca08bfd7",
+        "7760926e-5ea7-47e8-b61e-085027c99153"
+      ]
+    },
+    {
+      "id": "7fc1e8aa-2ce8-4ada-80f7-050005ee4943",
+      "name": "Scraping a page: HTML Select",
+      "isCollapsed": false,
+      "nodeIds": [
+        "5444a954-3342-4139-8f0a-275d6540a1b6",
+        "37f41fc1-84db-475b-9ff6-5a78757f52af",
+        "2e4b6528-e6a4-40ac-a83a-15d5e4a0d7b0"
+      ]
+    },
+    {
+      "id": "d38bac49-3279-4942-bea5-ff4fcbfeaadd",
+      "name": "Per item, every combination",
+      "isCollapsed": false,
+      "nodeIds": [
+        "476b9fc3-16fc-48d3-81b7-d92237d3bdb3",
+        "3542d40b-6b14-40f5-bda9-120d27ae6f98",
+        "6ce0a67e-25c9-4442-b201-8caecb4cbf26",
+        "99bef116-2aae-4c5b-b623-55846f03a50e",
+        "67d0f005-9d9f-42e1-a802-ccaa8087f1aa",
+        "48fd6886-f35a-42bc-a01a-d61b8819c870"
+      ]
+    },
+    {
+      "id": "b898459a-272e-48ab-ac99-e5c625e0c292",
+      "name": "Per item, skipping what fails",
+      "isCollapsed": false,
+      "nodeIds": [
+        "ff2f014b-ac2a-4493-aae5-ae9e7ab71a81",
+        "5e3e6f68-888f-4d5e-9ac0-d6dc61601c21",
+        "e1fedc77-e1cb-47c3-94c4-ce70ad653d53",
+        "7a16470a-51f8-4d09-82d0-e39363a752f6"
+      ]
+    },
+    {
+      "id": "fcff5731-0530-4b92-9d02-641cb5d0eefb",
+      "name": "Any list into the List nodes",
+      "isCollapsed": false,
+      "nodeIds": [
+        "965f5937-9938-402e-9c33-69f153e75666",
+        "dc46c2bb-2b20-4169-9f7e-73f5f3e7f36e",
+        "e23e1137-2793-46b9-a943-a39c164b14bc"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "0c325ebe-a46d-4a38-b83f-5992fe74fcf2",
+      "target": "d3e7867f-5467-4091-9b7e-448accd5c0a0",
+      "x": 0,
+      "y": -110,
+      "text": "Two server lists, compared: today Except yesterday is what appeared (web3), yesterday Except today what went away (cache1)."
+    },
+    {
+      "id": "2a4b7cb4-b525-4712-bf96-6883cfaf4f52",
+      "target": "76cebb9f-d005-4186-b9b4-23bb58a7ed68",
+      "x": 0,
+      "y": -110,
+      "text": "Count By tallies each distinct item, most frequent first; Rows goes straight into Table or CSV Format."
+    },
+    {
+      "id": "4d68470b-316e-4c27-8c03-2445692948ad",
+      "target": "f8ceb7db-fbae-48ea-a3a9-2c62cd6a7a42",
+      "x": 0,
+      "y": -110,
+      "text": "Attributes become @name and repeated elements arrays, so JSON Get reads feed.entry[1].title. JSON To XML turns it back into the same XML."
+    },
+    {
+      "id": "50840c24-4768-4b99-8b7e-7104ab991243",
+      "target": "7fc1e8aa-2ce8-4ada-80f7-050005ee4943",
+      "x": 0,
+      "y": -110,
+      "text": "In real use the HTML comes from HTTP Request. The CSS selector a.dl picks the download links, and Base URL makes them absolute, ready for Download To File."
+    },
+    {
+      "id": "531b49b2-5eaa-41bd-8d13-5af5db6c9924",
+      "target": "d38bac49-3279-4942-bea5-ff4fcbfeaadd",
+      "x": 0,
+      "y": -110,
+      "text": "Template runs per item of both lists (right-click an input: For each item). Its right-click menu, Per item, pairs them as every combination: 2 services x 3 environments = 6 host names."
+    },
+    {
+      "id": "fc8d1808-cee0-4853-b6f6-4b47fe33b58d",
+      "target": "b898459a-272e-48ab-ac99-e5c625e0c292",
+      "x": 0,
+      "y": -110,
+      "text": "JSON Get runs once per line. The middle line is not JSON: with Per item \u003E Skip items that fail ticked, its result is left empty and the node warns, instead of failing and taking the other two with it."
+    },
+    {
+      "id": "a8100362-3ca1-45ff-a6f2-f16d406bfe62",
+      "target": "fcff5731-0530-4b92-9d02-641cb5d0eefb",
+      "x": 0,
+      "y": -110,
+      "text": "The List nodes take a list of anything: numbers, booleans and dates as well as text. Range\u0027s numbers go straight into Reverse."
     }
   ]
 }

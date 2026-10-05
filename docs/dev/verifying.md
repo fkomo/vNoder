@@ -18,16 +18,19 @@ Until then, engine behaviour is checked with a **throwaway console harness** in 
 model. Prefer it to reasoning about whether a graph change is correct.
 
 The `.vnoder` files in `samples/` (each explained by the notes inside it) are real saved graphs: 01–04
-cover Run If / Done, skipping and merges, and 05–11 are self-contained showcases that together use
+cover Run If / Done, skipping and merges, and 05–12 are self-contained showcases that together use
 every node type. The checks apply to the numbered samples only; other files in `samples/` are
 scratch graphs and may be stale. Three cheap checks after changing ports, node paths, the file format
 or adding a node: load every numbered sample through `GraphFile` + `GraphRestore.Into` and expect zero
 warnings; collect the node types they use and expect every registry definition among them; and run
-05–10 with `GraphExecutor.RunOnceAsync`, expecting no failure but Notify (it needs the app's host) and
-no skip but the nodes switched off on purpose (Send Email, Process Kill, Clipboard Set and Get).
+05–10 and 12 with `GraphExecutor.RunOnceAsync`, expecting no failure but Notify (it needs the app's
+host) and no skip but the nodes switched off on purpose (Send Email, Process Kill, Open, Clipboard Set
+and Get). Sample 12 is meant for a continuous run: start `GraphExecutor.StartContinuous` for a few
+seconds and expect File Tail to read back each line written after its first pass exactly once.
 Sample 11 needs a host for its Exit Code, so run it with `vnoder-cli` instead: with `--help` it
-lists its one parameter and exits 0 without running; with or without
-`--name Ada`, expect two lines on standard output and exit code 0 (3 with `TEMP` pointing nowhere).
+lists its one parameter and exits 0 without running; with or without `--name Ada`, expect three
+lines on standard output (the second counts the lines piped in: `printf 'a\nb\n' |` gives 2) and exit
+code 0 (3 with `TEMP` pointing nowhere).
 
 `vnoder-cli` is also the quickest way to run any saved graph end to end without the editor: its exit
 code is 1 when a node failed, and the failures are listed on standard error. If a change

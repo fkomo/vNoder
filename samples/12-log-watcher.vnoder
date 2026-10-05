@@ -1,0 +1,403 @@
+{
+  "formatVersion": 1,
+  "view": {
+    "scale": 0.75,
+    "offsetX": 120,
+    "offsetY": 380
+  },
+  "intervalMilliseconds": 500,
+  "nodes": [
+    {
+      "id": "d29a6973-3146-4a73-9c9a-ce7907591d03",
+      "type": "Output/Note",
+      "x": 0,
+      "y": -420,
+      "w": 620,
+      "h": 250,
+      "state": {
+        "Text": "12 \u2014 WATCHING A LOG   (run it continuously: Ctrl\u002BShift\u002BR)\n\nEvery few seconds the graph appends a line to %TEMP%\\vnoder-sample-12.log, and File Tail reads back only the lines added since the last pass, the way tail -f does. Run Once just steps it.\n\n\u2022 Every slows one branch down: true once per interval, however fast the run ticks.\n\u2022 File Tail remembers where it stopped, holds back a half-written line, and starts again if the file is rotated.\n\u2022 Switch maps the level to what to do, with wildcards and a default.\n\u2022 Cron Due is true on the tick where a schedule comes round (here, every minute); Next says when that is."
+      }
+    },
+    {
+      "id": "168a1afa-7c19-43d8-898a-58e1fac9af3c",
+      "type": "System/Environment Variable",
+      "x": 0,
+      "y": 0,
+      "state": {
+        "Name": "TEMP"
+      }
+    },
+    {
+      "id": "6229cd9d-e7d0-4162-a836-a384d0ecd106",
+      "type": "Path/Combine",
+      "x": 250,
+      "y": 0,
+      "state": {
+        "A": "",
+        "B": "vnoder-sample-12.log",
+        "C": ""
+      }
+    },
+    {
+      "id": "fc2efbb9-0285-47a2-b5d9-79536f3b7c1f",
+      "type": "Input/Static Text",
+      "x": 0,
+      "y": 200,
+      "state": {
+        "Text": "INFO,INFO,INFO,WARN,ERROR"
+      }
+    },
+    {
+      "id": "571633b0-7838-4ae1-b9f5-cc80f3cbb784",
+      "type": "Text/Split",
+      "x": 250,
+      "y": 200,
+      "state": {
+        "Separator": ","
+      }
+    },
+    {
+      "id": "cf149f1d-d87a-4a36-889c-2eb074c028e8",
+      "type": "List/Random Pick",
+      "x": 500,
+      "y": 200,
+      "state": {
+        "Count": 1
+      }
+    },
+    {
+      "id": "08459ff9-3caf-4e94-bcdd-f2d067f6f19f",
+      "type": "Generators/Date Time",
+      "x": 500,
+      "y": 380,
+      "state": {
+        "OffsetSeconds": 0,
+        "Source": 0
+      }
+    },
+    {
+      "id": "fc24fb20-c415-4e50-8900-3df8828c9cb1",
+      "type": "Text/Template",
+      "x": 750,
+      "y": 260,
+      "state": {
+        "Template": "{A} {B} something happened\n"
+      }
+    },
+    {
+      "id": "2a9b5579-8b01-4feb-b004-1043bdea6e76",
+      "type": "Flow/Every",
+      "x": 750,
+      "y": 0,
+      "state": {
+        "FirstPass": true,
+        "Interval": 3,
+        "Unit": 0
+      }
+    },
+    {
+      "id": "911a05f2-dab3-4013-af1b-421e30a286c4",
+      "type": "IO/File Write",
+      "x": 1010,
+      "y": 120,
+      "state": {
+        "AppendIfExists": true,
+        "Path": ""
+      }
+    },
+    {
+      "id": "268d5b14-1189-474b-b575-79ac60f413a1",
+      "type": "IO/File Tail",
+      "x": 1260,
+      "y": 120,
+      "state": {
+        "FromStart": false,
+        "Path": ""
+      }
+    },
+    {
+      "id": "9179718a-62ef-4c90-8f6c-6c4d51e8dfe5",
+      "type": "Output/Output",
+      "x": 1510,
+      "y": 120,
+      "w": 380,
+      "h": 80,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "412b8fab-3fed-4087-8a09-931817757581",
+      "type": "Logic/Switch",
+      "x": 1010,
+      "y": 420,
+      "state": {
+        "Cases": "ERROR =\u003E Page someone\nWARN =\u003E Look at it later",
+        "Default": "Nothing to do",
+        "IgnoreCase": true
+      }
+    },
+    {
+      "id": "99210124-ae00-45b1-8e33-6bacfcce7d13",
+      "type": "Output/Output",
+      "x": 1260,
+      "y": 440,
+      "w": 220,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "3f741ae5-e802-4457-8a19-bdc2e4b43a42",
+      "type": "Flow/Cron Due",
+      "x": 0,
+      "y": 560,
+      "state": {
+        "Expression": "* * * * *",
+        "TimeZone": ""
+      }
+    },
+    {
+      "id": "346b193a-28ca-423f-a133-0760ac424af5",
+      "type": "Output/Output",
+      "x": 250,
+      "y": 560,
+      "w": 160,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "87ec8c47-6716-437d-9373-33b92950af5a",
+      "type": "Generators/Date Time",
+      "x": 0,
+      "y": 760,
+      "state": {
+        "OffsetSeconds": 0,
+        "Source": 0
+      }
+    },
+    {
+      "id": "c3589746-2f13-4602-8016-b66d215011b1",
+      "type": "Date/Difference",
+      "x": 250,
+      "y": 700,
+      "state": {
+        "Unit": 0
+      }
+    },
+    {
+      "id": "c7bf2e5c-bd95-4725-be39-52db659fc129",
+      "type": "Date/Duration Format",
+      "x": 500,
+      "y": 700,
+      "state": {
+        "MaxParts": 2,
+        "Style": 1,
+        "Unit": 0
+      }
+    },
+    {
+      "id": "5bb28597-2a9d-4918-b8e8-1f20d1d2a269",
+      "type": "Output/Output",
+      "x": 760,
+      "y": 720,
+      "w": 220,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "fromNode": "168a1afa-7c19-43d8-898a-58e1fac9af3c",
+      "fromPort": "Value",
+      "toNode": "6229cd9d-e7d0-4162-a836-a384d0ecd106",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "fc2efbb9-0285-47a2-b5d9-79536f3b7c1f",
+      "fromPort": "Text",
+      "toNode": "571633b0-7838-4ae1-b9f5-cc80f3cbb784",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "571633b0-7838-4ae1-b9f5-cc80f3cbb784",
+      "fromPort": "Parts",
+      "toNode": "cf149f1d-d87a-4a36-889c-2eb074c028e8",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "08459ff9-3caf-4e94-bcdd-f2d067f6f19f",
+      "fromPort": "ISO 8601",
+      "toNode": "fc24fb20-c415-4e50-8900-3df8828c9cb1",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "cf149f1d-d87a-4a36-889c-2eb074c028e8",
+      "fromPort": "Item",
+      "toNode": "fc24fb20-c415-4e50-8900-3df8828c9cb1",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "2a9b5579-8b01-4feb-b004-1043bdea6e76",
+      "fromPort": "Due",
+      "toNode": "911a05f2-dab3-4013-af1b-421e30a286c4",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "6229cd9d-e7d0-4162-a836-a384d0ecd106",
+      "fromPort": "Path",
+      "toNode": "911a05f2-dab3-4013-af1b-421e30a286c4",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "fc24fb20-c415-4e50-8900-3df8828c9cb1",
+      "fromPort": "Text",
+      "toNode": "911a05f2-dab3-4013-af1b-421e30a286c4",
+      "toPort": "Data"
+    },
+    {
+      "fromNode": "911a05f2-dab3-4013-af1b-421e30a286c4",
+      "fromPort": "Done",
+      "toNode": "268d5b14-1189-474b-b575-79ac60f413a1",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "6229cd9d-e7d0-4162-a836-a384d0ecd106",
+      "fromPort": "Path",
+      "toNode": "268d5b14-1189-474b-b575-79ac60f413a1",
+      "toPort": "Path"
+    },
+    {
+      "fromNode": "268d5b14-1189-474b-b575-79ac60f413a1",
+      "fromPort": "Text",
+      "toNode": "9179718a-62ef-4c90-8f6c-6c4d51e8dfe5",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "cf149f1d-d87a-4a36-889c-2eb074c028e8",
+      "fromPort": "Item",
+      "toNode": "412b8fab-3fed-4087-8a09-931817757581",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "412b8fab-3fed-4087-8a09-931817757581",
+      "fromPort": "Result",
+      "toNode": "99210124-ae00-45b1-8e33-6bacfcce7d13",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "3f741ae5-e802-4457-8a19-bdc2e4b43a42",
+      "fromPort": "Due",
+      "toNode": "346b193a-28ca-423f-a133-0760ac424af5",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "87ec8c47-6716-437d-9373-33b92950af5a",
+      "fromPort": "Date Time",
+      "toNode": "c3589746-2f13-4602-8016-b66d215011b1",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "3f741ae5-e802-4457-8a19-bdc2e4b43a42",
+      "fromPort": "Next",
+      "toNode": "c3589746-2f13-4602-8016-b66d215011b1",
+      "toPort": "B"
+    },
+    {
+      "fromNode": "c3589746-2f13-4602-8016-b66d215011b1",
+      "fromPort": "Difference",
+      "toNode": "c7bf2e5c-bd95-4725-be39-52db659fc129",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "c7bf2e5c-bd95-4725-be39-52db659fc129",
+      "fromPort": "Text",
+      "toNode": "5bb28597-2a9d-4918-b8e8-1f20d1d2a269",
+      "toPort": "Value"
+    }
+  ],
+  "groups": [
+    {
+      "id": "c9f92a65-8897-4883-a4ed-181f7ce2bbbd",
+      "name": "The log file",
+      "isCollapsed": false,
+      "nodeIds": [
+        "168a1afa-7c19-43d8-898a-58e1fac9af3c",
+        "6229cd9d-e7d0-4162-a836-a384d0ecd106"
+      ]
+    },
+    {
+      "id": "041898ed-dbc8-4124-a940-7079b8e50f06",
+      "name": "A made-up event: time and a random level",
+      "isCollapsed": false,
+      "nodeIds": [
+        "fc2efbb9-0285-47a2-b5d9-79536f3b7c1f",
+        "571633b0-7838-4ae1-b9f5-cc80f3cbb784",
+        "cf149f1d-d87a-4a36-889c-2eb074c028e8",
+        "08459ff9-3caf-4e94-bcdd-f2d067f6f19f",
+        "fc24fb20-c415-4e50-8900-3df8828c9cb1"
+      ]
+    },
+    {
+      "id": "6e1eb264-330c-4119-b3c9-b3ef72138a0c",
+      "name": "Write every 3 seconds, then read back only what is new",
+      "isCollapsed": false,
+      "nodeIds": [
+        "2a9b5579-8b01-4feb-b004-1043bdea6e76",
+        "911a05f2-dab3-4013-af1b-421e30a286c4",
+        "268d5b14-1189-474b-b575-79ac60f413a1",
+        "9179718a-62ef-4c90-8f6c-6c4d51e8dfe5"
+      ]
+    },
+    {
+      "id": "53b43cfb-195b-4cd0-9420-3e03a75f197e",
+      "name": "What to do about it",
+      "isCollapsed": false,
+      "nodeIds": [
+        "412b8fab-3fed-4087-8a09-931817757581",
+        "99210124-ae00-45b1-8e33-6bacfcce7d13"
+      ]
+    },
+    {
+      "id": "2be32efc-9b78-44cd-a2e0-0b417ccb3f9c",
+      "name": "On a schedule",
+      "isCollapsed": false,
+      "nodeIds": [
+        "3f741ae5-e802-4457-8a19-bdc2e4b43a42",
+        "346b193a-28ca-423f-a133-0760ac424af5",
+        "87ec8c47-6716-437d-9373-33b92950af5a",
+        "c3589746-2f13-4602-8016-b66d215011b1",
+        "c7bf2e5c-bd95-4725-be39-52db659fc129",
+        "5bb28597-2a9d-4918-b8e8-1f20d1d2a269"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "c8c898f4-4b95-4078-bb7a-5f4f57a6408f",
+      "target": "6e1eb264-330c-4119-b3c9-b3ef72138a0c",
+      "x": 0,
+      "y": -110,
+      "text": "Every\u0027s Due into File Write\u0027s Run If: a line every 3 seconds. File Write\u0027s Done into File Tail\u0027s Run If, so the tail reads after the write."
+    },
+    {
+      "id": "5619e0de-025d-4ce8-8b83-7263b1f68c99",
+      "target": "53b43cfb-195b-4cd0-9420-3e03a75f197e",
+      "x": 0,
+      "y": -110,
+      "text": "Switch: ERROR and WARN have their own answer, anything else gets the default."
+    },
+    {
+      "id": "0a7476c5-e602-4950-918c-10c8acc5e644",
+      "target": "2be32efc-9b78-44cd-a2e0-0b417ccb3f9c",
+      "x": 0,
+      "y": -110,
+      "text": "Cron Due fires once a minute; Difference to its Next, through Duration Format, says how long until the next one."
+    }
+  ]
+}

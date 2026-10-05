@@ -22,5 +22,8 @@
     <PackageVersion Include="Markdig" Version="1.4.0" />
     <PackageVersion Include="YamlDotNet" Version="18.1.0" />
     <PackageVersion Include="ZXing.Net" Version="0.16.11" />
+    <PackageVersion Include="AngleSharp" Version="1.8.3" />
+    <!-- Windows DPAPI, for the Secret node: on other platforms it throws, and the node says so. -->
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
   </ItemGroup>
 </Project>

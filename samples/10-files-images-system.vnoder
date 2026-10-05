@@ -770,6 +770,33 @@
       "state": {
         "Text": "10 \u2014 FILES, IMAGES AND THE SYSTEM   (writes to %TEMP%\\vnoder-showcase)\n\nA banner drawn and saved as PNG, grey PNG and a flipped WebP thumbnail, an HTML report with the image embedded, and a backup copied and moved. Also: drive space, machine and OS details, processes, an environment variable and a program\u0027s output.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header).\n\nDelete %TEMP%\\vnoder-showcase* to clean up after 05 and 10."
       }
+    },
+    {
+      "id": "f9aed5bc-eb57-4406-a3bc-872fbdf47111",
+      "type": "Logic/Boolean",
+      "x": 12,
+      "y": 2582,
+      "state": {
+        "Value": false
+      }
+    },
+    {
+      "id": "f88eb675-7ad8-4a1c-b8f7-696f085bdd13",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 2702,
+      "state": {
+        "Text": "%TEMP%"
+      }
+    },
+    {
+      "id": "6fc31fef-1bc7-41a4-9a45-bc2bf6a4ca06",
+      "type": "System/Open",
+      "x": 282,
+      "y": 2622,
+      "state": {
+        "Target": ""
+      }
     }
   ],
   "links": [
@@ -1420,6 +1447,18 @@
       "fromPort": "Text",
       "toNode": "b0ec2492-0a00-418f-a8f3-8cdb2b8b6a50",
       "toPort": "Value"
+    },
+    {
+      "fromNode": "f9aed5bc-eb57-4406-a3bc-872fbdf47111",
+      "fromPort": "Value",
+      "toNode": "6fc31fef-1bc7-41a4-9a45-bc2bf6a4ca06",
+      "toPort": "Run If"
+    },
+    {
+      "fromNode": "f88eb675-7ad8-4a1c-b8f7-696f085bdd13",
+      "fromPort": "Text",
+      "toNode": "6fc31fef-1bc7-41a4-9a45-bc2bf6a4ca06",
+      "toPort": "Target"
     }
   ],
   "groups": [
@@ -1526,6 +1565,16 @@
         "2deaa37d-425b-466b-84bb-66db4bbcdfbb",
         "b0ec2492-0a00-418f-a8f3-8cdb2b8b6a50"
       ]
+    },
+    {
+      "id": "ebaadc06-ca7c-4c8e-813e-02047f08eba7",
+      "name": "Opening a result: Open (switched off)",
+      "isCollapsed": false,
+      "nodeIds": [
+        "f9aed5bc-eb57-4406-a3bc-872fbdf47111",
+        "f88eb675-7ad8-4a1c-b8f7-696f085bdd13",
+        "6fc31fef-1bc7-41a4-9a45-bc2bf6a4ca06"
+      ]
     }
   ],
   "notes": [
@@ -1544,6 +1593,13 @@
       "y": 0,
       "w": 260,
       "text": "Process Kill (Notepad) and Clipboard Set are wired but switched off by their Booleans."
+    },
+    {
+      "id": "24a8500b-f51a-4591-8f3a-66e06e7d0f7f",
+      "target": "ebaadc06-ca7c-4c8e-813e-02047f08eba7",
+      "x": 0,
+      "y": -110,
+      "text": "Open shows a file, folder or URL in its default program, here the temp folder in Explorer. Tick the Boolean to try it; it stays off so running the sample opens no windows."
     }
   ]
 }

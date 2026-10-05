@@ -690,6 +690,91 @@
       "state": {
         "Text": "07 \u2014 TEXT TOOLS\n\nSlugs and code-style names from a Czech title, a diff of two versions of release notes, Markdown to HTML, similarity, a palindrome check, trimming and padding an invoice number, regex extraction and email redaction, and round trips through HTML, URL, Base64, Hex, Brotli and the Windows-1250 code page.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
       }
+    },
+    {
+      "id": "7189de5c-4f27-4ef4-ac4c-e895ed07f2e2",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 2743,
+      "state": {
+        "Text": "Release 2.4 adds offline mode, faster sync for large folders, and a new dark theme for the settings page."
+      }
+    },
+    {
+      "id": "036aa434-6eb6-4bed-ba47-5069853f83a6",
+      "type": "Text/Truncate",
+      "x": 282,
+      "y": 2743,
+      "state": {
+        "CutAt": 0,
+        "Ellipsis": "\u2026",
+        "MaxLength": 40,
+        "WholeWords": true
+      }
+    },
+    {
+      "id": "371bce3a-ea20-4675-8bbb-6a431e0f4d2a",
+      "type": "Text/Wrap",
+      "x": 282,
+      "y": 2953,
+      "state": {
+        "BreakLongWords": true,
+        "Width": 36
+      }
+    },
+    {
+      "id": "0f8bc345-58fc-4ab8-a817-da64351924e6",
+      "type": "Input/Static Text",
+      "x": 12,
+      "y": 3163,
+      "state": {
+        "Text": "C:\\Users\\someone\\Documents\\Projects\\2026\\release-notes-final.docx"
+      }
+    },
+    {
+      "id": "c89716e4-cfd2-4819-9935-601da470bcd2",
+      "type": "Text/Truncate",
+      "x": 282,
+      "y": 3163,
+      "state": {
+        "CutAt": 1,
+        "Ellipsis": "\u2026",
+        "MaxLength": 36,
+        "WholeWords": true
+      }
+    },
+    {
+      "id": "8b0e418d-dba4-412d-98b8-258261120f94",
+      "type": "Output/Output",
+      "x": 552,
+      "y": 2743,
+      "w": 320,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "e1f943ed-19e4-4c60-96e9-cd0363cffd16",
+      "type": "Output/Output",
+      "x": 552,
+      "y": 2933,
+      "w": 320,
+      "h": 90,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "fc40b224-ed07-404c-bea3-29ded2ba50fa",
+      "type": "Output/Output",
+      "x": 552,
+      "y": 3163,
+      "w": 320,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
     }
   ],
   "links": [
@@ -1178,6 +1263,42 @@
       "fromPort": "Text",
       "toNode": "f405a347-92a8-4698-96da-c95852c32bbb",
       "toPort": "Value"
+    },
+    {
+      "fromNode": "7189de5c-4f27-4ef4-ac4c-e895ed07f2e2",
+      "fromPort": "Text",
+      "toNode": "036aa434-6eb6-4bed-ba47-5069853f83a6",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "7189de5c-4f27-4ef4-ac4c-e895ed07f2e2",
+      "fromPort": "Text",
+      "toNode": "371bce3a-ea20-4675-8bbb-6a431e0f4d2a",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "0f8bc345-58fc-4ab8-a817-da64351924e6",
+      "fromPort": "Text",
+      "toNode": "c89716e4-cfd2-4819-9935-601da470bcd2",
+      "toPort": "Text"
+    },
+    {
+      "fromNode": "036aa434-6eb6-4bed-ba47-5069853f83a6",
+      "fromPort": "Text",
+      "toNode": "8b0e418d-dba4-412d-98b8-258261120f94",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "371bce3a-ea20-4675-8bbb-6a431e0f4d2a",
+      "fromPort": "Text",
+      "toNode": "e1f943ed-19e4-4c60-96e9-cd0363cffd16",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "c89716e4-cfd2-4819-9935-601da470bcd2",
+      "fromPort": "Text",
+      "toNode": "fc40b224-ed07-404c-bea3-29ded2ba50fa",
+      "toPort": "Value"
     }
   ],
   "groups": [
@@ -1311,6 +1432,30 @@
         "0417c945-4cf4-4784-a9b8-20d26d43c972",
         "f405a347-92a8-4698-96da-c95852c32bbb"
       ]
+    },
+    {
+      "id": "2f111222-9028-4276-809c-2529ea871326",
+      "name": "Fitting text into a width: Truncate and Wrap",
+      "isCollapsed": false,
+      "nodeIds": [
+        "7189de5c-4f27-4ef4-ac4c-e895ed07f2e2",
+        "036aa434-6eb6-4bed-ba47-5069853f83a6",
+        "371bce3a-ea20-4675-8bbb-6a431e0f4d2a",
+        "0f8bc345-58fc-4ab8-a817-da64351924e6",
+        "c89716e4-cfd2-4819-9935-601da470bcd2",
+        "8b0e418d-dba4-412d-98b8-258261120f94",
+        "e1f943ed-19e4-4c60-96e9-cd0363cffd16",
+        "fc40b224-ed07-404c-bea3-29ded2ba50fa"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "id": "048d29ac-6ffe-4670-90ef-a5f09335d403",
+      "target": "2f111222-9028-4276-809c-2529ea871326",
+      "x": 0,
+      "y": -110,
+      "text": "Truncate makes a notification title; Wrap lays a paragraph out for a fixed-width console (CLI Write). Cutting a path in the middle keeps the drive and the file name."
     }
   ]
 }

@@ -37,6 +37,8 @@ public static class GraphFile
                 Y = node.Position.Y,
                 W = node.Size.HasWidth ? node.Size.Width : null,
                 H = node.Size.HasHeight ? node.Size.Height : null,
+                Pairing = PairingText(node.Pairing),
+                SkipFailedItems = node.SkipFailedItems ? true : null,
                 State = CaptureState(node),
             });
         }
@@ -93,6 +95,8 @@ public static class GraphFile
                 Y = node.Position.Y,
                 W = node.Size.HasWidth ? node.Size.Width : null,
                 H = node.Size.HasHeight ? node.Size.Height : null,
+                Pairing = PairingText(node.Pairing),
+                SkipFailedItems = node.SkipFailedItems ? true : null,
                 State = CaptureState(node),
             });
         }
@@ -148,6 +152,18 @@ public static class GraphFile
     /// <summary>What a node is saved as: its definition path, so files survive class renames.</summary>
     internal static string TypeKey(NodeBase node) =>
         NodeDefinitionAttribute.For(node.GetType())?.Path ?? node.GetType().FullName ?? node.GetType().Name;
+
+    /// <summary>
+    /// A pairing as saved: by name in camel case ("longest", "crossProduct"), null for the default so it
+    /// is left out of the file. By name rather than number, unlike inline enums: it is one field the
+    /// format owns, so it can afford to be readable.
+    /// </summary>
+    internal static string? PairingText(ItemPairing pairing) =>
+        pairing == ItemPairing.ByIndex ? null : JsonNamingPolicy.CamelCase.ConvertName(pairing.ToString());
+
+    /// <summary>The pairing a saved name stands for; anything missing or unknown is the default.</summary>
+    internal static ItemPairing ParsePairing(string? text) =>
+        Enum.TryParse<ItemPairing>(text, ignoreCase: true, out var pairing) && Enum.IsDefined(pairing) ? pairing : ItemPairing.ByIndex;
 
     /// <summary>Parses a document, returning null rather than throwing on anything unrecognisable.</summary>
     public static GraphDocument? TryParse(string json)

@@ -142,3 +142,51 @@ public sealed class CliExitCodeNode : NodeBase
         return Task.CompletedTask;
     }
 }
+
+/// <summary>
+/// What was piped into vnoder-cli (<c>type log.txt | vnoder-cli filter.vnoder</c>), as text and as
+/// lines. It comes through the host (<see cref="INodeHost.ReadStandardInputAsync"/>): only vnoder-cli
+/// reads standard input, once, and every CLI Read Stdin node and every pass sees the same text.
+/// </summary>
+/// <remarks>
+/// Nothing piped in is a result, not an error: Text is empty and Found false. That is always the case
+/// in the editor and in a harness with no host, and when vnoder-cli is run from a terminal with nothing
+/// redirected, where reading would otherwise wait for the user to type.
+/// </remarks>
+[NodeDefinition("CLI/CLI Read Stdin", Description = "Reads what was piped into vnoder-cli (standard input), as text and lines.")]
+public sealed class CliReadStdinNode : NodeBase
+{
+    private readonly OutputPort _textOut;
+    private readonly OutputPort _linesOut;
+    private readonly OutputPort _foundOut;
+
+    public CliReadStdinNode()
+    {
+        _textOut = AddOutput<string>("Text");
+        _linesOut = AddOutput<string[]>("Lines");
+        _foundOut = AddOutput<bool>("Found");
+
+        AddRunGate();
+    }
+
+    public override async Task EvaluateAsync(NodeEvaluationContext context)
+    {
+        var text = context.Host is { } host
+            ? await host.ReadStandardInputAsync(context.CancellationToken).ConfigureAwait(false)
+            : null;
+
+        _textOut.Value = text ?? string.Empty;
+        _linesOut.Value = text is null ? [] : SplitLines(text);
+        _foundOut.Value = text is not null;
+    }
+
+    /// <summary>Lines without their endings; the empty "line" after a final newline is not one.</summary>
+    private static string[] SplitLines(string text)
+    {
+        var lines = text.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
+        if (lines.Count > 0 && lines[^1].Length == 0)
+            lines.RemoveAt(lines.Count - 1);
+
+        return [.. lines];
+    }
+}

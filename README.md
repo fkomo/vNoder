@@ -111,23 +111,23 @@ Nodes show what they make, in place: an image, a table, a plot.
 
 | Category | Nodes |
 |---|---|
-| Input | Static Number, Static Text |
+| Input | Static Number, Static Text, Secret (a password or key, saved encrypted for your Windows account) |
 | Generators | Random Number, Random String, Random Bytes, Random Boolean, Random Gaussian, Range (a list of numbers), GUID (v4 / v7), Name-Based GUID (v5 / v3), Date Time |
-| Flow | Changed, Counter, Previous Value, History, Delay (sleep) |
-| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Case Convert (camel, Pascal, snake, kebab, constant, title, sentence, slug), Normalize (accents, whitespace, Unicode forms), Lines, Trim, Pad, Reverse, Word Count, Contains (starts / ends with, equals, regex), Template, Regex Match, Regex Replace, Regex Extract All, Diff, Similarity (Levenshtein), Markdown To HTML |
-| List | Count, Item At, Index Of, First, Last, Sort (text, natural, numeric), Distinct, Reverse, Shuffle, Random Pick, Filter, Slice, Append, Zip, Chunk, Flatten |
+| Flow | Changed, Counter, Previous Value, History, Delay (sleep), Every (once per interval), Cron Due (on a schedule) |
+| Text | Substring, Replace All, Split, Join, Concat, Count Occurrences, To Upper, To Lower, Case Convert (camel, Pascal, snake, kebab, constant, title, sentence, slug), Normalize (accents, whitespace, Unicode forms), Lines, Trim, Pad, Reverse, Word Count, Contains (starts / ends with, equals, regex), Template, Regex Match, Regex Replace, Regex Extract All, Diff, Similarity (Levenshtein), Markdown To HTML, Truncate (end, middle or start, with an ellipsis), Wrap (to a width) |
+| List | Count, Item At, Index Of, First, Last, Sort (text, natural, numeric), Distinct, Reverse, Shuffle, Random Pick, Filter, Slice, Append, Zip, Chunk, Flatten, Set Operation (union, intersect, except, symmetric difference), Count By (a frequency table) |
 | Convert | To Number, To Text, To Boolean, Number Format (decimals, grouping, percent, file size, custom), Base Convert (binary, octal, hex, any base 2–36) |
 | JSON | Get (by path, e.g. `data.items[0].name`), Set, Keys, Merge, From List, Format (indent / minify / validate) |
-| Data | CSV Parse, CSV Format, CSV To JSON, JSON To CSV, XML Get (XPath), YAML To JSON, JSON To YAML |
-| Date | Parse, Format, Add, Difference, Date Parts (weekday, ISO week …), Start End Of (day, week, month, quarter, year), Time Zone Convert, Cron Next, To Unix, From Unix |
+| Data | CSV Parse, CSV Format, CSV To JSON, JSON To CSV, XML Get (XPath), XML To JSON, JSON To XML, YAML To JSON, JSON To YAML, HTML Select (CSS selectors on a web page) |
+| Date | Parse, Format, Add, Difference, Date Parts (weekday, ISO week …), Start End Of (day, week, month, quarter, year), Time Zone Convert, Cron Next, To Unix, From Unix, Duration Format (2h 3m, 2 hours 3 minutes, 02:03:00, PT2H3M) |
 | Math | Expression (a formula typed as text in x, y, z, w — `sqrt(x^2 + y^2)`, `2x + 1`, `if(x < 0, -x, x)`; hover its formula box for the syntax), Add, Subtract, Multiply, Divide, Modulo, Power, Min, Max, Abs, Negate, Sign, Floor, Ceiling, Round, Clamp, Sqrt, Exp, Ln, Log10, Log (any base), Sin, Cos, Tan, Asin, Acos, Atan, Atan2, Constant (π, τ, e), Aggregate (sum, average, min, max, product, median, std dev of a list), Map Range, Lerp, Bitwise |
-| Logic | And, Or, Xor, Nand, Not, Boolean, Equals, Compare, Select (if / else), Is Empty, Coalesce, Type Of |
+| Logic | And, Or, Xor, Nand, Not, Boolean, Equals, Compare, Select (if / else), Switch (a lookup table with wildcards), Is Empty, Coalesce, Type Of |
 | Encoding | Base64 Encode / Decode, Base32 Encode / Decode, URL Encode / Decode, Hex Encode / Decode, HTML Escape / Unescape, Text To Bytes / Bytes To Text (UTF-16, Latin-1, Windows code pages), Compress / Decompress (GZip, Deflate, ZLib, Brotli), JWT Encode / Decode, QR Code, Barcode Read (QR, EAN, UPC, Code 128, Data Matrix, PDF 417 …) |
 | Crypto | Hash (MD5, SHA-1, SHA-256, SHA-384, SHA-512, CRC32), HMAC, AES Encrypt / Decrypt, BCrypt Hash, BCrypt Verify, PBKDF2, TOTP (2FA codes), Key Pair, Sign Data, Verify Signature, Self-Signed Certificate (or a CA), Issue Certificate (signed by your CA), Certificate Request (CSR), Certificate Load (PFX, P12, CRT, CER, PEM) |
-| IO | File Read, File Write, File Copy, File Move, File Hash (streamed), Path Delete (files and directories), Path Exists, File Info, Create Directory, File Search, Directory Size, Drive Info, Zip Create, Zip Extract, Image Load, Image Save |
+| IO | File Read, File Write, File Copy, File Move, File Hash (streamed), Path Delete (files and directories), Path Exists, File Info, Create Directory, File Search, Directory Size, Drive Info, Zip Create, Zip Extract, Image Load, Image Save, File Tail (lines added since the last pass, like tail -f) |
 | Path | Path Parts, Combine, Change Extension, Special Folder (Temp, Desktop, Downloads, AppData …) |
-| System | Environment Variable, Run Process, Process List, Process Kill, Machine Info, Registry Read, Clipboard Get / Set, Notify (desktop notification) |
-| CLI | CLI Param (a named `--name value` argument, optional or required), CLI Write (to standard output or error), Exit Code (for `vnoder-cli`) |
+| System | Environment Variable, Run Process, Process List, Process Kill, Machine Info, Registry Read, Clipboard Get / Set, Notify (desktop notification), Open (a URL, file or folder in its default program) |
+| CLI | CLI Param (a named `--name value` argument, optional or required), CLI Read Stdin (what was piped in), CLI Write (to standard output or error), Exit Code (for `vnoder-cli`) |
 | Network | HTTP Request (GET, POST, PUT, PATCH, DELETE; a raw body, or form fields URL-encoded for HTML forms and OAuth2 token endpoints), Download To File, URL Parse, URL Build, TLS Certificate (a server's certificate and expiry), DNS Lookup, Ping, TCP Port Check, IP Range (CIDR), Send Email (SMTP) |
 | Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM), Resize (fit, fill, stretch, pad; thumbnails), Crop, Rotate Flip (and EXIF auto-orient), Adjust (brightness, contrast, saturation, hue), Filter (grayscale, sepia, invert, blur, sharpen, pixelate), Draw Text (watermarks, captions), Solid Color, To Data URI |
 | Output | Output, Note (free text, linked to nothing), Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text), Table, Plot (a value over time), Log (a timestamped trail) |
@@ -181,7 +181,14 @@ values. Lines → To Upper upper-cases each line; File Search → File Read → 
   template fills it once per item.
 - Two per-item inputs on one node are **paired by position**: a list of names on A and a list of emails
   on B gives name 1 with email 1, and so on. Lists of different lengths fail the node rather than guess.
-- If any item fails, the whole node fails, with the item's number in the message.
+  The node's right-click menu, **Per item**, pairs them differently: **to the longest** list (a shorter
+  one repeats its last item), or **every combination** (each of 2 services with each of 3 environments
+  gives 6 runs).
+- If any item fails, the whole node fails, with the item's number in the message, unless **Per item >
+  Skip items that fail** is ticked: then a failed item's result is left empty, so the others keep their
+  positions, and the node shows how many it skipped.
+- The List nodes and Join take a list of anything: numbers, booleans and dates as well as text.
+- Output and Length run per item show every item, not just the last.
 - A per-item node whose output is already a list (Split per line) gives a **list of lists**; Join on it
   runs per item again, joining each inner list. Output shows an inner list as `[a, b, c]`.
 - Run If always gates the node as a whole, never per item, and Done is a single true once every item
@@ -202,7 +209,9 @@ passes or a continuous run is stopped.
 
 Inline values are saved in the graph file, including secrets typed into a node: the HMAC key, the AES,
 PFX, CA and key passwords, the JWT and TOTP secrets and the SMTP password. Their fields say so. To keep
-a secret out of the file, wire it in instead, from Environment Variable for example.
+a secret out of the file, wire it in instead: from a **Secret** node, which saves it encrypted for your
+Windows account (so the file opens elsewhere without it, and asks for it again), or from Environment
+Variable.
 
 ### Reacting to change
 
@@ -217,6 +226,11 @@ is what lets a graph act when something *changes* rather than every time it look
 - **Plot** and **Log** in Output keep a history the same way: a value over time, and a timestamped line
   per value, newest first.
 - **Delay** waits before passing its value on, for spacing side effects apart.
+- **Every** is true once per interval (seconds, minutes, hours or passes), and **Cron Due** on the tick
+  where a cron schedule comes round, so one branch of a fast run can act every ten minutes, or at nine
+  on weekdays.
+- **File Tail** gives the lines added to a file since the last pass, like `tail -f`: a log watcher is File
+  Tail → Filter → Notify. Sample 12 shows these together.
 
 Their memory starts over whenever a continuous run starts, and carries on between presses of Run Once,
 so a graph can be stepped through by hand. It is never saved in the file.
@@ -259,6 +273,8 @@ The nodes use these libraries:
 | [MailKit](https://github.com/jstedfast/MailKit) | Send Email | MIT |
 | [Markdig](https://github.com/xoofx/markdig) | Markdown To HTML | BSD 2-Clause |
 | [YamlDotNet](https://github.com/aaubry/YamlDotNet) | YAML To JSON, JSON To YAML | MIT |
+| [AngleSharp](https://github.com/AngleSharp/AngleSharp) | HTML Select | MIT |
+| [System.Security.Cryptography.ProtectedData](https://www.nuget.org/packages/System.Security.Cryptography.ProtectedData) | Secret (Windows DPAPI) | MIT |
 
 The Six Labors Split License is Apache 2.0 for open-source use, for-profits under 1M USD annual revenue
 and non-profits, and a commercial license otherwise. ImageSharp is pinned to 3.1 and ImageSharp.Drawing

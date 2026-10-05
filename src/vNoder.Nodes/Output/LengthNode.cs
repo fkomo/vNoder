@@ -41,6 +41,9 @@ public sealed class LengthNode : NodeBase
         return Task.CompletedTask;
     }
 
+    /// <summary>Run per item, it shows every item's length, one per line, not just the last one's.</summary>
+    protected override void ItemsGathered() => DisplayText = NodeValues.ToText(_out.Value);
+
     // Anything without a natural size is measured by how it prints.
     private static (double, string) Measure(string text) => (text.Length, Unit(text.Length, "character"));
 

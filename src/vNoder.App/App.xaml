@@ -19,6 +19,7 @@
         <SolidColorBrush x:Key="TextSecondary" Color="#FFA7ADB9" />
         <SolidColorBrush x:Key="TextMuted" Color="#FF7A8290" />
         <SolidColorBrush x:Key="ErrorText" Color="#FFFF8A7A" />
+        <SolidColorBrush x:Key="WarningText" Color="#FFE8C872" />
         <SolidColorBrush x:Key="PopupBackground" Color="#FF2A2A33" />
 
         <p:PortBrushConverter x:Key="PortBrush" />
@@ -102,6 +103,18 @@
                     <Setter Property="ToolTip" Value="Driven by the connected input" />
                 </Trigger>
             </Style.Triggers>
+        </Style>
+
+        <!-- The Secret node's box: dark like a node field. Implicit, as the control chrome below is. -->
+        <Style TargetType="PasswordBox">
+            <Setter Property="Background" Value="{StaticResource FieldBackground}" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+            <Setter Property="BorderBrush" Value="#FF3E3E4A" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="CaretBrush" Value="{StaticResource TextPrimary}" />
+            <Setter Property="SelectionBrush" Value="#FF6FB3FF" />
         </Style>
 
         <!-- Thin dark scrollbars: the framework's default chrome is light and very wide. -->

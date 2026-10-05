@@ -70,6 +70,36 @@ public abstract class NodeBase : INotifyPropertyChanged
     /// </summary>
     public int? ItemCount { get; internal set; }
 
+    private ItemPairing _pairing;
+    private bool _skipFailedItems;
+
+    /// <summary>
+    /// How the lists on several per-item inputs are combined: by index (the default), padded to the
+    /// longest, or every combination. Saved with the node, outside its inline state, because it belongs
+    /// to every node type alike (<see cref="NodeStateProperties"/> skips what NodeBase declares).
+    /// </summary>
+    public ItemPairing Pairing
+    {
+        get => _pairing;
+        set => Set(ref _pairing, value);
+    }
+
+    /// <summary>
+    /// Whether an item that fails is skipped (an empty slot in the results, and a warning) rather than
+    /// failing the whole node. Saved with the node, like <see cref="Pairing"/>.
+    /// </summary>
+    public bool SkipFailedItems
+    {
+        get => _skipFailedItems;
+        set => Set(ref _skipFailedItems, value);
+    }
+
+    /// <summary>
+    /// What went wrong with the items <see cref="SkipFailedItems"/> passed over in the last pass, or
+    /// null when none did. The node still succeeded. Set by <see cref="GraphExecutor"/>.
+    /// </summary>
+    public string? ItemWarning { get; internal set; }
+
     /// <summary>Name of the input <see cref="AddRunGate"/> declares.</summary>
     public const string RunIfPortName = "Run If";
 
@@ -136,6 +166,15 @@ public abstract class NodeBase : INotifyPropertyChanged
     /// evaluation thread.
     /// </summary>
     public void RaiseBindingsChanged() => OnPropertyChanged(string.Empty);
+
+    /// <summary>
+    /// Called once a per-item run has gathered every item's outputs into lists, on the evaluation
+    /// thread, so a node that displays what it saw can show all the items rather than the last one
+    /// (Output, Length). Its outputs then hold the lists. Assign quietly, as in EvaluateAsync.
+    /// </summary>
+    protected internal virtual void ItemsGathered()
+    {
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

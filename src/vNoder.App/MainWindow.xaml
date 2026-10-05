@@ -2599,6 +2599,245 @@
             </StackPanel>
         </DataTemplate>
 
+        <!-- ===== Schedules, secrets, lookups, lists, text layout, durations, data ========== -->
+
+        <DataTemplate DataType="{x:Type n:SecretNode}">
+            <StackPanel>
+                <TextBlock Text="Saved encrypted for your Windows account" Style="{StaticResource NodeFieldLabel}"
+                           TextWrapping="Wrap" />
+                <!-- A PasswordBox cannot bind its password, by design; the handler hands each edit to
+                     SecretNode.SetSecret, which keeps only the encrypted form. -->
+                <PasswordBox PasswordChanged="SecretBox_PasswordChanged" />
+                <TextBlock Margin="0,4,0,0" FontSize="10" TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Not set" />
+                            <Setter Property="Foreground" Value="{StaticResource TextMuted}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSet}" Value="True">
+                                    <Setter Property="Text" Value="Set. Type to replace it; clear to remove." />
+                                    <Setter Property="Foreground" Value="{StaticResource TextSecondary}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:SwitchNode}">
+            <StackPanel>
+                <TextBlock Text="Cases: case =&gt; result (* ? wildcards)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}" Height="64"
+                         AcceptsReturn="True" TextWrapping="NoWrap" VerticalContentAlignment="Top"
+                         VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Cases}"
+                         Text="{Binding Cases, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Default" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Default}"
+                         Text="{Binding Default, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:EveryNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Every" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter=Interval}"
+                                 Text="{Binding Interval, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Unit" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Unit}"
+                                  ItemsSource="{Binding Unit, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                </Grid>
+                <CheckBox Content="Fire on the first pass" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding FirstPass}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CronDueNode}">
+            <StackPanel>
+                <TextBlock Text="Cron (min hour day month weekday)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Expression}"
+                         Text="{Binding Expression, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="Time zone (empty: local)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         Text="{Binding TimeZone, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:FileTailNode}">
+            <StackPanel>
+                <TextBlock Text="Path" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Path}"
+                         Text="{Binding Path, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="First pass reads the whole file" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding FromStart}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:SetOperationNode}">
+            <StackPanel>
+                <TextBlock Text="Operation" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Operation}"
+                          ItemsSource="{Binding Operation, Converter={StaticResource EnumValues}}" />
+                <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:CountByNode}">
+            <StackPanel>
+                <TextBlock Text="Order" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding Order}"
+                          ItemsSource="{Binding Order, Converter={StaticResource EnumValues}}" />
+                <CheckBox Content="Ignore case" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding IgnoreCase}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:TruncateNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Max length" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                             ConverterParameter='Max Length'}"
+                                 Text="{Binding MaxLength, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Ellipsis" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding Ellipsis, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Cut at" Style="{StaticResource NodeFieldLabel}" />
+                <ComboBox FontSize="11" SelectedItem="{Binding CutAt}"
+                          ItemsSource="{Binding CutAt, Converter={StaticResource EnumValues}}" />
+                <CheckBox Content="Cut between words" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding WholeWords}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:WrapNode}">
+            <StackPanel>
+                <TextBlock Text="Width (characters)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Width}"
+                         Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}" />
+                <CheckBox Content="Split words longer than the width" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding BreakLongWords}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:DurationFormatNode}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Value is in" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Unit}"
+                                  ItemsSource="{Binding Unit, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Style" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Style}"
+                                  ItemsSource="{Binding Style, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Units shown (1 to 4)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         Text="{Binding MaxParts, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:ShellOpenNode}">
+            <StackPanel>
+                <TextBlock Text="URL, file or folder" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Target}"
+                         Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:XmlToJsonNode}">
+            <StackPanel>
+                <CheckBox Content="Ignore namespaces" Margin="0,6,0,0" FontSize="10"
+                          IsChecked="{Binding IgnoreNamespaces}" Foreground="{StaticResource TextMuted}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:JsonToXmlNode}">
+            <StackPanel>
+                <TextBlock Text="Root element (if needed)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         Text="{Binding RootName, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type n:HtmlSelectNode}">
+            <StackPanel>
+                <TextBlock Text="CSS selector" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Selector}"
+                         Text="{Binding Selector, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="6" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Read" Style="{StaticResource NodeFieldLabel}" />
+                        <ComboBox FontSize="11" SelectedItem="{Binding Kind}"
+                                  ItemsSource="{Binding Kind, Converter={StaticResource EnumValues}}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Attribute" Style="{StaticResource NodeFieldLabel}" />
+                        <TextBox Style="{StaticResource NodeFieldTextBox}"
+                                 Text="{Binding Attribute, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="Base URL (makes links absolute)" Style="{StaticResource NodeFieldLabel}" />
+                <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter='Base URL'}"
+                         Text="{Binding BaseUrl, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </DataTemplate>
+
         <!-- ===== CLI ===================================================================== -->
 
         <DataTemplate DataType="{x:Type n:CliWriteNode}">
@@ -2965,7 +3204,7 @@
                                 Background="{Binding Category, Converter={StaticResource CategoryBrush}}"
                                 MouseLeftButtonDown="NodeHeader_MouseLeftButtonDown">
                             <DockPanel>
-                                <!-- "ÃN": this node runs once per list item, N times in the last run. -->
+                                <!-- "×N": this node runs once per list item, N times in the last run. -->
                                 <TextBlock DockPanel.Dock="Right" Text="{Binding ItemBadge}" Margin="0,0,9,0"
                                            VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{StaticResource TextPrimary}" Opacity="0.85"
@@ -2996,6 +3235,10 @@
                         <TextBlock Text="{Binding Error}" Margin="9,0,9,8" FontSize="10" TextWrapping="Wrap"
                                    Foreground="{StaticResource ErrorText}"
                                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
+                        <!-- Items a per-item node skipped because they failed: the node itself succeeded. -->
+                        <TextBlock Text="{Binding ItemWarning}" Margin="9,0,9,8" FontSize="10" TextWrapping="Wrap"
+                                   Foreground="{StaticResource WarningText}"
+                                   Visibility="{Binding HasItemWarning, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource NodeFlash}" Width="{Binding Width}" />

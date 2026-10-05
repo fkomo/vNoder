@@ -78,6 +78,15 @@ public sealed class NodeDocument
     public double? W { get; set; }
     public double? H { get; set; }
 
+    /// <summary>
+    /// How a per-item node pairs its lists (<see cref="NodeBase.Pairing"/>) by name, "longest" or
+    /// "crossProduct"; omitted for the default, by index.
+    /// </summary>
+    public string? Pairing { get; set; }
+
+    /// <summary>True when failed items are skipped rather than failing the node; omitted otherwise.</summary>
+    public bool? SkipFailedItems { get; set; }
+
     /// <summary>Inline editable properties, captured by <see cref="NodeStateProperties"/>.</summary>
     public Dictionary<string, JsonElement>? State { get; set; }
 }

@@ -149,6 +149,38 @@
       "state": {
         "Code": 0
       }
+    },
+    {
+      "id": "3ed55829-4cf3-42b7-8c17-f5faab2a4c9f",
+      "type": "CLI/CLI Read Stdin",
+      "x": 0,
+      "y": 1152
+    },
+    {
+      "id": "ac1a4392-e774-4269-b74b-cc63364add9b",
+      "type": "List/Count",
+      "x": 260,
+      "y": 1152
+    },
+    {
+      "id": "19c3bc6b-734f-4c66-b777-82ccabeb79e0",
+      "type": "Text/Template",
+      "x": 500,
+      "y": 1152,
+      "state": {
+        "Template": "Read {A} line(s) from standard input."
+      }
+    },
+    {
+      "id": "fb83df1c-7db5-44dc-9ac7-430b4b09b4c6",
+      "type": "CLI/CLI Write",
+      "x": 760,
+      "y": 1152,
+      "state": {
+        "NewLine": true,
+        "Stream": 0,
+        "Text": ""
+      }
     }
   ],
   "links": [
@@ -229,6 +261,43 @@
       "fromPort": "Result",
       "toNode": "11000000-0000-4000-8000-00000000000e",
       "toPort": "Code"
+    },
+    {
+      "fromNode": "3ed55829-4cf3-42b7-8c17-f5faab2a4c9f",
+      "fromPort": "Lines",
+      "toNode": "ac1a4392-e774-4269-b74b-cc63364add9b",
+      "toPort": "Items"
+    },
+    {
+      "fromNode": "ac1a4392-e774-4269-b74b-cc63364add9b",
+      "fromPort": "Count",
+      "toNode": "19c3bc6b-734f-4c66-b777-82ccabeb79e0",
+      "toPort": "A"
+    },
+    {
+      "fromNode": "19c3bc6b-734f-4c66-b777-82ccabeb79e0",
+      "fromPort": "Text",
+      "toNode": "fb83df1c-7db5-44dc-9ac7-430b4b09b4c6",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "3ed55829-4cf3-42b7-8c17-f5faab2a4c9f",
+      "fromPort": "Found",
+      "toNode": "fb83df1c-7db5-44dc-9ac7-430b4b09b4c6",
+      "toPort": "Run If"
+    }
+  ],
+  "groups": [
+    {
+      "id": "072aac58-87a5-40be-b826-a1eb0c253e3b",
+      "name": "Piped input: CLI Read Stdin",
+      "isCollapsed": false,
+      "nodeIds": [
+        "3ed55829-4cf3-42b7-8c17-f5faab2a4c9f",
+        "ac1a4392-e774-4269-b74b-cc63364add9b",
+        "19c3bc6b-734f-4c66-b777-82ccabeb79e0",
+        "fb83df1c-7db5-44dc-9ac7-430b4b09b4c6"
+      ]
     }
   ],
   "notes": [
@@ -252,6 +321,13 @@
       "x": 0,
       "y": -90,
       "text": "Try: vnoder-cli samples/11-command-line.vnoder; echo $LASTEXITCODE (PowerShell) or echo %ERRORLEVEL% (cmd)."
+    },
+    {
+      "id": "16fa6a15-b2ac-4f26-a9ef-5dd2265595c4",
+      "target": "072aac58-87a5-40be-b826-a1eb0c253e3b",
+      "x": 0,
+      "y": -110,
+      "text": "Pipe something in: type notes.txt | vnoder-cli samples/11-command-line.vnoder. With nothing piped in (and always in the editor) Found is false, so the line is not written."
     }
   ]
 }

@@ -27,4 +27,23 @@ internal sealed class CliNodeHost(IReadOnlyDictionary<string, string> parameters
     public void SetExitCode(int code) => _exitCode = code;
 
     public string? GetParameter(string name) => _parameters.GetValueOrDefault(name);
+
+    /// <summary>Standard input can be read once, so the first read is kept for every later node and pass.</summary>
+    private readonly Lazy<Task<string?>> _input = new(ReadInputAsync);
+
+    public Task<string?> ReadStandardInputAsync(CancellationToken cancellationToken) =>
+        _input.Value.WaitAsync(cancellationToken);
+
+    /// <summary>
+    /// The whole of standard input as UTF-8 (a byte-order mark picks another encoding), or null when
+    /// nothing is redirected into it, where reading would wait for the user to type.
+    /// </summary>
+    private static async Task<string?> ReadInputAsync()
+    {
+        if (!Console.IsInputRedirected)
+            return null;
+
+        using var reader = new StreamReader(Console.OpenStandardInput(), System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        return await reader.ReadToEndAsync().ConfigureAwait(false);
+    }
 }

@@ -51,4 +51,10 @@ public interface INodeHost
     /// not given. Only the command-line runner has any; in the editor every parameter is absent.
     /// </summary>
     string? GetParameter(string name);
+
+    /// <summary>
+    /// Everything piped into the process's standard input, or null when nothing was. Only the
+    /// command-line runner reads it; the editor has none, even when started with input redirected.
+    /// </summary>
+    Task<string?> ReadStandardInputAsync(CancellationToken cancellationToken);
 }

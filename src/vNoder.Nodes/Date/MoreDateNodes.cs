@@ -247,17 +247,7 @@ public sealed class CronNextNode : NodeBase
 
     public override Task EvaluateAsync(NodeEvaluationContext context)
     {
-        var text = _expressionIn.ValueOr(Expression).Trim();
-        CronExpression cron;
-        try
-        {
-            var fields = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
-            cron = CronExpression.Parse(text, fields == 6 ? CronFormat.IncludeSeconds : CronFormat.Standard);
-        }
-        catch (CronFormatException exception)
-        {
-            throw new InvalidOperationException($"Invalid cron expression: {exception.Message}");
-        }
+        var cron = CronText.Parse(_expressionIn.ValueOr(Expression));
 
         var zone = TimeZones.Find(TimeZone) ?? TimeZoneInfo.Local;
         var from = (_fromIn.IsConnected ? _fromIn.ValueOr(DateTime.Now) : DateTime.Now).ToUniversalTime();
@@ -277,5 +267,23 @@ public sealed class CronNextNode : NodeBase
         _nextOut.Value = upcoming.Count > 0 ? upcoming[0] : null;
         _foundOut.Value = upcoming.Count > 0;
         return Task.CompletedTask;
+    }
+}
+
+/// <summary>Cron parsing shared by Cron Next and Cron Due: five fields, or six with seconds first.</summary>
+internal static class CronText
+{
+    public static CronExpression Parse(string? expression)
+    {
+        var text = (expression ?? string.Empty).Trim();
+        try
+        {
+            var fields = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length;
+            return CronExpression.Parse(text, fields == 6 ? CronFormat.IncludeSeconds : CronFormat.Standard);
+        }
+        catch (CronFormatException exception)
+        {
+            throw new InvalidOperationException($"Invalid cron expression: {exception.Message}");
+        }
     }
 }

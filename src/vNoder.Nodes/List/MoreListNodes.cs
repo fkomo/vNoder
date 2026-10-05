@@ -52,7 +52,7 @@ public sealed class ListAppendNode : ListNode
 
     public ListAppendNode()
     {
-        _moreIn = AddInput<string[]>("More");
+        _moreIn = AddInput("More", PortTypeCompatibility.ItemList);
         _itemIn = AddInput<string>("Item");
         _out = AddOutput<string[]>("Items");
         _countOut = AddOutput<double>("Count");
@@ -60,7 +60,7 @@ public sealed class ListAppendNode : ListNode
 
     public override Task EvaluateAsync(NodeEvaluationContext context)
     {
-        string[] result = [.. Items, .. _moreIn.ValueOr(Array.Empty<string>())];
+        string[] result = [.. Items, .. NodeValues.TextItems(_moreIn.Value)];
         if (_itemIn.Value is string item)
             result = [.. result, item];
 
@@ -87,8 +87,8 @@ public sealed class ListZipNode : NodeBase
 
     public ListZipNode()
     {
-        _aIn = AddInput<string[]>("A");
-        _bIn = AddInput<string[]>("B");
+        _aIn = AddInput("A", PortTypeCompatibility.ItemList);
+        _bIn = AddInput("B", PortTypeCompatibility.ItemList);
         _pairsOut = AddOutput<string[][]>("Pairs");
         _joinedOut = AddOutput<string[]>("Joined");
     }
@@ -97,8 +97,8 @@ public sealed class ListZipNode : NodeBase
 
     public override Task EvaluateAsync(NodeEvaluationContext context)
     {
-        var pairs = _aIn.ValueOr(Array.Empty<string>())
-            .Zip(_bIn.ValueOr(Array.Empty<string>()), (a, b) => new[] { a, b })
+        var pairs = NodeValues.TextItems(_aIn.Value)
+            .Zip(NodeValues.TextItems(_bIn.Value), (a, b) => new[] { a, b })
             .ToArray();
 
         _pairsOut.Value = pairs;

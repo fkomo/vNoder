@@ -82,7 +82,7 @@ public sealed class XmlGetNode : NodeBase
         return Task.CompletedTask;
     }
 
-    private static XDocument Load(string xml)
+    internal static XDocument Load(string xml)
     {
         if (string.IsNullOrWhiteSpace(xml))
             throw new InvalidOperationException("No XML to read.");
@@ -99,7 +99,7 @@ public sealed class XmlGetNode : NodeBase
         }
     }
 
-    private static void StripNamespaces(XDocument document)
+    internal static void StripNamespaces(XDocument document)
     {
         foreach (var element in document.Descendants())
         {

@@ -736,6 +736,35 @@ public sealed partial class WorkspaceViewModel : ObservableObject
             : $"{input.Node.Title} takes {input.Name} as a whole list.") + SettleLinks();
     }
 
+    /// <summary>How a per-item node pairs the lists on several per-item inputs (<see cref="NodeBase.Pairing"/>).</summary>
+    public void SetPairing(NodeViewModel node, ItemPairing pairing)
+    {
+        if (node.Model.Pairing == pairing)
+            return;
+
+        using var change = BeginChange("Pair lists");
+        node.Model.Pairing = pairing;
+        StatusText = pairing switch
+        {
+            ItemPairing.Longest => $"{node.Title} runs as many times as its longest list; shorter ones repeat their last item.",
+            ItemPairing.CrossProduct => $"{node.Title} runs once for every combination of its lists.",
+            _ => $"{node.Title} pairs its lists item by item.",
+        };
+    }
+
+    /// <summary>Whether a per-item node skips items that fail rather than failing (<see cref="NodeBase.SkipFailedItems"/>).</summary>
+    public void SetSkipFailedItems(NodeViewModel node, bool skip)
+    {
+        if (node.Model.SkipFailedItems == skip)
+            return;
+
+        using var change = BeginChange(skip ? "Skip failed items" : "Fail on a failed item");
+        node.Model.SkipFailedItems = skip;
+        StatusText = skip
+            ? $"{node.Title} skips items that fail, leaving their results empty."
+            : $"{node.Title} fails if any item fails.";
+    }
+
     /// <summary>
     /// Brings every link in line with what its source now carries, after a change that may have made a
     /// node start or stop running per item, and refreshes port types and wire styles to match.

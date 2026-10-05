@@ -1328,6 +1328,87 @@
       "state": {
         "Text": "09 \u2014 NUMBERS AND DATES\n\nA sine wave, a circle, a 3-4-5 triangle solved four ways, compound interest, a thermostat, paging, logic puzzles (a coin, two-way light switches, a door alarm, a weekend check), dates: parts, month end, time zones, cron, Unix time, and formulas typed as text.\n\nPress Run Once (Ctrl\u002BR) and read the Outputs. Each task sits in its own group; collapse the ones you are not reading (double-click a header)."
       }
+    },
+    {
+      "id": "b57caf29-d14e-4e32-be12-0df6cd21e9f6",
+      "type": "System/Machine Info",
+      "x": 12,
+      "y": 3405
+    },
+    {
+      "id": "88373029-563b-46e3-b8f3-5e81b8b290c7",
+      "type": "Date/Duration Format",
+      "x": 282,
+      "y": 3405,
+      "state": {
+        "MaxParts": 2,
+        "Style": 1,
+        "Unit": 2
+      }
+    },
+    {
+      "id": "02f4bc0f-e955-4803-bcae-5bbace551a4e",
+      "type": "Output/Output",
+      "x": 552,
+      "y": 3405,
+      "w": 280,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "27e38c1e-f134-4e69-bd77-65f59b596167",
+      "type": "Input/Static Number",
+      "x": 12,
+      "y": 3705,
+      "state": {
+        "Value": 93784
+      }
+    },
+    {
+      "id": "35c40ae7-38da-4feb-9ce3-777a84d3abc4",
+      "type": "Date/Duration Format",
+      "x": 282,
+      "y": 3705,
+      "state": {
+        "MaxParts": 2,
+        "Style": 2,
+        "Unit": 0
+      }
+    },
+    {
+      "id": "1e0b35cd-1754-449a-a8b4-f79dc0c4c6f5",
+      "type": "Date/Duration Format",
+      "x": 282,
+      "y": 3875,
+      "state": {
+        "MaxParts": 2,
+        "Style": 3,
+        "Unit": 0
+      }
+    },
+    {
+      "id": "9040b5a5-18fb-4cc7-872a-e5879d2aae6e",
+      "type": "Output/Output",
+      "x": 552,
+      "y": 3705,
+      "w": 200,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
+    },
+    {
+      "id": "e25124bc-2fae-4731-b08e-345b58c9db47",
+      "type": "Output/Output",
+      "x": 552,
+      "y": 3875,
+      "w": 200,
+      "h": 40,
+      "state": {
+        "Wrap": false
+      }
     }
   ],
   "links": [
@@ -2329,6 +2410,42 @@
       "fromPort": "Result",
       "toNode": "825b3c22-fa20-47b3-b6cf-d465f272dffc",
       "toPort": "Value"
+    },
+    {
+      "fromNode": "b57caf29-d14e-4e32-be12-0df6cd21e9f6",
+      "fromPort": "Uptime Hours",
+      "toNode": "88373029-563b-46e3-b8f3-5e81b8b290c7",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "88373029-563b-46e3-b8f3-5e81b8b290c7",
+      "fromPort": "Text",
+      "toNode": "02f4bc0f-e955-4803-bcae-5bbace551a4e",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "27e38c1e-f134-4e69-bd77-65f59b596167",
+      "fromPort": "Value",
+      "toNode": "35c40ae7-38da-4feb-9ce3-777a84d3abc4",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "27e38c1e-f134-4e69-bd77-65f59b596167",
+      "fromPort": "Value",
+      "toNode": "1e0b35cd-1754-449a-a8b4-f79dc0c4c6f5",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "35c40ae7-38da-4feb-9ce3-777a84d3abc4",
+      "fromPort": "Text",
+      "toNode": "9040b5a5-18fb-4cc7-872a-e5879d2aae6e",
+      "toPort": "Value"
+    },
+    {
+      "fromNode": "1e0b35cd-1754-449a-a8b4-f79dc0c4c6f5",
+      "fromPort": "Text",
+      "toNode": "e25124bc-2fae-4731-b08e-345b58c9db47",
+      "toPort": "Value"
     }
   ],
   "groups": [
@@ -2573,6 +2690,21 @@
         "e10c7ebb-8bc1-478c-8e0a-7793dd404fd0",
         "825b3c22-fa20-47b3-b6cf-d465f272dffc"
       ]
+    },
+    {
+      "id": "aad15642-faab-4e31-b6d4-35c7a1ce6864",
+      "name": "Durations for people: Duration Format",
+      "isCollapsed": false,
+      "nodeIds": [
+        "b57caf29-d14e-4e32-be12-0df6cd21e9f6",
+        "88373029-563b-46e3-b8f3-5e81b8b290c7",
+        "02f4bc0f-e955-4803-bcae-5bbace551a4e",
+        "27e38c1e-f134-4e69-bd77-65f59b596167",
+        "35c40ae7-38da-4feb-9ce3-777a84d3abc4",
+        "1e0b35cd-1754-449a-a8b4-f79dc0c4c6f5",
+        "9040b5a5-18fb-4cc7-872a-e5879d2aae6e",
+        "e25124bc-2fae-4731-b08e-345b58c9db47"
+      ]
     }
   ],
   "notes": [
@@ -2599,6 +2731,13 @@
       "y": 0,
       "w": 260,
       "text": "Expression evaluates a formula typed as text, in x, y, z and w. Fed from Range it runs once per item: a damped wave into Plot. On the right, the distance between (x, y) and (z, w). Hover the formula box for the syntax."
+    },
+    {
+      "id": "607b8b85-c228-473f-80b1-3f1cc32daf32",
+      "target": "aad15642-faab-4e31-b6d4-35c7a1ce6864",
+      "x": 0,
+      "y": -110,
+      "text": "The machine\u0027s uptime (in hours) reads as \u00223 days, 4 hours\u0022; 93784 seconds as a clock and as ISO 8601 (P1DT2H3M4S), the form APIs and config files use."
     }
   ]
 }

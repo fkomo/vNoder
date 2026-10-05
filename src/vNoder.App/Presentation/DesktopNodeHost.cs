@@ -83,6 +83,9 @@ public sealed class DesktopNodeHost : INodeHost
     /// <summary>The editor has no command line, so every CLI Param falls back to its default here.</summary>
     public string? GetParameter(string name) => null;
 
+    /// <summary>The editor is not fed by a pipe, so CLI Read Stdin finds nothing here.</summary>
+    public Task<string?> ReadStandardInputAsync(CancellationToken cancellationToken) => Task.FromResult<string?>(null);
+
     private Task<T> OnUiThread<T>(Func<T> action, CancellationToken cancellationToken) =>
         _dispatcher.InvokeAsync(action, DispatcherPriority.Normal, cancellationToken).Task;
 

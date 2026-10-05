@@ -10,11 +10,11 @@ namespace vNoder.Nodes;
 /// <summary>A node reading one list; the port declaration shared by every list node.</summary>
 public abstract class ListNode : NodeBase
 {
-    protected ListNode() => ItemsIn = AddInput<string[]>("Items");
+    protected ListNode() => ItemsIn = AddInput("Items", PortTypeCompatibility.ItemList);
 
     protected InputPort ItemsIn { get; }
 
-    protected string[] Items => ItemsIn.ValueOr(Array.Empty<string>());
+    protected string[] Items => NodeValues.TextItems(ItemsIn.Value);
 }
 
 /// <summary>A list in, a list out.</summary>
@@ -188,7 +188,7 @@ public sealed class ListSortNode : ListTransformNode
         }
     }
 
-    private sealed class NaturalComparer(bool ignoreCase) : IComparer<string>
+    internal sealed class NaturalComparer(bool ignoreCase) : IComparer<string>
     {
         public int Compare(string? x, string? y)
         {

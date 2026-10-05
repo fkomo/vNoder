@@ -153,34 +153,35 @@ public sealed class GraphExecutor(Graph graph)
 
     /// <summary>
     /// Runs a node once per item of its iterating inputs (<see cref="Link.Iterate"/>) and gathers
-    /// each output into a list, one entry per item. The node's own code is unaware of it: it sees one
+    /// each output into a list, one entry per run. The node's own code is unaware of it: it sees one
     /// item on each iterating input, and its other inputs unchanged every time.
     /// </summary>
     /// <remarks>
-    /// Several iterating inputs are paired by index, and must be the same length; a mismatch fails the
-    /// node rather than guessing which items were meant to go together. An item that fails fails the
-    /// whole node, as any failure does, with the item's position in the message. A value that is not
-    /// a list counts as a list of one, and nothing as an empty list, which runs the node no times.
+    /// <para>
+    /// Several iterating inputs are combined as <see cref="NodeBase.Pairing"/> says. By index (the
+    /// default) they must be the same length; a mismatch fails the node rather than guessing which
+    /// items were meant to go together. Longest runs as many times as the longest list, a shorter one
+    /// repeating its last item. Cross product runs every combination, the first input varying slowest.
+    /// A value that is not a list counts as a list of one, and nothing as an empty list, which runs the
+    /// node no times (in any pairing, since there is nothing to pair it with).
+    /// </para>
+    /// <para>
+    /// An item that fails fails the whole node, with the item's position in the message, unless
+    /// <see cref="NodeBase.SkipFailedItems"/> is set: then its results are left empty, so positions
+    /// still line up with the input, and the node succeeds with <see cref="NodeBase.ItemWarning"/>.
+    /// </para>
     /// </remarks>
     private static async Task EvaluatePerItemAsync(NodeBase node, NodeEvaluationContext context)
     {
         var iterating = node.Inputs.Where(input => input.Link is { Iterate: true }).ToList();
         var lists = iterating.Select(input => Items(input.Value)).ToList();
-
-        var count = lists[0].Count;
-        for (var i = 1; i < lists.Count; i++)
-        {
-            if (lists[i].Count != count)
-            {
-                throw new InvalidOperationException(
-                    $"Lists differ in length: {iterating[0].Name} has {count} items, "
-                    + $"{iterating[i].Name} has {lists[i].Count}.");
-            }
-        }
+        var (count, indexOf) = Pair(node.Pairing, iterating, lists);
 
         var outputs = node.Outputs.Where(output => !ReferenceEquals(output, node.DonePort)).ToList();
         var gathered = outputs.Select(_ => new object?[count]).ToList();
         var whole = iterating.Select(input => input.Value).ToList();
+        var failures = 0;
+        string? firstFailure = null;
 
         try
         {
@@ -189,7 +190,7 @@ public sealed class GraphExecutor(Graph graph)
                 context.CancellationToken.ThrowIfCancellationRequested();
 
                 for (var i = 0; i < iterating.Count; i++)
-                    iterating[i].Value = lists[i][item];
+                    iterating[i].Value = lists[i][indexOf(item, i)];
 
                 foreach (var output in outputs)
                     output.Value = null;
@@ -200,7 +201,14 @@ public sealed class GraphExecutor(Graph graph)
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
-                    throw new InvalidOperationException($"Item {item + 1} of {count}: {exception.Message}", exception);
+                    var message = $"Item {item + 1} of {count}: {exception.Message}";
+                    if (!node.SkipFailedItems)
+                        throw new InvalidOperationException(message, exception);
+
+                    // Skipped: its slot stays empty, so later items keep their positions.
+                    failures++;
+                    firstFailure ??= message;
+                    continue;
                 }
 
                 for (var o = 0; o < outputs.Count; o++)
@@ -217,7 +225,65 @@ public sealed class GraphExecutor(Graph graph)
         for (var o = 0; o < outputs.Count; o++)
             outputs[o].Value = ToList(outputs[o].ValueType, gathered[o]);
 
+        node.ItemsGathered();
         node.ItemCount = count;
+        node.ItemWarning = failures == 0
+            ? null
+            : $"{failures} of {count} items failed and were skipped. {firstFailure}";
+    }
+
+    /// <summary>The most runs one pass may make, so a cross product of long lists fails rather than hangs.</summary>
+    private const int MaxItemRuns = 1_000_000;
+
+    /// <summary>
+    /// How many times a per-item node runs, and which item of input <c>i</c> run <c>n</c> takes.
+    /// </summary>
+    private static (int Count, Func<int, int, int> IndexOf) Pair(
+        ItemPairing pairing,
+        IReadOnlyList<InputPort> inputs,
+        IReadOnlyList<IReadOnlyList<object?>> lists)
+    {
+        var lengths = lists.Select(list => list.Count).ToArray();
+        if (lengths.Length == 1 || lengths.Any(length => length == 0))
+            return (lengths.Length == 1 ? lengths[0] : 0, (item, _) => item);
+
+        switch (pairing)
+        {
+            case ItemPairing.Longest:
+                return (lengths.Max(), (item, i) => Math.Min(item, lengths[i] - 1));
+
+            case ItemPairing.CrossProduct:
+                var total = lengths.Aggregate(1L, (product, length) => product * length);
+                if (total > MaxItemRuns)
+                {
+                    throw new InvalidOperationException(
+                        $"Every combination of these lists is {total:N0} runs, more than the {MaxItemRuns:N0} allowed.");
+                }
+
+                // Like an odometer: the last input turns fastest, the first slowest.
+                var strides = new int[lengths.Length];
+                var stride = 1;
+                for (var i = lengths.Length - 1; i >= 0; i--)
+                {
+                    strides[i] = stride;
+                    stride *= lengths[i];
+                }
+
+                return ((int)total, (item, i) => item / strides[i] % lengths[i]);
+
+            default:
+                for (var i = 1; i < lengths.Length; i++)
+                {
+                    if (lengths[i] != lengths[0])
+                    {
+                        throw new InvalidOperationException(
+                            $"Lists differ in length: {inputs[0].Name} has {lengths[0]} items, {inputs[i].Name} has {lengths[i]}. "
+                            + "Pair them by longest list or every combination from the node's right-click menu.");
+                    }
+                }
+
+                return (lengths[0], (item, _) => item);
+        }
     }
 
     private static IReadOnlyList<object?> Items(object? value) => value switch
@@ -311,6 +377,7 @@ public sealed class GraphExecutor(Graph graph)
                 node.LastError = null;
                 node.IsSkipped = true;
                 node.ItemCount = null;
+                node.ItemWarning = null;
                 blocked.Add(node);
                 skipped.Add(node);
                 observer?.Invoke(node, NodeRunPhase.Skipped);
@@ -319,6 +386,7 @@ public sealed class GraphExecutor(Graph graph)
 
             node.IsSkipped = false;
             node.ItemCount = null;
+            node.ItemWarning = null;
             observer?.Invoke(node, NodeRunPhase.Started);
 
             try
@@ -345,6 +413,7 @@ public sealed class GraphExecutor(Graph graph)
                 // behind: its outputs are cleared, and the nodes that take data from it are skipped.
                 ClearOutputs(node);
                 node.LastError = exception.Message;
+                node.ItemWarning = null;
                 failed.Add(node);
                 blocked.Add(node);
                 observer?.Invoke(node, NodeRunPhase.Failed);

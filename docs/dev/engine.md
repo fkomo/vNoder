@@ -63,17 +63,18 @@ on the dispatcher once the pass completes. `OutputNode` is the worked example.
   (`Reconcile`), so it keeps their memory too.
 - **`INodeHost`** (`NodeEvaluationContext.Host`, set on `GraphExecutor.Host`) is how a node reaches
   what only the app has: the clipboard and desktop notifications, implemented by `DesktopNodeHost` on
-  the dispatcher, and the process exit code and command-line parameters, implemented by `CliNodeHost`
-  in `vnoder-cli` (the editor ignores the exit code and has no parameters, so a CLI graph still runs
-  there). It is null in a harness, and those nodes then fail with a clear message, except CLI Param,
-  which treats a missing host like a missing parameter. Add to the interface rather than giving Nodes
-  a UI reference, and implement the new member in both hosts. CLI Write is deliberately not on it: it
+  the dispatcher, and the process exit code, command-line parameters and standard input,
+  implemented by `CliNodeHost` in `vnoder-cli` (the editor ignores the exit code and has no
+  parameters or input, so a CLI graph still runs there). It is null in a harness, and those nodes then
+  fail with a clear message, except CLI Param and CLI Read Stdin, which treat a missing host like
+  nothing given. Add to the interface rather than giving Nodes a UI reference, and implement the new
+  member in both hosts. CLI Write is deliberately not on it: it
   writes to `Console` directly, which works everywhere and simply goes nowhere in the editor.
 
 ### Per-item evaluation
 
-Wiring a list into an input that takes one item runs the node once per item (the Grasshopper model,
-Option C in `TODO.md`). It is all in Core; **node code never knows** — `EvaluateAsync` sees one item on
+Wiring a list into an input that takes one item runs the node once per item (the Grasshopper model).
+It is all in Core; **node code never knows** — `EvaluateAsync` sees one item on
 each per-item input, so every existing node supports it for free. Keep it that way.
 
 - The state is one flag, **`Link.Iterate`**, saved as `"each": true` on the link (omitted when false).
@@ -93,14 +94,37 @@ each per-item input, so every existing node supports it for free. Keep it that w
   upstream of it that are not restored yet (a document lists links in creation order, not
   topologically), so `TryConnect`'s type check would reject valid links. `Into`, `Append` and
   `Reconcile` all attach unchecked and warn about whatever `Settle` removes.
-- The executor (`EvaluatePerItemAsync`) pairs several per-item inputs **by index** and fails on a
-  length mismatch; non-list values count as one item, null as none. An item that throws fails the
-  whole node, prefixed "Item i of n". Results are **typed arrays** (`string[]` for text, so Join and
+- The executor (`EvaluatePerItemAsync`) combines several per-item inputs as **`NodeBase.Pairing`**
+  says: by index (the default; a length mismatch fails the node, and the message points at the menu),
+  to the longest (a shorter list repeats its last item), or every combination (an odometer, the first
+  input slowest, capped at a million runs). Non-list values count as one item, null as none, and an
+  empty list runs nothing in any pairing. An item that throws fails the whole node, prefixed "Item i of
+  n", unless **`NodeBase.SkipFailedItems`**: then its results stay null so positions line up, the node
+  succeeds, and `NodeBase.ItemWarning` (amber on the node) says how many were skipped and why.
+- Pairing and Skip Failed Items are **declared on `NodeBase`**, so `NodeStateProperties` does not
+  capture them; the file format carries them as `"pairing"` (by name: `"longest"`, `"crossProduct"`)
+  and `"skipFailedItems"` on the node, omitted when default, and all three restore paths (`Into`,
+  `AppendCore`, `Reconcile`) read them. They are set from the node's right-click menu, **Per item**,
+  which appears only on a node that runs per item.
+- A node that **displays** what it saw overrides `NodeBase.ItemsGathered()`, which the executor calls
+  once the items' outputs are gathered into lists: Output and Length show every item, not the last. Results are **typed arrays** (`string[]` for text, so Join and
   the List nodes take them), an `any` output narrowed to its items' common type; a value-type list
   with a missing item stays `object[]` rather than inventing a zero. `NodeBase.ItemCount` feeds the
   header's `×N` badge.
 - A per-item node whose output is already a list gives a list of lists (`string[][]`), and a list
-  input (Join) fed with one iterates again, peeling one level. That is all the nesting there is.
+  input (Join) fed with one iterates again, peeling one level. That is all the nesting there is. It is
+  why list inputs use the **`list` port type** (`PortTypeCompatibility.ItemList`, a marker type): it
+  takes any *flat* list whole (text, numbers, booleans, dates, `object[]`) but a list of lists only per
+  item. Widening those inputs to `any` instead would take a list of lists whole and break Chunk → Join.
+  Nodes read a `list` input with `NodeValues.TextItems`, so items sort, filter and join as they display.
+
+**Why per-item evaluation, and not a loop construct.** Two alternatives were weighed and set aside. A
+**For Each sub-graph** node (an inner graph run once per item, which would also have given user-defined
+nodes) needs nested graphs in the file format, undo and paste, and a second canvas to edit them in. A
+**loop-region group** breaks the rule that groups are purely presentational: dragging a node in or out
+would change what the graph computes. Implicit per-item evaluation needs neither, and every node gets it
+without knowing. Running items **in parallel** was dropped too: a node is one instance holding its port
+values, so it cannot evaluate two items at once, and the slow nodes (I/O) are the ones that should not.
 - Per-item wires are dashed (`WireLayer` pens are keyed by brush *and* dash), and a per-item input
   shows a teal ×. `LinkViewModel.RefreshAppearance()` raises `"Appearance"` only when colour or dash
   changed, so a settle redraws only the wires that did.

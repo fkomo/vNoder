@@ -31,7 +31,7 @@ list, factory switch, or any other second place to edit — that is the whole po
 
 **Every new node comes with a sample.** Use it in a graph in `samples/`, doing a small real job, not
 sitting alone on the canvas: add it to the existing sample it fits (05 site monitor, 06 data, 07 text,
-08 security, 09 numbers and dates, 10 files, images and the system, 11 command line), or add a new numbered sample
+08 security, 09 numbers and dates, 10 files, images and the system, 11 command line, 12 watching a log), or add a new numbered sample
 when it opens a new area. Describe what it shows **in the sample itself**, with notes: each sample
 opens with a Note node explaining it, and linked notes on the nodes or groups worth pointing at (there
 is no samples README any more; the explanation lives next to what it explains). Between them the samples use
@@ -92,6 +92,11 @@ Conventions that go with it:
 - Inline state is saved and loaded automatically (see **Persistence** in [engine.md](engine.md)). Nothing to register, but it
   does mean a public settable property of a simple type *is* persisted state — give anything that
   evaluation computes a non-public setter, as `OutputNode.Value` and `LengthNode.Count` do.
+- **A secret is never a public read/write property**, since every such property is saved in plain
+  text (and copied to the clipboard, and kept in undo history). `SecretNode` saves only its
+  DPAPI-encrypted form (`Protected`) and takes the plain text through a method, `SetSecret`, which its
+  editor's `PasswordBox` calls from code-behind (`SecretBox_PasswordChanged`): a password box cannot
+  bind, by design. A node that needs a secret takes it on a wired input, so Secret can feed it.
 - **Never name an inline property after a `NodeBase` member**: `Size`, `Title`, `Position`, `Id`,
   `Category`, `Inputs`, `Outputs`. It compiles with only a CS0108 warning, but `Size` is the node's
   saved geometry and `Title` its header text, so hiding them breaks the canvas or the file. Use
@@ -111,8 +116,9 @@ What an individual node does and why is documented on its class. What follows ap
   to evaluation, where `ValueOr` falls back instead of failing. Without the second half, `OutputNode`'s
   pass-through port could only ever feed another `any` input, which made it useless.
 - **Port types** are `double`, `string`, `bool`, `byte[]`, `string[]` (a text list, produced by
-  Split, Lines, File Search, Regex Extract All and JSON Get on an array, consumed by Join and the List
-  nodes), `DateTime` ("date/time", from
+  Split, Lines, File Search, Regex Extract All and JSON Get on an array), `list`
+  (`PortTypeCompatibility.ItemList`: any flat list, the input type of Join and the List nodes, read
+  with `NodeValues.TextItems`; a list of lists runs them per inner list), `DateTime` ("date/time", from
   `DateTimeNode` to `FormatDateTimeNode`) and `object` for "any". A node running per item also
   carries **any array but `byte[]`** as a list (`double[]`, `bool[]`, `string[][]`, `object[]`; see
   **Per-item evaluation** in [engine.md](engine.md)): `PortTypeCompatibility.IsList` is the rule, and `byte[]` is one value, never
@@ -132,7 +138,7 @@ What an individual node does and why is documented on its class. What follows ap
   **Execution model** in [engine.md](engine.md)); Select, Coalesce, Is Empty and Output are declared `Merges = true`, so they
   still run when one side is skipped and read it as empty.
 - Nodes with side effects (file writes and deletes, zips, HTTP Request, Download To File, Send Email,
-  Run Process, Process Kill, Image Save, Clipboard Set, Notify, CLI Write) **fire on every tick** of a continuous
+  Run Process, Process Kill, Image Save, Clipboard Set, Notify, CLI Write, Open) **fire on every tick** of a continuous
   run. Changed into Run If is the answer to "only when something happens"; say so in the node's comment
   when it is one a user would typically want gated.
 - Text nodes **clamp rather than throw** on out-of-range arguments (`SubstringNode`) and treat a

@@ -13,7 +13,7 @@ public sealed class JoinNode : NodeBase
 
     public JoinNode()
     {
-        _partsIn = AddInput<string[]>("Parts");
+        _partsIn = AddInput("Parts", PortTypeCompatibility.ItemList);
         _separatorIn = AddInput<string>("Separator");
         _out = AddOutput<string>("Text");
     }
@@ -26,7 +26,7 @@ public sealed class JoinNode : NodeBase
 
     public override Task EvaluateAsync(NodeEvaluationContext context)
     {
-        var parts = _partsIn.ValueOr(Array.Empty<string>());
+        var parts = NodeValues.TextItems(_partsIn.Value);
         _out.Value = string.Join(_separatorIn.ValueOr(Separator), parts);
         return Task.CompletedTask;
     }
