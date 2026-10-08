@@ -51,6 +51,7 @@
       "x": 500,
       "y": 0,
       "state": {
+        "Log": false,
         "NewLine": true,
         "Stream": 0,
         "Text": ""
@@ -80,6 +81,7 @@
       "x": 1000,
       "y": 100,
       "state": {
+        "Log": false,
         "NewLine": true,
         "Stream": 0,
         "Text": ""
@@ -177,9 +179,44 @@
       "x": 760,
       "y": 1152,
       "state": {
+        "Log": false,
         "NewLine": true,
         "Stream": 0,
         "Text": ""
+      }
+    },
+    {
+      "id": "f3f4a9c9-0cff-44f9-9a11-89986d889a1f",
+      "type": "CLI/CLI Write",
+      "x": 0,
+      "y": 1692,
+      "state": {
+        "Log": true,
+        "NewLine": true,
+        "Stream": 1,
+        "Text": "note: this line goes to standard error"
+      }
+    },
+    {
+      "id": "5990eb4e-8051-48d0-8056-981802243b20",
+      "type": "CLI/Standard Output",
+      "x": 280,
+      "y": 1692,
+      "w": 420,
+      "h": 110,
+      "state": {
+        "Wrap": true
+      }
+    },
+    {
+      "id": "c2692f15-d128-4d34-bf4c-216d0d34aba9",
+      "type": "CLI/Standard Error",
+      "x": 280,
+      "y": 1922,
+      "w": 420,
+      "h": 60,
+      "state": {
+        "Wrap": true
       }
     }
   ],
@@ -195,6 +232,12 @@
       "fromPort": "OS",
       "toNode": "11000000-0000-4000-8000-000000000003",
       "toPort": "B"
+    },
+    {
+      "fromNode": "11000000-0000-4000-8000-000000000002",
+      "fromPort": "User",
+      "toNode": "11000000-0000-4000-8000-000000000010",
+      "toPort": "Default"
     },
     {
       "fromNode": "11000000-0000-4000-8000-000000000010",
@@ -298,6 +341,16 @@
         "19c3bc6b-734f-4c66-b777-82ccabeb79e0",
         "fb83df1c-7db5-44dc-9ac7-430b4b09b4c6"
       ]
+    },
+    {
+      "id": "f11af7f2-decf-45a6-ba34-ea5b6f1abcbb",
+      "name": "What the console would show: Standard Output and Standard Error",
+      "isCollapsed": false,
+      "nodeIds": [
+        "f3f4a9c9-0cff-44f9-9a11-89986d889a1f",
+        "5990eb4e-8051-48d0-8056-981802243b20",
+        "c2692f15-d128-4d34-bf4c-216d0d34aba9"
+      ]
     }
   ],
   "notes": [
@@ -306,7 +359,7 @@
       "target": "11000000-0000-4000-8000-000000000010",
       "x": 236,
       "y": 22,
-      "text": "--name sets this; without it Value is the default, world, and Found is false. Tick Required and vnoder-cli refuses to run without it."
+      "text": "--name sets this; without it Value is the default and Found is false. The default is wired from Machine Info\u0027s User, so it greets whoever runs it; --help lists it as computed. Tick Required and vnoder-cli refuses to run without --name."
     },
     {
       "id": "11000000-0000-4000-8000-0000000000f1",
@@ -328,6 +381,13 @@
       "x": 0,
       "y": -110,
       "text": "Pipe something in: type notes.txt | vnoder-cli samples/11-command-line.vnoder. With nothing piped in (and always in the editor) Found is false, so the line is not written."
+    },
+    {
+      "id": "02e13ff9-d426-404b-a9fd-e74b61cb5b23",
+      "target": "f11af7f2-decf-45a6-ba34-ea5b6f1abcbb",
+      "x": 0,
+      "y": -110,
+      "text": "In the editor there is no console, so these show what CLI Write wrote in this run, as a console would. Each Run Once starts them empty; a continuous run keeps adding to them."
     }
   ]
 }

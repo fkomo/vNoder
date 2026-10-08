@@ -5,7 +5,8 @@ public sealed class NodeEvaluationContext(
     long tick,
     CancellationToken cancellationToken,
     long run = 0,
-    INodeHost? host = null)
+    INodeHost? host = null,
+    ConsoleCapture? console = null)
 {
     /// <summary>0 for a one-shot run; increments once per clock tick in continuous mode.</summary>
     public long Tick { get; } = tick;
@@ -25,6 +26,12 @@ public sealed class NodeEvaluationContext(
     /// hosts the graph, as in a test harness. Nodes that need it fail with a message when it is absent.
     /// </summary>
     public INodeHost? Host { get; } = host;
+
+    /// <summary>
+    /// Where CLI Write records what it writes, for the Standard Output and Standard Error nodes; null
+    /// in a harness that runs nodes without an executor.
+    /// </summary>
+    public ConsoleCapture? Console { get; } = console;
 }
 
 /// <summary>

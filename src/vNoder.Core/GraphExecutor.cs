@@ -23,6 +23,12 @@ public sealed class GraphExecutor(Graph graph)
     public INodeHost? Host { get; set; }
 
     /// <summary>
+    /// What CLI Write wrote in the current run, for the Standard Output and Standard Error nodes. Cleared
+    /// by each Run Once and when a continuous run starts; a continuous run's ticks accumulate.
+    /// </summary>
+    public ConsoleCapture Console { get; } = new();
+
+    /// <summary>
     /// Raised after each completed pass, on the evaluation thread. Subscribers that touch UI state are
     /// responsible for marshalling — see <see cref="NodeBase.RaiseBindingsChanged"/>.
     /// </summary>
@@ -46,6 +52,7 @@ public sealed class GraphExecutor(Graph graph)
         await _runGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            Console.Clear();
             return await EvaluateAsync(Interlocked.Increment(ref _tick), cancellationToken, observer).ConfigureAwait(false);
         }
         finally
@@ -85,6 +92,7 @@ public sealed class GraphExecutor(Graph graph)
         _continuousCancellation?.Dispose();
         _continuousCancellation = new CancellationTokenSource();
         Interlocked.Increment(ref _run);
+        Console.Clear();
         var token = _continuousCancellation.Token;
 
         _continuousLoop = Task.Run(() => ContinuousLoopAsync(token), CancellationToken.None);
@@ -338,7 +346,7 @@ public sealed class GraphExecutor(Graph graph)
         CancellationToken cancellationToken,
         Action<NodeBase, NodeRunPhase>? observer = null)
     {
-        var context = new NodeEvaluationContext(tick, cancellationToken, Interlocked.Read(ref _run), Host);
+        var context = new NodeEvaluationContext(tick, cancellationToken, Interlocked.Read(ref _run), Host, Console);
         var order = Graph.TopologicalOrder();
         var failed = new List<NodeBase>();
         var skipped = new List<NodeBase>();

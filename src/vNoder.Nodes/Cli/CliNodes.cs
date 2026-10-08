@@ -19,6 +19,11 @@ public enum ConsoleStream
 /// Writes on every pass, like any node with side effects; under vnoder-cli a graph runs once, so that
 /// is once. A list is written whole, formatted as <see cref="NodeValues.ToText"/> formats it; tick
 /// "For each item" on the input to make one write per item instead.
+/// <para>
+/// With Log ticked, every line written starts with the local date and time to the millisecond
+/// (<c>2026-10-08 14:03:05.123</c>), as a log file's lines do; a multi-line value gets one per line.
+/// Text passes on what was written, timestamps included.
+/// </para>
 /// </remarks>
 [NodeDefinition("CLI/CLI Write", Description = "Writes text (or any value, as text) to standard output or standard error, for graphs run by vnoder-cli.")]
 public sealed class CliWriteNode : NodeBase
@@ -26,6 +31,7 @@ public sealed class CliWriteNode : NodeBase
     private string _text = string.Empty;
     private bool _newLine = true;
     private ConsoleStream _stream;
+    private bool _log;
 
     private readonly InputPort _in;
     private readonly OutputPort _out;
@@ -44,14 +50,26 @@ public sealed class CliWriteNode : NodeBase
 
     public ConsoleStream Stream { get => _stream; set => Set(ref _stream, value); }
 
+    /// <summary>Whether each line written starts with a timestamp, log style.</summary>
+    public bool Log { get => _log; set => Set(ref _log, value); }
+
     public override async Task EvaluateAsync(NodeEvaluationContext context)
     {
         var text = _in.IsConnected ? NodeValues.ToText(_in.Value) : Text;
+        if (Log)
+        {
+            var stamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ", System.Globalization.CultureInfo.InvariantCulture);
+            text = string.Join('\n', text.Split('\n').Select(line => stamp + line));
+        }
+
         var writer = Stream == ConsoleStream.StandardError ? Console.Error : Console.Out;
 
-        await writer.WriteAsync((NewLine ? text + Environment.NewLine : text).AsMemory(), context.CancellationToken)
-            .ConfigureAwait(false);
+        var written = NewLine ? text + Environment.NewLine : text;
+        await writer.WriteAsync(written.AsMemory(), context.CancellationToken).ConfigureAwait(false);
         await writer.FlushAsync(context.CancellationToken).ConfigureAwait(false);
+
+        // Recorded too, so the Standard Output and Standard Error nodes can show it in the editor.
+        context.Console?.Write(written, error: Stream == ConsoleStream.StandardError);
 
         _out.Value = text;
     }
@@ -65,9 +83,11 @@ public sealed class CliWriteNode : NodeBase
 /// starts, so the node itself never fails for a missing value.
 /// </summary>
 /// <remarks>
-/// vnoder-cli finds every CLI Param in the graph to list them (with --help) and to check the
-/// arguments, so Name, Required, Default and Description are read from the node's inline state and are
-/// not wirable. Several nodes may share a name; they read the same value.
+/// vnoder-cli finds every CLI Param in the graph to list them (with --help) and to check the arguments,
+/// before the graph runs, so Name, Required and Description are read from the node's inline state and
+/// are not wirable: a wired value only exists once the graph has run. Default is the exception, because
+/// it is only needed during the run: wired, it is computed (the current user, today's date, a value read
+/// from a file), and --help lists it as such. Several nodes may share a name; they read the same value.
 /// </remarks>
 [NodeDefinition("CLI/CLI Param", Description = "A named parameter given to vnoder-cli as --name value; falls back to a default when absent.")]
 public sealed class CliParamNode : NodeBase
@@ -77,11 +97,13 @@ public sealed class CliParamNode : NodeBase
     private string _default = string.Empty;
     private string _description = string.Empty;
 
+    private readonly InputPort _defaultIn;
     private readonly OutputPort _valueOut;
     private readonly OutputPort _foundOut;
 
     public CliParamNode()
     {
+        _defaultIn = AddInput("Default", PortTypeCompatibility.Any);
         _valueOut = AddOutput<string>("Value");
         _foundOut = AddOutput<bool>("Found");
     }
@@ -93,6 +115,9 @@ public sealed class CliParamNode : NodeBase
 
     public string Default { get => _default; set => Set(ref _default, value ?? string.Empty); }
 
+    /// <summary>Whether Default comes from a wire, so vnoder-cli lists it as computed rather than showing the inline value.</summary>
+    public bool DefaultIsWired => _defaultIn.IsConnected;
+
     /// <summary>One line for the parameter list vnoder-cli prints.</summary>
     public string Description { get => _description; set => Set(ref _description, value ?? string.Empty); }
 
@@ -103,7 +128,7 @@ public sealed class CliParamNode : NodeBase
     {
         var value = Name.Length > 0 ? context.Host?.GetParameter(Name) : null;
 
-        _valueOut.Value = value ?? Default;
+        _valueOut.Value = value ?? (_defaultIn.IsConnected ? NodeValues.ToText(_defaultIn.Value) : Default);
         _foundOut.Value = value is not null;
         return Task.CompletedTask;
     }
@@ -189,4 +214,46 @@ public sealed class CliReadStdinNode : NodeBase
 
         return [.. lines];
     }
+}
+
+/// <summary>
+/// Shows what CLI Write wrote to one stream in the current run, the way a console would: in the
+/// editor there is no console, so this is where a graph meant for vnoder-cli shows its output. Each
+/// Run Once starts it empty, and a continuous run's ticks pile up, newest at the bottom.
+/// </summary>
+/// <remarks>
+/// It has no ports, because what it shows does not arrive by wire: it reads the executor's
+/// <see cref="ConsoleCapture"/>, and reads it when the view refreshes after the pass, not when the node
+/// itself evaluates. So it shows everything written, whichever order the nodes happened to run in.
+/// </remarks>
+public abstract class ConsoleViewNode : NodeBase
+{
+    private ConsoleCapture? _capture;
+    private bool _wrap = true;
+
+    /// <summary>Whether this view shows standard error rather than standard output.</summary>
+    public abstract bool ShowsError { get; }
+
+    /// <summary>Whether long lines wrap, as in a console window, rather than run off to the right.</summary>
+    public bool Wrap { get => _wrap; set => Set(ref _wrap, value); }
+
+    public string DisplayText => _capture is null ? string.Empty : ShowsError ? _capture.Error : _capture.Output;
+
+    public override Task EvaluateAsync(NodeEvaluationContext context)
+    {
+        _capture = context.Console;
+        return Task.CompletedTask;
+    }
+}
+
+[NodeDefinition("CLI/Standard Output", Resizable = true, Description = "Shows what CLI Write wrote to standard output in this run, like a console.")]
+public sealed class StandardOutputNode : ConsoleViewNode
+{
+    public override bool ShowsError => false;
+}
+
+[NodeDefinition("CLI/Standard Error", Resizable = true, Description = "Shows what CLI Write wrote to standard error in this run, like a console.")]
+public sealed class StandardErrorNode : ConsoleViewNode
+{
+    public override bool ShowsError => true;
 }

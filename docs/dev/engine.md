@@ -70,6 +70,12 @@ on the dispatcher once the pass completes. `OutputNode` is the worked example.
   nothing given. Add to the interface rather than giving Nodes a UI reference, and implement the new
   member in both hosts. CLI Write is deliberately not on it: it
   writes to `Console` directly, which works everywhere and simply goes nowhere in the editor.
+- **`ConsoleCapture`** (`GraphExecutor.Console`, handed to nodes as `NodeEvaluationContext.Console`)
+  is where CLI Write also records what it writes, so the Standard Output and Standard Error nodes can
+  show it in the editor. The executor clears it on each Run Once and when a continuous run starts, so
+  a continuous run's ticks accumulate; each stream keeps its last 200,000 characters. The views take
+  the capture when they evaluate but read it when the view refreshes after the pass, so they show
+  everything written whatever the evaluation order, with no wire to order them by.
 
 ### Per-item evaluation
 

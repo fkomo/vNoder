@@ -2852,6 +2852,8 @@
                           ItemsSource="{Binding Stream, Converter={StaticResource EnumValues}}" />
                 <CheckBox Content="End with a new line" Margin="0,6,0,0" FontSize="10"
                           IsChecked="{Binding NewLine}" Foreground="{StaticResource TextMuted}" />
+                <CheckBox Content="Log: timestamp each line" Margin="0,4,0,0" FontSize="10"
+                          IsChecked="{Binding Log}" Foreground="{StaticResource TextMuted}" />
             </StackPanel>
         </DataTemplate>
 
@@ -2862,6 +2864,8 @@
                          Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock Text="Default" Style="{StaticResource NodeFieldLabel}" />
                 <TextBox Style="{StaticResource NodeFieldTextBox}"
+                         IsEnabled="{Binding Inputs, Converter={StaticResource PortNotWired},
+                                     ConverterParameter=Default}"
                          Text="{Binding Default, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock Text="Description (shown in the parameter list)" Style="{StaticResource NodeFieldLabel}" />
                 <TextBox Style="{StaticResource NodeFieldTextBox}"
@@ -2869,6 +2873,39 @@
                 <CheckBox Content="Required" Margin="0,6,0,0" FontSize="10"
                           IsChecked="{Binding Required}" Foreground="{StaticResource TextMuted}" />
             </StackPanel>
+        </DataTemplate>
+
+        <!-- Standard Output and Standard Error: one template for both (the selector walks base
+             types). A console: monospaced, read-only but selectable, kept scrolled to the newest line;
+             standard error in the error colour. -->
+        <DataTemplate DataType="{x:Type n:ConsoleViewNode}">
+            <DockPanel MinHeight="60">
+                <CheckBox DockPanel.Dock="Bottom" Content="Wrap" Margin="0,5,0,0" FontSize="10"
+                          IsChecked="{Binding Wrap}" Foreground="{StaticResource TextMuted}" />
+                <Border Background="#FF16161B" CornerRadius="3" Padding="5,3"
+                        BorderBrush="#FF3E3E4A" BorderThickness="1" ClipToBounds="True">
+                    <TextBox Text="{Binding DisplayText, Mode=OneWay}" IsReadOnly="True"
+                             p:ScrollToEnd.Enabled="True"
+                             Background="Transparent" BorderThickness="0" Padding="0"
+                             CaretBrush="Transparent"
+                             SelectionBrush="#FF6FB3FF" FontFamily="Consolas" FontSize="11"
+                             VerticalContentAlignment="Top"
+                             TextWrapping="{Binding Wrap, Converter={StaticResource BoolToTextWrapping}}"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Hidden">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ShowsError}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource ErrorText}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </Border>
+            </DockPanel>
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type n:CliExitCodeNode}">

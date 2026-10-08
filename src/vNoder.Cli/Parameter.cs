@@ -6,9 +6,10 @@ namespace vNoder.Cli;
 /// <summary>
 /// One command-line parameter a graph declares, gathered from its CLI Param nodes. Several nodes may
 /// use the same name: they make one parameter, required if any of them is, with the first default and
-/// description found.
+/// description found. A default wired into any of them is computed during the run, so the list says
+/// that rather than showing a value.
 /// </summary>
-internal sealed record Parameter(string Name, bool Required, string Default, string Description)
+internal sealed record Parameter(string Name, bool Required, string Default, string Description, bool DefaultComputed)
 {
     public static IReadOnlyList<Parameter> FromGraph(Graph graph) =>
         graph.Nodes
@@ -19,7 +20,8 @@ internal sealed record Parameter(string Name, bool Required, string Default, str
                 g.First().Name,
                 g.Any(n => n.Required),
                 g.Select(n => n.Default).FirstOrDefault(d => d.Length > 0) ?? string.Empty,
-                g.Select(n => n.Description.Trim()).FirstOrDefault(d => d.Length > 0) ?? string.Empty))
+                g.Select(n => n.Description.Trim()).FirstOrDefault(d => d.Length > 0) ?? string.Empty,
+                g.Any(n => n.DefaultIsWired)))
             .OrderByDescending(p => p.Required)
             .ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -102,6 +104,8 @@ internal sealed record Parameter(string Name, bool Required, string Default, str
                 notes.Add(parameter.Description);
             if (parameter.Required)
                 notes.Add("(required)");
+            else if (parameter.DefaultComputed)
+                notes.Add("(default: computed by the graph)");
             else if (parameter.Default.Length > 0)
                 notes.Add($"(default: {parameter.Default})");
             else

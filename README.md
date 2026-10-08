@@ -32,9 +32,10 @@ dotnet run --project src/vNoder.Cli -- samples/11-command-line.vnoder --name Ada
 ```
 
 A graph takes parameters through **CLI Param** nodes, each with a name, a default, a description and
-a Required flag. They are given as `--name value` or `--name=value` (a name with no value means
-`true`). Put `--help` after the file to list a graph's parameters without running it. An unknown
-or missing required parameter stops the run with exit code 2 and the list.
+a Required flag. The default can also be wired in, so the graph computes it (the current user, today's
+date); `--help` then lists it as computed. They are given as `--name value` or `--name=value`
+(a name with no value means `true`). Put `--help` after the file to list a graph's parameters without
+running it. An unknown or missing required parameter stops the run with exit code 2 and the list.
 
 The graph writes to standard output with **CLI Write** and chooses the exit code with **Exit Code**.
 Without an Exit Code node the code is 0, or 1 if a node failed; 2 means the file could not be read
@@ -127,7 +128,7 @@ Nodes show what they make, in place: an image, a table, a plot.
 | IO | File Read, File Write, File Copy, File Move, File Hash (streamed), Path Delete (files and directories), Path Exists, File Info, Create Directory, File Search, Directory Size, Drive Info, Zip Create, Zip Extract, Image Load, Image Save, File Tail (lines added since the last pass, like tail -f) |
 | Path | Path Parts, Combine, Change Extension, Special Folder (Temp, Desktop, Downloads, AppData …) |
 | System | Environment Variable, Run Process, Process List, Process Kill, Machine Info, Registry Read, Clipboard Get / Set, Notify (desktop notification), Open (a URL, file or folder in its default program) |
-| CLI | CLI Param (a named `--name value` argument, optional or required), CLI Read Stdin (what was piped in), CLI Write (to standard output or error), Exit Code (for `vnoder-cli`) |
+| CLI | CLI Param (a named `--name value` argument, optional or required), CLI Read Stdin (what was piped in), CLI Write (to standard output or error, optionally timestamped like a log), Standard Output and Standard Error (show what CLI Write wrote this run, as a console would), Exit Code (for `vnoder-cli`) |
 | Network | HTTP Request (GET, POST, PUT, PATCH, DELETE; a raw body, or form fields URL-encoded for HTML forms and OAuth2 token endpoints), Download To File, URL Parse, URL Build, TLS Certificate (a server's certificate and expiry), DNS Lookup, Ping, TCP Port Check, IP Range (CIDR), Send Email (SMTP) |
 | Image | Convert (to PNG, JPEG, WebP, GIF, BMP, TIFF, TGA, QOI, PBM), Resize (fit, fill, stretch, pad; thumbnails), Crop, Rotate Flip (and EXIF auto-orient), Adjust (brightness, contrast, saturation, hue), Filter (grayscale, sepia, invert, blur, sharpen, pixelate), Draw Text (watermarks, captions), Solid Color, To Data URI |
 | Output | Output, Note (free text, linked to nothing), Length, Image (PNG, JPEG, GIF, BMP, TIFF, ICO, WebP, TGA, QOI, PBM, or Base64 text), Table, Plot (a value over time), Log (a timestamped trail) |
